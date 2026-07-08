@@ -12,7 +12,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Libreria Ufficiale Supabase -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- CARICAMENTO DEL FILE DI CONFIGURAZIONE ESTERNO -->
@@ -501,7 +500,7 @@
                 document.getElementById('dateInvioPrev').value = currentCommessa.preventivo_data_invio || '';
                 document.getElementById('dateReminderPrev').value = currentCommessa.preventivo_scadenza_promemoria || '';
                 document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
-                document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
+                document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || currentCommessa.contratto_stato || 'REDZIONE';
                 document.getElementById('checkPrivacy').checked = currentCommessa.privacy_firmata || false;
                 document.getElementById('textDetrazioni').value = currentCommessa.detrazioni_fiscali_gestite || '';
                 document.getElementById('checkFattInviata').checked = currentCommessa.acconto_fattura_inviata || false;
@@ -644,7 +643,6 @@
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
-        // CORRETTA E IMPLEMENTATA: AGGIORNA I CAMPI IN CLOUD E ALLINEA IMMEDIATAMENTE L'INTERFACCIA DELLA COMMESSA
         async function updateAnagrafica() {
             const tipo = document.getElementById('editTipo').value; 
             const denominazione = document.getElementById('editDenominazione').value.trim();
@@ -658,12 +656,10 @@
             
             if(!denominazione) { alert("La denominazione è obbligatoria!"); return; }
 
-            // 1. Aggiorna l'anagrafica cliente in Cloud
             const { error: err1 } = await db.from('clienti')
                 .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note })
                 .eq('id', currentClienteId);
             
-            // 2. Aggiorna l'indirizzo cantiere nella Commessa associata
             const { error: err2 } = await db.from('commesse')
                 .update({ indirizzo_cantiere: cantiere })
                 .eq('id', currentCommessa.id);
@@ -673,17 +669,12 @@
                 return; 
             }
             
-            // 3. Chiudi la finestra di modifica
             closeAnagraficaModal(); 
-            
-            // 4. Forza l'app a riscaricare i dati freschi da Supabase per aggiornare la cache locale (allClients)
             await fetchClienti();
 
-            // 5. Rinfresca immediatamente i testi visibili nell'intestazione del Workspace aperto
             document.getElementById('commessaClientName').innerText = denominazione; 
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere || 'Non indicato'}`; 
             
-            // 6. Sincronizza i dati della commessa corrente con quelli nuovi appena riscaricati
             const clienteAggiornato = allClients.find(c => c.id === currentClienteId);
             if(clienteAggiornato && clienteAggiornato.commesse) {
                 currentCommessa = clienteAggiornato.commesse[0];
