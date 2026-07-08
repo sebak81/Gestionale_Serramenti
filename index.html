@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preventivatore - Gestionale</title>
+    <title>Gestione Commesse</title>
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,7 +32,7 @@
 
     <!-- Header -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
-        <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Preventivatore</span>
+        <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
@@ -545,7 +545,6 @@
             window.scrollTo(0,0);
         }
 
-        // FUNZIONE PER ELIMINARE UN OPERATORE CON CONFERMA SICURA
         async function deleteWorker(id, nome) {
             const conferma = confirm(`Sei sicuro di voler eliminare permanentemente "${nome}" dall'elenco del personale?`);
             if (!conferma) return;
