@@ -18,6 +18,13 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        /* Colori dinamici per gli stati */
+        .stato-CONTATTO { background-color: #f1f5f9; color: #475569; }
+        .stato-PREVENTIVAZIONE { background-color: #e0f2fe; color: #0369a1; }
+        .stato-MISURE_ORDINI { background-color: #fef3c7; color: #b45309; }
+        .stato-AMMINISTRAZIONE_FATTURAZIONE { background-color: #fae8ff; color: #a21caf; }
+        .stato-SISTEMAZIONI { background-color: #fee2e2; color: #b91c1c; }
+        .stato-CONCLUSO { background-color: #dcfce7; color: #15803d; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
@@ -30,31 +37,70 @@
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- Contenuto Principale -->
-    <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
-        
-        <!-- Barra di Ricerca e Bottone Nuovo -->
+    <!-- SCHERMATA PRINCIPALE: LISTA CLIENTI -->
+    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="flex space-x-2">
             <div class="relative flex-1">
-                <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente o note..." 
+                <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente, note, P.IVA..." 
                        class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
             </div>
-            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium shadow flex items-center text-sm transition-colors">
+            <button onclick="openNewClientModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium shadow flex items-center text-sm transition-colors">
                 <span class="mr-1">➕</span> Nuovo
             </button>
         </div>
 
-        <!-- Stato di Caricamento -->
-        <div id="loading" class="text-center py-8 text-slate-500 text-sm">
-            ⏳ Caricamento clienti da Supabase...
-        </div>
-
-        <!-- Lista Clienti Dinamica -->
+        <div id="loading" class="text-center py-8 text-slate-500 text-sm">⏳ Caricamento dati da Supabase...</div>
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- Modale per INSERIMENTO Nuovo Cliente -->
+    <!-- SCHERMATA DETTAGLIO: WORKSPACE COMMESSA & DIARIO -->
+    <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <button onclick="showMainScreen()" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna alla lista</span>
+        </button>
+
+        <!-- Card Stato Commessa -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 id="commessaClientName" class="text-lg font-bold text-slate-900">Nome Cliente</h2>
+                    <p id="commessaCantiere" class="text-xs text-slate-500 mt-0.5">📍 Cantiere: non specificato</p>
+                </div>
+                <button onclick="openAnagraficaModal()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs" title="Modifica Anagrafica">⚙️ Info</button>
+            </div>
+            
+            <div class="border-t pt-3">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stato Avanzamento Lavoro</label>
+                <select id="commessaStatoSelect" onchange="changeCommessaStato()" class="w-full p-2.5 font-semibold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="CONTATTO">📞 CONTATTO CLIENTE</option>
+                    <option value="PREVENTIVAZIONE">📄 PREVENTIVAZIONE</option>
+                    <option value="MISURE_ORDINI">📐 MISURE ED ORDINI</option>
+                    <option value="AMMINISTRAZIONE_FATTURAZIONE">📊 AMMINISTRAZIONE E FATTURAZIONE</option>
+                    <option value="SISTEMAZIONI">🔧 SISTEMAZIONI / INTERVENTI</option>
+                    <option value="CONCLUSO">✅ CONCLUSO / POSATO</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Sezione Diario Timeline -->
+        <div class="space-y-3">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">📝 Diario delle Attività</h3>
+            
+            <!-- Inserimento Nota nel Diario -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
+                <input type="text" id="newDiarioNote" placeholder="Scrivi un aggiornamento (es. misure prese)..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 text-xs font-semibold rounded-lg shadow transition-colors">Invia</button>
+            </div>
+
+            <!-- Contenitore Note della Timeline -->
+            <div id="diarioTimeline" class="space-y-2">
+                <!-- Caricate dinamicamente -->
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALE: INSERIMENTO NUOVO CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 my-8">
             <h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3>
@@ -93,25 +139,28 @@
                     <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Via, CAP, Città, PR">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Note Generali (Appunti personali)</label>
-                    <textarea id="newNote" rows="3" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Dettagli utili per ricordare il cliente..."></textarea>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Indirizzo Cantiere (Se diverso)</label>
+                    <input type="text" id="newCantiere" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo dove posare i serramenti">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Note Generali (Appunti stabili)</label>
+                    <textarea id="newNote" rows="3" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Dettagli fissi del cliente..."></textarea>
                 </div>
             </div>
             <div class="flex space-x-3 pt-2">
                 <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors">Annulla</button>
-                <button onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Salva</button>
+                <button onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Salva e Apri</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale per VISUALIZZAZIONE E MODIFICA Cliente Esistente -->
-    <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <!-- MODALE: EDIT ANAGRAFICA COMPLETA -->
+    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 my-8">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-lg font-bold text-slate-900">Scheda Cliente</h3>
-                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+                <h3 class="text-lg font-bold text-slate-900">Modifica Dati Fiscali & Contatti</h3>
+                <button onclick="closeAnagraficaModal()" class="text-slate-400 hover:text-slate-600 text-xl">✕</button>
             </div>
-            <input type="hidden" id="editId">
             <div class="space-y-3 text-sm max-h-[60vh] overflow-y-auto pr-1">
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tipo Cliente</label>
@@ -147,13 +196,17 @@
                     <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Note Generali (Appunti personali)</label>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Indirizzo Cantiere</label>
+                    <input type="text" id="editCantiere" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Note Generali</label>
                     <textarea id="editNote" rows="3" class="w-full p-2 border rounded-lg bg-slate-50"></textarea>
                 </div>
             </div>
             <div class="flex space-x-3 pt-2">
-                <button onclick="closeDetailModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors">Chiudi</button>
-                <button onclick="updateCliente()" class="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">Aggiorna Dati</button>
+                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors">Chiudi</button>
+                <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">Aggiorna Anagrafica</button>
             </div>
         </div>
     </div>
@@ -161,7 +214,7 @@
     <!-- Barra Navigazione Inferiore -->
     <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center">
-            <a href="#" class="flex flex-col items-center text-blue-600 font-semibold text-xs flex-1">
+            <a href="#" onclick="showMainScreen()" class="flex flex-col items-center text-blue-600 font-semibold text-xs flex-1">
                 <span class="text-xl">👥</span><span>Clienti</span>
             </a>
             <a href="#" class="flex flex-col items-center text-slate-400 text-xs flex-1">
@@ -176,36 +229,34 @@
         </div>
     </nav>
 
-    <!-- Logica di Connessione ed Eventi JS -->
     <script>
         // CONFIGURAZIONE SUPABASE
         const SUPABASE_URL = "https://jskrttromnqvupuzghap.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impza3J0dHJvbW5xdnVwdXpnaGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NjczODgsImV4cCI6MjA5OTA0MzM4OH0.08IaXn5PMVdOGITPjOTmudDbhuXWSo5YCwRnTKxAOQQ";
+        const SUPABASE_ANON_KEY = "METTI_QUI_LA_TUA_ANON_KEY_LUNGHISSIMA";
 
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         let allClients = [];
+        let currentClienteId = null;
+        let currentCommessa = null;
 
-        // Scarica i clienti da Supabase
+        // Scarica anagrafiche unite allo stato commessa
         async function fetchClienti() {
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('clientList').classList.add('hidden');
 
+            // Facciamo una query relazionale automatica su Supabase! Clienti + la loro Commessa associata
             const { data, error } = await db
                 .from('clienti')
-                .select('*')
+                .select('*, commesse(*)外部')
                 .order('denominazione', { ascending: true });
 
-            if (error) {
-                console.error(error);
-                alert("Errore nel caricamento dei dati.");
-                return;
-            }
+            if (error) { console.error(error); alert("Errore caricamento."); return; }
 
             allClients = data;
             renderClients(allClients);
         }
 
-        // Disegna le card dei clienti a schermo
         function renderClients(list) {
             const container = document.getElementById('clientList');
             container.innerHTML = "";
@@ -218,6 +269,15 @@
             }
 
             list.forEach(cliente => {
+                const commessa = cliente.commesse && cliente.commesse.length > 0 ? cliente.commesse[0] : null;
+                const stato = commessa ? commessa.stato_avanzamento : 'CONTATTO';
+                
+                // Formattazione etichette leggibili
+                const labelsStato = {
+                    'CONTATTO': 'Contatto', 'PREVENTIVAZIONE': 'Preventivo', 'MISURE_ORDINI': 'Misure & Ordini',
+                    'AMMINISTRAZIONE_FATTURAZIONE': 'Amministrazione', 'SISTEMAZIONI': 'Sistemazione', 'CONCLUSO': 'Concluso'
+                };
+
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer space-y-2 relative";
                 
@@ -225,20 +285,23 @@
                 const waPhone = cleanPhone.startsWith('+') || cleanPhone.startsWith('00') ? cleanPhone : '39' + cleanPhone;
 
                 card.innerHTML = `
-                    <div onclick="openDetailModal('${cliente.id}')" class="pr-24">
-                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">${cliente.tipo_cliente}</span>
+                    <div onclick="openCommessaWorkspace('${cliente.id}')" class="pr-24">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded stato-${stato}">${labelsStato[stato]}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${cliente.tipo_cliente}</span>
+                        </div>
                         <h3 class="text-base font-bold text-slate-900 mt-1">${cliente.denominazione}</h3>
-                        <p class="text-xs text-slate-500 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Nessun indirizzo'}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">📍 Cantiere: ${commessa?.indirizzo_cantiere || cliente.indirizzo_fatturazione || 'Non indicato'}</p>
                     </div>
                     
                     <div class="absolute top-4 right-4 flex flex-col space-y-1.5 z-10">
-                        ${cliente.telefono ? `<a href="tel:${cliente.telefono}" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-center text-xs shadow-sm transition-colors" title="Chiama">📞</a>` : ''}
-                        ${cliente.email ? `<a href="mailto:${cliente.email}" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-full text-center text-xs shadow-sm transition-colors" title="Invia Email">✉️</a>` : ''}
-                        ${cliente.telefono ? `<a href="https://wa.me/${waPhone}" target="_blank" class="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-full text-center text-xs shadow-sm transition-colors" title="WhatsApp">💬</a>` : ''}
+                        ${cliente.telefono ? `<a href="tel:${cliente.telefono}" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full text-center text-xs shadow-sm transition-colors">📞</a>` : ''}
+                        ${cliente.email ? `<a href="mailto:${cliente.email}" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-full text-center text-xs shadow-sm transition-colors">✉️</a>` : ''}
+                        ${cliente.telefono ? `<a href="https://wa.me/${waPhone}" target="_blank" class="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-full text-center text-xs shadow-sm transition-colors">💬</a>` : ''}
                     </div>
 
                     ${cliente.note_generali ? `
-                        <div onclick="openDetailModal('${cliente.id}')" class="bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs text-slate-600 italic mt-2">
+                        <div onclick="openCommessaWorkspace('${cliente.id}')" class="bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs text-slate-600 italic mt-1">
                             📌 <strong>Nota:</strong> ${cliente.note_generali}
                         </div>
                     ` : ''}
@@ -247,27 +310,106 @@
             });
         }
 
-        function filterClients() {
-            const term = document.getElementById('searchClient').value.toLowerCase();
-            const filtered = allClients.filter(c => 
-                c.denominazione.toLowerCase().includes(term) || 
-                (c.note_generali && c.note_generali.toLowerCase().includes(term)) ||
-                (c.codice_fiscale && c.codice_fiscale.toLowerCase().includes(term)) ||
-                (c.partita_iva && c.partita_iva.toLowerCase().includes(term))
-            );
-            renderClients(filtered);
-        }
-
-        // Modale NUOVO CLIENTE
-        function openModal() { document.getElementById('clientModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-
-        // Modale DETTAGLIO / MODIFICA CLIENTE
-        function openDetailModal(id) {
-            const cliente = allClients.find(c => c.id === id);
+        // APRI WORKSPACE COMMESSA (DIARIO)
+        async function openCommessaWorkspace(clienteId) {
+            currentClienteId = clienteId;
+            const cliente = allClients.find(c => c.id === clienteId);
             if (!cliente) return;
 
-            document.getElementById('editId').value = cliente.id;
+            currentCommessa = cliente.commesse && cliente.commesse.length > 0 ? cliente.commesse[0] : null;
+
+            document.getElementById('commessaClientName').innerText = cliente.denominazione;
+            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa?.indirizzo_cantiere || cliente.indirizzo_fatturazione || 'Non indicato'}`;
+            
+            // Imposta lo stato nel menu a tendina
+            document.getElementById('commessaStatoSelect').value = currentCommessa ? currentCommessa.stato_avanzamento : 'CONTATTO';
+
+            // Carica le note del diario (timeline)
+            fetchDiarioTimeline();
+
+            // Sotto-sistema di navigazione (nascondi lista, mostra dettaglio)
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('detailScreen').classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function showMainScreen() {
+            document.getElementById('detailScreen').classList.add('hidden');
+            document.getElementById('mainScreen').classList.remove('hidden');
+            fetchClienti();
+        }
+
+        // CARICA NOTE DIARIO (Usa il campo note_cantiere come log di testo strutturato per semplicità e velocità)
+        function fetchDiarioTimeline() {
+            const container = document.getElementById('diarioTimeline');
+            container.innerHTML = "";
+
+            if (!currentCommessa || !currentCommessa.note_cantiere) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4 bg-white rounded-xl border border-dashed">Nessuna attività registrata nel diario.</p>`;
+                return;
+            }
+
+            // Decodifichiamo i messaggi separati da newline per fare la timeline cronologica
+            const noteInLinee = currentCommessa.note_cantiere.split('\n').reverse(); // Più recenti in alto
+            
+            noteInLinee.forEach(linea => {
+                if(!linea.trim()) return;
+                const rigaNota = document.createElement('div');
+                rigaNota.className = "bg-white p-3 rounded-xl shadow-sm border border-slate-100 text-xs leading-relaxed";
+                rigaNota.innerHTML = `<div>${linea}</div>`;
+                container.appendChild(rigaNota);
+            });
+        }
+
+        // AGGIUNGI NOTA AL DIARIO
+        async function addDiarioNote() {
+            const input = document.getElementById('newDiarioNote');
+            const testoNota = input.value.trim();
+            if (!testoNota) return;
+
+            const dataOggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            const rigaFormattata = `📅 [${dataOggi}] - ${testoNota}`;
+
+            let nuovoTestoCompleto = currentCommessa && currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaFormattata : rigaFormattata;
+
+            const { error } = await db
+                .from('commesse')
+                .update({ note_cantiere: nuovoTestoCompleto })
+                .eq('id', currentCommessa.id);
+
+            if (error) { alert("Errore nel diario."); } else {
+                currentCommessa.note_cantiere = nuovoTestoCompleto;
+                input.value = "";
+                fetchDiarioTimeline();
+            }
+        }
+
+        // CAMBIA STATO DELLA COMMESSA DAL MENU A TENDINA
+        async function changeCommessaStato() {
+            const nuovoStato = document.getElementById('commessaStatoSelect').value;
+            const labels = { 'CONTATTO': 'CONTATTO CLIENTE', 'PREVENTIVAZIONE': 'PREVENTIVAZIONE', 'MISURE_ORDINI': 'MISURE ED ORDINI', 'AMMINISTRAZIONE_FATTURAZIONE': 'AMMINISTRAZIONE E FATTURAZIONE', 'SISTEMAZIONI': 'SISTEMAZIONI', 'CONCLUSO': 'CONCLUSO' };
+            
+            const dataOggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            const rigaDiarioAutomatico = `🔄 [${dataOggi}] - STATO AGGIORNATO IN: ${labels[nuovoStato]}`;
+
+            let nuovoTestoCompleto = currentCommessa && currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaDiarioAutomatico : rigaDiarioAutomatico;
+
+            const { error } = await db
+                .from('commesse')
+                .update({ stato_avanzamento: nuovoStato, note_cantiere: nuovoTestoCompleto })
+                .eq('id', currentCommessa.id);
+
+            if (error) { alert("Errore cambio stato."); } else {
+                currentCommessa.stato_avanzamento = nuovoStato;
+                currentCommessa.note_cantiere = nuovoTestoCompleto;
+                fetchDiarioTimeline();
+            }
+        }
+
+        // MODALE ANAGRAFICA INTERNA
+        function openAnagraficaModal() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
             document.getElementById('editTipo').value = cliente.tipo_cliente;
             document.getElementById('editDenominazione').value = cliente.denominazione;
             document.getElementById('editCF').value = cliente.codice_fiscale || '';
@@ -275,13 +417,37 @@
             document.getElementById('editTelefono').value = cliente.telefono || '';
             document.getElementById('editEmail').value = cliente.email || '';
             document.getElementById('editIndirizzo').value = cliente.indirizzo_fatturazione || '';
+            document.getElementById('editCantiere').value = currentCommessa?.indirizzo_cantiere || '';
             document.getElementById('editNote').value = cliente.note_generali || '';
-
-            document.getElementById('detailModal').classList.remove('hidden');
+            document.getElementById('anagraficaModal').classList.remove('hidden');
         }
-        function closeDetailModal() { document.getElementById('detailModal').classList.add('hidden'); }
+        function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
 
-        // Salva Nuovo Cliente
+        async function updateAnagrafica() {
+            const tipo = document.getElementById('editTipo').value;
+            const denominazione = document.getElementById('editDenominazione').value.trim();
+            const cf = document.getElementById('editCF').value.trim().toUpperCase();
+            const iva = document.getElementById('editIVA').value.trim();
+            const telefono = document.getElementById('editTelefono').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const indirizzo = document.getElementById('editIndirizzo').value.trim();
+            const cantiere = document.getElementById('editCantiere').value.trim();
+            const note = document.getElementById('editNote').value.trim();
+
+            const { error: err1 } = await db.from('clienti').update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }).eq('id', currentClienteId);
+            const { error: err2 } = await db.from('commesse').update({ indirizzo_cantiere: cantiere }).eq('id', currentCommessa.id);
+
+            if (err1 || err2) { alert("Errore modifica."); } else {
+                closeAnagraficaModal();
+                // Aggiorna scritte a schermo nel workspace
+                document.getElementById('commessaClientName').innerText = denominazione;
+                document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere || indirizzo || 'Non indicato'}`;
+                // Aggiorna cache locale
+                fetchClienti();
+            }
+        }
+
+        // SALVA NUOVO CLIENTE + CREA AUTOMATICAMENTE COMMESSA INIZIALE
         async function saveCliente() {
             const tipo = document.getElementById('newTipo').value;
             const denominazione = document.getElementById('newDenominazione').value.trim();
@@ -290,53 +456,40 @@
             const telefono = document.getElementById('newTelefono').value.trim();
             const email = document.getElementById('newEmail').value.trim();
             const indirizzo = document.getElementById('newIndirizzo').value.trim();
+            const cantiere = document.getElementById('newCantiere').value.trim();
             const note = document.getElementById('newNote').value.trim();
 
-            if (!denominazione) { alert("Il campo Nome è obbligatorio!"); return; }
+            if (!denominazione) { alert("Nome obbligatorio!"); return; }
 
-            const { error } = await db.from('clienti').insert([{ 
-                tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note 
+            // 1. Inserisce Cliente
+            const { data: newClient, error: errCliente } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
+            if (errCliente || !newClient) { alert("Errore salvataggio cliente."); return; }
+
+            // 2. Crea Commessa agganciata in automatico
+            const dataOggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            const rigaIniziale = `🏁 [${dataOggi}] - Commessa aperta in stato CONTATTO`;
+            
+            const { error: errCommessa } = await db.from('commesse').insert([{
+                cliente_id: newClient[0].id,
+                titolo_lavoro: "Lavoro serramenti " + denominazione,
+                indirizzo_cantiere: cantiere || indirizzo,
+                stato_avanzamento: 'CONTATTO',
+                note_cantiere: rigaIniziale
             }]);
 
-            if (error) { alert("Errore nel salvataggio."); } else {
-                closeModal();
-                document.getElementById('newDenominazione').value = "";
-                document.getElementById('newCF').value = "";
-                document.getElementById('newIVA').value = "";
-                document.getElementById('newTelefono').value = "";
-                document.getElementById('newEmail').value = "";
-                document.getElementById('newIndirizzo').value = "";
-                document.getElementById('newNote').value = "";
-                fetchClienti();
-            }
+            if (errCommessa) { alert("Errore creazione commessa."); return; }
+
+            closeModal();
+            // Resetta campi
+            document.getElementById('newDenominazione').value = ""; document.getElementById('newCF').value = ""; document.getElementById('newIVA').value = ""; document.getElementById('newTelefono').value = ""; document.getElementById('newEmail').value = ""; document.getElementById('newIndirizzo').value = ""; document.getElementById('newCantiere').value = ""; document.getElementById('newNote').value = "";
+            
+            // Ricarica tutto e apri subito il workspace del nuovo cliente
+            await fetchClienti();
+            openCommessaWorkspace(newClient[0].id);
         }
 
-        // Aggiorna / Modifica Cliente Esistente
-        async function updateCliente() {
-            const id = document.getElementById('editId').value;
-            const tipo = document.getElementById('editTipo').value;
-            const denominazione = document.getElementById('editDenominazione').value.trim();
-            const cf = document.getElementById('editCF').value.trim().toUpperCase();
-            const iva = document.getElementById('editIVA').value.trim();
-            const telefono = document.getElementById('editTelefono').value.trim();
-            const email = document.getElementById('editEmail').value.trim();
-            const indirizzo = document.getElementById('editIndirizzo').value.trim();
-            const note = document.getElementById('editNote').value.trim();
-
-            if (!denominazione) { alert("Il campo Nome è obbligatorio!"); return; }
-
-            const { error } = await db.from('clienti').update({ 
-                tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note 
-            }).eq('id', id);
-
-            if (error) {
-                console.error(error);
-                alert("Errore nell'aggiornamento dei dati.");
-            } else {
-                closeDetailModal();
-                fetchClienti();
-            }
-        }
+        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
         window.onload = () => {
             fetchClienti();
