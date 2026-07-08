@@ -106,10 +106,11 @@
     <!-- Logica di Connessione ed Eventi JS -->
     <script>
         // CONFIGURAZIONE SUPABASE - INSERISCI QUI I TUOI DATI REALI
-        const SUPABASE_URL = "https://jskrttromnqvupuzghap.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impza3J0dHJvbW5xdnVwdXpnaGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NjczODgsImV4cCI6MjA5OTA0MzM4OH0.08IaXn5PMVdOGITPjOTmudDbhuXWSo5YCwRnTKxAOQQ";
+        const SUPABASE_URL = "https://IL_TUO_ID.supabase.co"; 
+        const SUPABASE_ANON_KEY = "LA_TUA_ANON_KEY_LUNGHISSIMA";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Abbiamo cambiato 'const supabase' in 'const db' per evitare il conflitto
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let allClients = [];
 
         // Funzione per scaricare i clienti dal database
@@ -117,7 +118,8 @@
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('clientList').classList.add('hidden');
 
-            const { data, error } = await supabase
+            // Usiamo 'db' invece di 'supabase'
+            const { data, error } = await db
                 .from('clienti')
                 .select('*')
                 .order('denominazione', { ascending: true });
@@ -182,7 +184,8 @@
                 return;
             }
 
-            const { error } = await supabase
+            // Usiamo 'db' invece di 'supabase'
+            const { error } = await db
                 .from('clienti')
                 .insert([{ tipo_cliente: tipo, denominazione, telefono, indirizzo_fatturazione: indirizzo }]);
 
@@ -191,11 +194,9 @@
                 alert("Errore durante il salvataggio.");
             } else {
                 closeModal();
-                // Pulisce i campi
                 document.getElementById('newDenominazione').value = "";
                 document.getElementById('newTelefono').value = "";
                 document.getElementById('newIndirizzo').value = "";
-                // Ricarica la lista aggiornata
                 fetchClienti();
             }
         }
