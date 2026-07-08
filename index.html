@@ -504,7 +504,7 @@
         function toggleFatturaAccontoInvio(checked, save = true) { document.getElementById('boxFattInvioDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_fattura_inviata', checked); }
         function toggleFatturaAccontoPagamento(checked, save = true) { document.getElementById('boxFattPagamentoDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_pagata', checked); }
 
-        // STAMPA LISTA PERSONALE NELLE IMPOSTAZIONI (CON TASTO EDIT ✏️)
+        // STAMPA LISTA PERSONALE CON TASTI EDIT E CANCELLAZIONE
         function renderSettingsWorkers() {
             const container = document.getElementById('settingsWorkersList'); container.innerHTML = "";
             if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">Nessun dipendente salvato.</p>`; return; }
@@ -515,7 +515,10 @@
                         <strong>${w.nome}</strong>
                         <span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span>
                     </div>
-                    <button onclick="startEditWorker('${w.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100" title="Modifica">✏️</button>
+                    <div class="flex space-x-1.5">
+                        <button onclick="startEditWorker('${w.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">✏️</button>
+                        <button onclick="deleteWorker('${w.id}', '${w.nome.replace(/'/g, "\\'")}')" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold hover:bg-rose-100">🗑️</button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
@@ -529,25 +532,33 @@
             document.getElementById('newWorkerForm').classList.remove('hidden');
         }
         
-        function closeNewWorkerForm() { 
-            document.getElementById('newWorkerForm').classList.add('hidden'); 
-        }
+        function closeNewWorkerForm() { document.getElementById('newWorkerForm').classList.add('hidden'); }
 
-        // PREPARAZIONE MODIFICA LAVORATORE
         function startEditWorker(id) {
             const worker = listLavoratori.find(l => l.id === id);
             if (!worker) return;
-
             document.getElementById('workerEditId').value = worker.id;
             document.getElementById('workerNameInput').value = worker.nome;
             document.getElementById('workerRoleInput').value = worker.ruolo;
             document.getElementById('btnSaveWorker').innerText = "Aggiorna";
-            
             document.getElementById('newWorkerForm').classList.remove('hidden');
             window.scrollTo(0,0);
         }
 
-        // SALVATAGGIO INTELLIGENTE: SE ID C'È FA AGGIORNAMENTO, SE NO FA INSERIMENTO
+        // FUNZIONE PER ELIMINARE UN OPERATORE CON CONFERMA SICURA
+        async function deleteWorker(id, nome) {
+            const conferma = confirm(`Sei sicuro di voler eliminare permanentemente "${nome}" dall'elenco del personale?`);
+            if (!conferma) return;
+
+            const { error } = await db.from('lavoratori').delete().eq('id', id);
+            if (!error) {
+                await initLists();
+                renderSettingsWorkers();
+            } else {
+                alert("Impossibile eliminare l'operatore. Potrebbe essere assegnato a qualche lavoro.");
+            }
+        }
+
         async function saveNewWorker() {
             const id = document.getElementById('workerEditId').value;
             const nome = document.getElementById('workerNameInput').value.trim(); 
@@ -555,11 +566,9 @@
             if (!nome) return;
 
             if (id) {
-                // MODIFICA
                 const { error } = await db.from('lavoratori').update({ nome, ruolo }).eq('id', id);
                 if (error) { alert("Errore modifica."); return; }
             } else {
-                // NUOVO INSERIMENTO
                 const { error } = await db.from('lavoratori').insert([{ nome, ruolo }]);
                 if (error) { alert("Errore inserimento."); return; }
             }
