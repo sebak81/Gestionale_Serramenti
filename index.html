@@ -194,7 +194,7 @@
                         <span class="font-semibold text-slate-700">1. Invio Fattura d'Acconto:</span>
                         <input type="checkbox" id="checkFattInviata" onchange="toggleFatturaAccontoInvio(this.checked)" class="rounded text-purple-600 h-4 w-4">
                     </div>
-                    <div id="boxFattInvioDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2 border-purple-100">
+                    <div id="boxFattInvioDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
                         <div>
                             <input type="date" id="dateFattAcconto" onchange="updateCommessaField('acconto_data_invio', this.value)" class="w-full p-1 border rounded bg-white">
                         </div>
@@ -208,7 +208,7 @@
                         <span class="font-semibold text-slate-700">2. Stato Pagamento Incassato:</span>
                         <input type="checkbox" id="checkFattPagata" onchange="toggleFatturaAccontoPagamento(this.checked)" class="rounded text-emerald-600 h-4 w-4">
                     </div>
-                    <div id="boxFattPagamentoDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2 border-emerald-100">
+                    <div id="boxFattPagamentoDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
                         <div>
                             <input type="date" id="dateFattPagata" onchange="updateCommessaField('acconto_data_pagamento', this.value)" class="w-full p-1 border rounded bg-white">
                         </div>
@@ -505,10 +505,10 @@
 
         function renderSettingsWorkers() {
             const container = document.getElementById('settingsWorkersList'); container.innerHTML = "";
-            if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2">Nessun dipendente.</p>`; return; }
+            if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2">Nessun dipendente salvato.</p>`; return; }
             listLavoratori.forEach(w => {
-                const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2 rounded-xl border text-xs mt-1";
-                item.innerHTML = `<div><strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 ${w.ruolo}</span></div>`;
+                const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm";
+                item.innerHTML = `<div><strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span></div>`;
                 container.appendChild(item);
             });
         }
@@ -519,7 +519,7 @@
             const nome = document.getElementById('workerNameInput').value.trim(); const ruolo = document.getElementById('workerRoleInput').value;
             if (!nome) return;
             const { error } = await db.from('lavoratori').insert([{ nome, ruolo }]);
-            if (!error) { document.getElementById('workerNameInput').value = ""; closeNewWorkerForm(); await initLists(); renderSettingsWorkers(); }
+            if (!error) { document.getElementById('workerNameInput').value = ""; closeNewWorkerForm(); await initLists(); renderSettingsWorkers(); } else { alert("Errore inserimento."); }
         }
 
         async function saveCliente() {
