@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionale Serramenti</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SerramentiPro">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Serramenti<span class="text-white font-medium">Pro</span></span>
+        </div>
+        <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">
+            Dev: Sebak
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
+        
+        <div class="flex space-x-2">
+            <div class="relative flex-1">
+                <input type="text" id="searchClient" placeholder="Cerca cliente o cantiere..." 
+                       class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+            </div>
+            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium shadow flex items-center text-sm transition-colors">
+                <span class="mr-1">➕</span> Nuovo
+            </button>
+        </div>
+
+        <div class="space-y-3" id="clientList">
+            
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800">In Misurazione</span>
+                        <h3 class="text-base font-bold text-slate-900 mt-1">Rossi Mario</h3>
+                    </div>
+                    <a href="tel:+393331234567" class="p-2 bg-slate-100 hover:bg-blue-50 text-blue-600 rounded-full transition-colors">📞</a>
+                </div>
+                <p class="text-xs text-slate-500 mb-1">📍 Via Roma 15, Galliera Veneta</p>
+                <p class="text-xs text-slate-600 italic">💬 Diario: Verificare pendenza foro finestra cucina prima dell'ordine.</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">Preventivazione</span>
+                        <h3 class="text-base font-bold text-slate-900 mt-1">Impresa Costruzioni Veneta Srl</h3>
+                    </div>
+                    <a href="tel:+39049999888" class="p-2 bg-slate-100 hover:bg-blue-50 text-blue-600 rounded-full transition-colors">📞</a>
+                </div>
+                <p class="text-xs text-slate-500 mb-1">📍 Cantiere: Via Padova 42, Cittadella</p>
+                <p class="text-xs text-slate-600 italic">💬 Diario: Inviato preventivo per 12 infissi in PVC finto legno.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center">
+            <a href="#" class="flex flex-col items-center text-blue-600 font-semibold text-xs flex-1">
+                <span class="text-xl">👥</span>
+                <span>Clienti</span>
+            </a>
+            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
+                <span class="text-xl">📄</span>
+                <span>Preventivi</span>
+            </a>
+            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
+                <span class="text-xl">📦</span>
+                <span>Ordini</span>
+            </a>
+            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
+                <span class="text-xl">📊</span>
+                <span>Fatture</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registrato con successo!', reg))
+                    .catch(err => console.error('Errore registrazione SW:', err));
+            });
+        }
+        
+        function openModal() {
+            alert("Pulsante funzionante! Presto qui collegheremo la schermata di inserimento clienti legata a Supabase.");
+        }
+    </script>
+</body>
+</html>
