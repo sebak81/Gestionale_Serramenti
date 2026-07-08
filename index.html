@@ -14,7 +14,7 @@
     <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CARICAMENTO DEL FILE DI CONFIGURAZIONE ESTERNO -->
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,18 +33,18 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header -->
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE CLIENTI -->
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
                 <div class="relative flex-1">
-                    <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente, note, P.IVA..." 
+                    <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente o appunti..." 
                            class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
                 </div>
@@ -67,30 +67,48 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: SEZIONE PREVENTIVI -->
-    <main id="preventiviScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <div class="space-y-2">
-            <h2 class="text-lg font-bold text-slate-900 px-1">📋 Gestione Richieste & Sviluppo</h2>
-            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
-                <button id="subTabPrevContatto" onclick="switchPreventiviSubTab('PRIMO_CONTATTO')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">1. Primo Contatto</button>
-                <button id="subTabPrevSviluppo" onclick="switchPreventiviSubTab('PREVENTIVAZIONE')" class="flex-1 py-1.5 text-center rounded-lg transition-all">2. Preventivazione</button>
-            </div>
-        </div>
-        <div id="preventiviList" class="space-y-3"></div>
-    </main>
-
-    <!-- SCHERMATA 3: SCHEDA COMMESSA OPERATIVA -->
-    <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <button onclick="returnToPreviousScreen()" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
-            <span>⬅️</span> <span id="backButtonText">Torna indietro</span>
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
+    <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
+        <!-- Box Anagrafica Sintetica -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 id="hubClientName" class="text-lg font-bold text-slate-900">Nome Cliente</h2>
+                    <p id="hubClientInfo" class="text-xs text-slate-500 mt-0.5">📞 Tel | ✉️ Email</p>
+                </div>
+                <button onclick="openAnagraficaModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm">✏️ Modifica</button>
+            </div>
+            <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
+        </div>
+
+        <!-- Sezione Commesse Collegate -->
+        <div class="space-y-2">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📦 Commesse e Cantieri di lavoro</h3>
+                <button onclick="openNewCommessaModal()" class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">➕ Nuova Commessa</button>
+            </div>
+            <div id="hubCommesseList" class="space-y-3"></div>
+        </div>
+    </main>
+
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA (DIARIO & AVANZAMENTO) -->
+    <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna al Cliente</span>
+        </button>
+
+        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
-                <h2 id="commessaClientName" class="text-base font-bold text-slate-900">Nome Cliente</h2>
+                <span id="commessaBadgeStato" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">STATO</span>
+                <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
                 <p id="commessaCantiere" class="text-xs text-slate-500 mt-0.5">📍 Cantiere: non specificato</p>
             </div>
-            <button onclick="openAnagraficaModal()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Anagrafica</button>
+            <button onclick="openCommessaEditModal()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
         <div class="flex bg-slate-200 p-1 rounded-xl text-xs font-bold text-slate-600">
@@ -102,7 +120,7 @@
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reparto / Fase Aziendale Attuale</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fase Aziendale della Commessa</label>
                     <select id="commessaMacroSelect" onchange="changeMacroStato()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
                         <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
                         <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
@@ -125,9 +143,9 @@
                 </div>
             </div>
             <div class="space-y-2">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Attività</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Attività Cantiere</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
-                    <input type="text" id="newDiarioNote" placeholder="Scrivi un aggiornamento nel log..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <input type="text" id="newDiarioNote" placeholder="Scrivi una nota cronologica nel diario..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                     <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 text-xs font-semibold rounded-lg shadow">Invia</button>
                 </div>
                 <div id="diarioTimeline" class="space-y-2"></div>
@@ -155,7 +173,7 @@
                         <input type="date" id="dateInvioPrev" onchange="updateCommessaField('preventivo_data_invio', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
                     </div>
                     <div>
-                        <label class="block text-slate-500">Scadenza Promemoria (15gg)</label>
+                        <label class="block text-slate-500">Scadenza Promemoria</label>
                         <input type="date" id="dateReminderPrev" onchange="updateCommessaField('preventivo_scadenza_promemoria', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
                     </div>
                 </div>
@@ -198,12 +216,8 @@
                         <input type="checkbox" id="checkFattInviata" onchange="toggleFatturaAccontoInvio(this.checked)" class="rounded text-purple-600 h-4 w-4">
                     </div>
                     <div id="boxFattInvioDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
-                        <div>
-                            <input type="date" id="dateFattAcconto" onchange="updateCommessaField('acconto_data_invio', this.value)" class="w-full p-1 border rounded bg-white">
-                        </div>
-                        <div>
-                            <select id="workerFattInviataSelect" onchange="updateWorker('acconto_inviata_da', this.value)" class="w-full p-1 border rounded bg-white"></select>
-                        </div>
+                        <input type="date" id="dateFattAcconto" onchange="updateCommessaField('acconto_data_invio', this.value)" class="w-full p-1 border rounded bg-white">
+                        <select id="workerFattInviataSelect" onchange="updateWorker('acconto_inviata_da', this.value)" class="w-full p-1 border rounded bg-white"></select>
                     </div>
                 </div>
                 <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/50 space-y-3 text-xs">
@@ -212,31 +226,37 @@
                         <input type="checkbox" id="checkFattPagata" onchange="toggleFatturaAccontoPagamento(this.checked)" class="rounded text-emerald-600 h-4 w-4">
                     </div>
                     <div id="boxFattPagamentoDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
-                        <div>
-                            <input type="date" id="dateFattPagata" onchange="updateCommessaField('acconto_data_pagamento', this.value)" class="w-full p-1 border rounded bg-white">
-                        </div>
-                        <div>
-                            <select id="workerFattPagataSelect" onchange="updateWorker('acconto_notificato_da', this.value)" class="w-full p-1 border rounded bg-white"></select>
-                        </div>
+                        <input type="date" id="dateFattPagata" onchange="updateCommessaField('acconto_data_pagamento', this.value)" class="w-full p-1 border rounded bg-white">
+                        <select id="workerFattPagataSelect" onchange="updateWorker('acconto_notificato_da', this.value)" class="w-full p-1 border rounded bg-white"></select>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- SCHERMATA 4: IMPOSTAZIONI -->
+    <!-- SCHERMATA 5: SEZIONE PREVENTIVI APERTI -->
+    <main id="preventiviScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <div class="space-y-2">
+            <h2 class="text-lg font-bold text-slate-900 px-1">📋 Gestione Richieste & Sviluppo</h2>
+            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
+                <button id="subTabPrevContatto" onclick="switchPreventiviSubTab('PRIMO_CONTATTO')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">1. Primo Contatto</button>
+                <button id="subTabPrevSviluppo" onclick="switchPreventiviSubTab('PREVENTIVAZIONE')" class="flex-1 py-1.5 text-center rounded-lg transition-all">2. Preventivazione</button>
+            </div>
+        </div>
+        <div id="preventiviList" class="space-y-3"></div>
+    </main>
+
+    <!-- SCHERMATA 6: IMPOSTAZIONI PERSONALE -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-xl font-bold text-slate-900">⚙️ Impostazioni Sistema</h2>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
                     <h3 class="text-sm font-bold text-slate-800">📋 Elenco Personale</h3>
-                    <p class="text-[11px] text-slate-400">Gestisci i collaboratori e le mansioni aziendali</p>
                 </div>
                 <button id="btnToggleWorkerForm" onclick="openNewWorkerForm()" class="bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow">➕ Aggiungi</button>
             </div>
             
-            <!-- Form unico inserimento/modifica lavoratore -->
             <div id="newWorkerForm" class="bg-slate-50 p-3 rounded-xl border space-y-2 hidden">
                 <input type="hidden" id="workerEditId">
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -258,7 +278,9 @@
         </div>
     </main>
 
-    <!-- MODALI DI SERVIZIO -->
+    <!-- MODALI DI APERTURA E MODIFICA -->
+    
+    <!-- MODALE INSERIMENTO NUOVO CLIENTE PULITO -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3>
@@ -271,69 +293,50 @@
                 </div>
                 <input type="tel" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono">
                 <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email">
-                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Fatturazione">
-                <input type="text" id="newCantiere" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Cantiere">
-                <textarea id="newNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Note"></textarea>
+                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo di Fatturazione">
+                <textarea id="newNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Note Generali Stabili..."></textarea>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg">Annulla</button><button onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg">Salva</button></div>
         </div>
     </div>
 
-    <!-- MODALE ANAGRAFICA COMPLETA REALE -->
+    <!-- MODALE MODIFICA ANAGRAFICA STABILE CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-bold text-slate-900">Modifica Dati Cliente</h3>
-                <button onclick="closeAnagraficaModal()" class="text-slate-400 text-lg hover:text-slate-600">✕</button>
-            </div>
+            <h3 class="text-base font-bold text-slate-900 border-b pb-2">Modifica Anagrafica Cliente</h3>
             <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Tipo Cliente</label>
-                    <select id="editTipo" class="w-full p-2 border rounded-lg bg-slate-50"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Nome / Ragione Sociale *</label>
-                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold text-slate-500 mb-0.5">Codice Fiscale</label>
-                        <input type="text" id="editCF" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="16">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-500 mb-0.5">Partita IVA</label>
-                        <input type="text" id="editIVA" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="11">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Telefono</label>
-                    <input type="tel" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Email</label>
-                    <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Indirizzo di Fatturazione</label>
-                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Indirizzo Cantiere</label>
-                    <input type="text" id="editCantiere" class="w-full p-2 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-0.5">Note Generali (Appunti stabili)</label>
-                    <textarea id="editNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50"></textarea>
-                </div>
+                <select id="editTipo" class="w-full p-2 border rounded-lg bg-slate-50"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50">
+                <div class="grid grid-cols-2 gap-2"><input type="text" id="editCF" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="16"><input type="text" id="editIVA" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="11"></div>
+                <input type="tel" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                <textarea id="editNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50"></textarea>
             </div>
             <div class="flex space-x-3 pt-2">
-                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs font-semibold">Chiudi</button>
-                <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-semibold">Aggiorna</button>
+                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs">Chiudi</button>
+                <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold">Aggiorna</button>
             </div>
         </div>
     </div>
 
-    <!-- NAVBAR INFERIORE -->
+    <!-- MODALE AGGIUNGI / MODIFICA SINGOLA COMMESSA -->
+    <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Nuova Commessa di Lavoro</h3>
+            <input type="hidden" id="modalCommessaId">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-0.5">Indirizzo di Cantiere / Destinazione Merci *</label>
+                    <input type="text" id="modalCantiereInput" placeholder="Es: Via Roma 12, Milano" class="w-full p-2.5 border rounded-lg bg-slate-50 font-medium">
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs">Annulla</button>
+                <button onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva e Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIXED BAR NAVIGATION -->
     <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -355,16 +358,17 @@
         let listLavoratori = [];
         
         let currentClienteId = null;
+        let currentCommessaId = null;
         let currentCommessa = null;
-        let lastActiveScreen = 'main';
         
         let clientActiveSubTab = 'all';
         let prevActiveSubTab = 'PRIMO_CONTATTO';
 
         function navigateTo(screen) {
             document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('preventiviScreen').classList.add('hidden');
+            document.getElementById('clientHubScreen').classList.add('hidden');
             document.getElementById('detailScreen').classList.add('hidden');
+            document.getElementById('preventiviScreen').classList.add('hidden');
             document.getElementById('settingsScreen').classList.add('hidden');
             
             document.getElementById('navBtnClienti').className = "flex flex-col items-center text-slate-400 flex-1";
@@ -372,12 +376,16 @@
             document.getElementById('navBtnSettings').className = "flex flex-col items-center text-slate-400 flex-1";
 
             if (screen === 'main') {
-                lastActiveScreen = 'main';
                 document.getElementById('mainScreen').classList.remove('hidden');
                 document.getElementById('navBtnClienti').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
                 fetchClienti();
+            } else if (screen === 'hub') {
+                document.getElementById('clientHubScreen').classList.remove('hidden');
+                document.getElementById('navBtnClienti').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderClientHub();
+            } else if (screen === 'detail') {
+                document.getElementById('detailScreen').classList.remove('hidden');
             } else if (screen === 'preventivi') {
-                lastActiveScreen = 'preventivi';
                 document.getElementById('preventiviScreen').classList.remove('hidden');
                 document.getElementById('navBtnPreventivi').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
                 fetchClienti().then(() => renderPreventiviSection());
@@ -398,9 +406,7 @@
             const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect', 'workerFattInviataSelect', 'workerFattPagataSelect'];
             sels.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.innerHTML = `<option value="">-- Seleziona --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
-                }
+                if (el) el.innerHTML = `<option value="">-- Seleziona --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
             });
         }
 
@@ -411,25 +417,20 @@
             if (error) return;
             allClients = data;
             buildYearFilterMenu();
-            if (document.getElementById('mainScreen').classList.contains('hidden') === false) {
-                renderClientsList();
-            }
+            if (!document.getElementById('mainScreen').classList.contains('hidden')) renderClientsList();
         }
 
         function buildYearFilterMenu() {
             const select = document.getElementById('filterYearSelect');
-            const currentSelection = select.value;
             const years = new Set();
             allClients.forEach(c => { if (c.created_at) years.add(new Date(c.created_at).getFullYear()); });
             select.innerHTML = '<option value="ALL">Tutti gli Anni</option>';
             Array.from(years).sort((a,b) => b-a).forEach(y => { select.innerHTML += `<option value="${y}">${y}</option>`; });
-            if([...years].includes(parseInt(currentSelection))) select.value = currentSelection;
         }
 
         function switchClientSubTab(tab) {
             clientActiveSubTab = tab;
-            const subTabs = ['All', 'InCorso', 'Conclusi'];
-            subTabs.forEach(t => { document.getElementById(`subTabClienti${t}`).className = "flex-1 py-1.5 text-center rounded-lg transition-all"; });
+            ['All', 'InCorso', 'Conclusi'].forEach(t => { document.getElementById(`subTabClienti${t}`).className = "flex-1 py-1.5 text-center rounded-lg transition-all"; });
             document.getElementById(`subTabClienti${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
             renderClientsList();
         }
@@ -443,175 +444,150 @@
             let listFiltrata = allClients.filter(c => {
                 const matchText = c.denominazione.toLowerCase().includes(term) || (c.note_generali && c.note_generali.toLowerCase().includes(term));
                 let matchYear = (selectedYear === 'ALL') || (c.created_at && new Date(c.created_at).getFullYear().toString() === selectedYear);
-                const commessa = c.commesse && c.commesse.length > 0 ? c.commesse[0] : null;
-                const stato = commessa ? commessa.stato_macro : 'PRIMO_CONTATTO';
-                let matchSubTab = (clientActiveSubTab === 'all') || (clientActiveSubTab === 'incorso' && stato !== 'SALDO_CONCLUSO') || (clientActiveSubTab === 'conclusi' && stato === 'SALDO_CONCLUSO');
+                
+                let matchSubTab = true;
+                const haCommesseInCorso = c.commesse && c.commesse.some(com => com.stato_macro !== 'SALDO_CONCLUSO');
+                const haCommesseConcluse = c.commesse && c.commesse.some(com => com.stato_macro === 'SALDO_CONCLUSO');
+                
+                if (clientActiveSubTab === 'incorso') matchSubTab = haCommesseInCorso || c.commesse.length === 0;
+                if (clientActiveSubTab === 'conclusi') matchSubTab = haCommesseConcluse && !haCommesseInCorso;
+
                 return matchText && matchYear && matchSubTab;
             });
 
             if (listFiltrata.length === 0) { container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">Nessun cliente trovato.</div>`; return; }
             listFiltrata.forEach(cliente => {
-                const commessa = cliente.commesse && cliente.commesse.length > 0 ? cliente.commesse[0] : null;
-                const stato = commessa ? commessa.stato_macro : 'PRIMO_CONTATTO';
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer space-y-2";
-                card.innerHTML = `<div onclick="openCommessaWorkspace('${cliente.id}')">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${stato}">${stato}</span>
-                    <h3 class="text-base font-bold text-slate-900 mt-1">${cliente.denominazione}</h3>
-                    <p class="text-xs text-slate-500">📍 Cantiere: ${commessa?.indirizzo_cantiere || 'Non indicato'}</p>
-                </div>`;
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer";
+                card.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
+                card.innerHTML = `
+                    <h3 class="text-base font-bold text-slate-900">${cliente.denominazione}</h3>
+                    <p class="text-xs text-slate-500">📍 Fatturazione: ${cliente.indirizzo_fatturazione || 'Non indicato'}</p>
+                    <div class="mt-2 text-[10px] bg-slate-100 inline-block px-2 py-0.5 rounded font-bold text-slate-500">Lavori registrati: ${cliente.commesse ? cliente.commesse.length : 0}</div>
+                `;
                 container.appendChild(card);
             });
         }
 
         function filterClients() { renderClientsList(); }
-        
-        function switchPreventiviSubTab(statoMacroTarget) {
-            prevActiveSubTab = statoMacroTarget;
-            document.getElementById('subTabPrevContatto').className = statoMacroTarget === 'PRIMO_CONTATTO' ? "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all" : "flex-1 py-1.5 text-center rounded-lg transition-all";
-            document.getElementById('subTabPrevSviluppo').className = statoMacroTarget === 'PREVENTIVAZIONE' ? "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all" : "flex-1 py-1.5 text-center rounded-lg transition-all";
-            renderPreventiviSection();
-        }
 
-        function renderPreventiviSection() {
-            const container = document.getElementById('preventiviList'); container.innerHTML = "";
-            let listFiltrata = allClients.filter(c => { const commessa = c.commesse && c.commesse.length > 0 ? c.commesse[0] : null; return commessa && commessa.stato_macro === prevActiveSubTab; });
-            if (listFiltrata.length === 0) { container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm bg-white border border-dashed rounded-2xl">Nessun cantiere.</div>`; return; }
-            listFiltrata.forEach(cliente => {
-                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer";
-                card.onclick = () => openCommessaWorkspace(cliente.id);
-                card.innerHTML = `<h3 class="text-sm font-bold text-slate-900">${cliente.denominazione}</h3><p class="text-xs text-slate-500">📍 Cantiere: ${cliente.commesse[0].indirizzo_cantiere || 'Non indicato'}</p>`;
-                container.appendChild(card);
-            });
-        }
-
-        async function openCommessaWorkspace(clienteId) {
-            currentClienteId = clienteId; const cliente = allClients.find(c => c.id === clienteId); if (!cliente) return;
-            currentCommessa = cliente.commesse && cliente.commesse.length > 0 ? cliente.commesse[0] : null;
-            document.getElementById('commessaClientName').innerText = cliente.denominazione;
-            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa?.indirizzo_cantiere || 'Non indicato'}`;
-            document.getElementById('backButtonText').innerText = lastActiveScreen === 'preventivi' ? "Torna a Preventivi" : "Torna alla lista";
-
-            if (currentCommessa) {
-                document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
-                document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
-                document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
-                document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
-                document.getElementById('dateInvioPrev').value = currentCommessa.preventivo_data_invio || '';
-                document.getElementById('dateReminderPrev').value = currentCommessa.preventivo_scadenza_promemoria || '';
-                document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
-                document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || currentCommessa.contratto_stato || 'REDZIONE';
-                document.getElementById('checkPrivacy').checked = currentCommessa.privacy_firmata || false;
-                document.getElementById('textDetrazioni').value = currentCommessa.detrazioni_fiscali_gestite || '';
-                document.getElementById('checkFattInviata').checked = currentCommessa.acconto_fattura_inviata || false;
-                toggleFatturaAccontoInvio(currentCommessa.acconto_fattura_inviata, false);
-                document.getElementById('dateFattAcconto').value = currentCommessa.acconto_data_invio || '';
-                document.getElementById('workerFattInviataSelect').value = currentCommessa.acconto_inviata_da || '';
-                document.getElementById('checkFattPagata').checked = currentCommessa.acconto_pagata || false;
-                toggleFatturaAccontoPagamento(currentCommessa.acconto_pagata, false);
-                document.getElementById('dateFattPagata').value = currentCommessa.acconto_data_pagamento || '';
-                document.getElementById('workerFattPagataSelect').value = currentCommessa.acconto_notificato_da || '';
-                fetchDiarioTimeline();
-            }
-            document.getElementById('mainScreen').classList.add('hidden'); document.getElementById('preventiviScreen').classList.add('hidden'); document.getElementById('detailScreen').classList.remove('hidden'); switchTab('diario');
-        }
-
-        function returnToPreviousScreen() { document.getElementById('detailScreen').classList.add('hidden'); if(lastActiveScreen === 'preventivi') { document.getElementById('preventiviScreen').classList.remove('hidden'); renderPreventiviSection(); } else { document.getElementById('mainScreen').classList.remove('hidden'); fetchClienti(); } }
-        function switchTab(tab) { ['diario', 'tecnico'].forEach(t => { document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden'); document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg transition-all"; }); document.getElementById(`tabContent${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden'); document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all"; }
-
-        function fetchDiarioTimeline() {
-            const container = document.getElementById('diarioTimeline'); container.innerHTML = "";
-            if (!currentCommessa || !currentCommessa.note_cantiere) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna nota.</p>`; return; }
-            currentCommessa.note_cantiere.split('\n').reverse().forEach(l => { if(l.trim()) { const r = document.createElement('div'); r.className = "bg-white p-2 rounded-xl border text-xs mt-1 shadow-sm"; r.innerText = l; container.appendChild(r); } });
-        }
-
-        async function addDiarioNote() {
-            const input = document.getElementById('newDiarioNote'); const txt = input.value.trim(); if (!txt) return;
-            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-            let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `📅 [${t}] - ${txt}` : `📅 [${t}] - ${txt}`;
-            const { error } = await db.from('commesse').update({ note_cantiere: full }).eq('id', currentCommessa.id);
-            if (!error) { currentCommessa.note_cantiere = full; input.value = ""; fetchDiarioTimeline(); }
-        }
-
-        async function changeMacroStato() {
-            const val = document.getElementById('commessaMacroSelect').value;
-            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-            let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `🔄 [${t}] - FASE: ${val}` : `🔄 [${t}] - FASE: ${val}`;
-            await db.from('commesse').update({ stato_macro: val, note_cantiere: full }).eq('id', currentCommessa.id);
-            currentCommessa.stato_macro = val; currentCommessa.note_cantiere = full; fetchDiarioTimeline();
-        }
-
-        async function updateCommessaField(field, value) { let obj = {}; obj[field] = value; await db.from('commesse').update(obj).eq('id', currentCommessa.id); currentCommessa[field] = value; }
-        async function updateWorker(field, value) { await updateCommessaField(field, value === "" ? null : value); }
-        function toggleFatturaAccontoInvio(checked, save = true) { document.getElementById('boxFattInvioDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_fattura_inviata', checked); }
-        function toggleFatturaAccontoPagamento(checked, save = true) { document.getElementById('boxFattPagamentoDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_pagata', checked); }
-
-        function renderSettingsWorkers() {
-            const container = document.getElementById('settingsWorkersList'); container.innerHTML = "";
-            if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">Nessun dipendente salvato.</p>`; return; }
-            listLavoratori.forEach(w => {
-                const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm";
-                item.innerHTML = `
-                    <div>
-                        <strong>${w.nome}</strong>
-                        <span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span>
-                    </div>
-                    <div class="flex space-x-1.5">
-                        <button onclick="startEditWorker('${w.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100">✏️</button>
-                        <button onclick="deleteWorker('${w.id}', '${w.nome.replace(/'/g, "\\'")}')" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold hover:bg-rose-100">🗑️</button>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function openNewWorkerForm() {
-            document.getElementById('workerEditId').value = "";
-            document.getElementById('workerNameInput').value = "";
-            document.getElementById('workerRoleInput').value = "Titolare";
-            document.getElementById('btnSaveWorker').innerText = "Salva";
-            document.getElementById('newWorkerForm').classList.remove('hidden');
-        }
-        
-        function closeNewWorkerForm() { document.getElementById('newWorkerForm').classList.add('hidden'); }
-
-        function startEditWorker(id) {
-            const worker = listLavoratori.find(l => l.id === id);
-            if (!worker) return;
-            document.getElementById('workerEditId').value = worker.id;
-            document.getElementById('workerNameInput').value = worker.nome;
-            document.getElementById('workerRoleInput').value = worker.ruolo;
-            document.getElementById('btnSaveWorker').innerText = "Aggiorna";
-            document.getElementById('newWorkerForm').classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        async function deleteWorker(id, nome) {
-            const conferma = confirm(`Sei sicuro di voler eliminare permanentemente "${nome}" dall'elenco del personale?`);
-            if (!conferma) return;
-            const { error } = await db.from('lavoratori').delete().eq('id', id);
-            if (!error) { await initLists(); renderSettingsWorkers(); }
-        }
-
-        async function saveNewWorker() {
-            const id = document.getElementById('workerEditId').value;
-            const nome = document.getElementById('workerNameInput').value.trim(); 
-            const ruolo = document.getElementById('workerRoleInput').value;
-            if (!nome) return;
-            if (id) {
-                await db.from('lavoratori').update({ nome, ruolo }).eq('id', id);
-            } else {
-                await db.from('lavoratori').insert([{ nome, ruolo }]);
-            }
-            document.getElementById('workerNameInput').value = "";
-            document.getElementById('workerEditId').value = "";
-            closeNewWorkerForm(); await initLists(); renderSettingsWorkers();
-        }
-
-        function openAnagraficaModal() {
+        // HUB CENTRALE DEL SINGOLO CLIENTE: LISTA DELLE SUE COMMESSE MULTIPLE
+        function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
 
+            document.getElementById('hubClientName').innerText = cliente.denominazione;
+            document.getElementById('hubClientInfo').innerText = `📞 ${cliente.telefono || 'N/D'} | ✉️ ${cliente.email || 'N/D'}`;
+            
+            const nBox = document.getElementById('hubClientNotesBox');
+            if (cliente.note_generali) { nBox.innerText = `📌 Note Cliente: ${cliente.note_generali}`; nBox.classList.remove('hidden'); }
+            else { nBox.classList.add('hidden'); }
+
+            const listContainer = document.getElementById('hubCommesseList');
+            listContainer.innerHTML = "";
+
+            if (!cliente.commesse || cliente.commesse.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 bg-white rounded-2xl border border-dashed">Nessuna commessa registrata per questo cliente.</p>`;
+                return;
+            }
+
+            cliente.commesse.forEach(com => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer flex justify-between items-center";
+                div.innerHTML = `
+                    <div onclick="openCommessaWorkspace('${com.id}')" class="flex-1">
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                        <h4 class="font-bold text-sm text-slate-900 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Aperto il: ${new Date(com.created_at).toLocaleDateString('it-IT')}</p>
+                    </div>
+                    <button onclick="openCommessaEditModal('${com.id}', '${com.indirizzo_cantiere.replace(/'/g, "\\'")}')" class="p-2 text-xs bg-slate-50 hover:bg-slate-100 border text-slate-500 rounded-lg font-bold ml-2">⚙️</button>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        // APERTURA OPERATIVA COMMESSA SPECIFICA
+        function openCommessaWorkspace(commessaId) {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            currentCommessa = cliente.commesse.find(com => com.id === commessaId);
+            currentCommessaId = commessaId;
+
+            document.getElementById('commessaClientName').innerText = cliente.denominazione;
+            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
+            
+            const badge = document.getElementById('commessaBadgeStato');
+            badge.innerText = currentCommessa.stato_macro;
+            badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${currentCommessa.stato_macro}`;
+
+            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
+            document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
+            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
+            document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
+            document.getElementById('dateInvioPrev').value = currentCommessa.preventivo_data_invio || '';
+            document.getElementById('dateReminderPrev').value = currentCommessa.preventivo_scadenza_promemoria || '';
+            document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
+            document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
+            document.getElementById('checkPrivacy').checked = currentCommessa.privacy_firmata || false;
+            document.getElementById('textDetrazioni').value = currentCommessa.detrazioni_fiscali_gestite || '';
+            
+            document.getElementById('checkFattInviata').checked = currentCommessa.acconto_fattura_inviata || false;
+            toggleFatturaAccontoInvio(currentCommessa.acconto_fattura_inviata, false);
+            document.getElementById('dateFattAcconto').value = currentCommessa.acconto_data_invio || '';
+            document.getElementById('workerFattInviataSelect').value = currentCommessa.acconto_inviata_da || '';
+            
+            document.getElementById('checkFattPagata').checked = currentCommessa.acconto_pagata || false;
+            toggleFatturaAccontoPagamento(currentCommessa.acconto_pagata, false);
+            document.getElementById('dateFattPagata').value = currentCommessa.acconto_data_pagamento || '';
+            document.getElementById('workerFattPagataSelect').value = currentCommessa.acconto_notificato_da || '';
+
+            fetchDiarioTimeline();
+            navigateTo('detail');
+            switchTab('diario');
+        }
+
+        // APERTURA MODALI COMMESSE (INSERIMENTO O MODIFICA CANTIERE)
+        function openNewCommessaModal() {
+            document.getElementById('commessaModalTitle').innerText = "Nuova Commessa di Lavoro";
+            document.getElementById('modalCommessaId').value = "";
+            document.getElementById('modalCantiereInput').value = "";
+            document.getElementById('commessaModal').classList.remove('hidden');
+        }
+        function openCommessaEditModal(id, cantiere) {
+            document.getElementById('commessaModalTitle').innerText = "Modifica Indirizzo Cantiere";
+            document.getElementById('modalCommessaId').value = id || currentCommessaId;
+            document.getElementById('modalCantiereInput').value = cantiere || currentCommessa.indirizzo_cantiere;
+            document.getElementById('commessaModal').classList.remove('hidden');
+        }
+        function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
+
+        // AZIONE AGGIORNA / SALVA COMMESSA: CHIUSURA AUTOMATICA ALL'AVVENUTO SALVATAGGIO
+        async function saveCommessaDati() {
+            const id = document.getElementById('modalCommessaId').value;
+            const cantiere = document.getElementById('modalCantiereInput').value.trim();
+            if (!cantiere) return;
+
+            if (id) {
+                // Modifica
+                await db.from('commesse').update({ indirizzo_cantiere: cantiere }).eq('id', id);
+            } else {
+                // Nuova
+                const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+                await db.from('commesse').insert([{ cliente_id: currentClienteId, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Aperta Nuova Commessa autonoma.` }]);
+            }
+
+            closeCommessaModal(); // AZIONE RICHIESTA: chiusura automatica
+            await fetchClienti();
+            if(!document.getElementById('detailScreen').classList.contains('hidden')) {
+                // Se ero dentro al workspace, aggiorno la grafica a schermo
+                document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere}`;
+            }
+            renderClientHub();
+        }
+
+        // MODIFICA ANAGRAFICA STABILE DEL CLIENTE
+        function openAnagraficaModal() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
             document.getElementById('editTipo').value = cliente.tipo_cliente || 'PRIVATO';
             document.getElementById('editDenominazione').value = cliente.denominazione || '';
             document.getElementById('editCF').value = cliente.codice_fiscale || '';
@@ -619,67 +595,76 @@
             document.getElementById('editTelefono').value = cliente.telefono || '';
             document.getElementById('editEmail').value = cliente.email || '';
             document.getElementById('editIndirizzo').value = cliente.indirizzo_fatturazione || '';
-            document.getElementById('editCantiere').value = currentCommessa?.indirizzo_cantiere || '';
             document.getElementById('editNote').value = cliente.note_generali || '';
-
             document.getElementById('anagraficaModal').classList.remove('hidden');
         }
-        
         function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
+
+        async function updateAnagrafica() {
+            const tipo = document.getElementById('editTipo').value;
+            const denominazione = document.getElementById('editDenominazione').value.trim();
+            const cf = document.getElementById('editCF').value.trim().toUpperCase();
+            const iva = document.getElementById('editIVA').value.trim();
+            const telefono = document.getElementById('editTelefono').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const indirizzo = document.getElementById('editIndirizzo').value.trim();
+            const note = document.getElementById('editNote').value.trim();
+            
+            if(!denominazione) return;
+
+            const { error } = await db.from('clienti')
+                .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note })
+                .eq('id', currentClienteId);
+
+            if(!error) {
+                closeAnagraficaModal(); // AZIONE RICHIESTA: chiusura automatica
+                await fetchClienti();
+                renderClientHub();
+            }
+        }
+
+        // DIARIO, FILTRI PREVENTIVI E PERSONALE (CONSOLIDATI)
+        function returnToPreviousScreen() { navigateTo('hub'); }
+        function switchTab(tab) { ['diario', 'tecnico'].forEach(t => { document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden'); document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg transition-all"; }); document.getElementById(`tabContent${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden'); document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all"; }
+        function fetchDiarioTimeline() { const container = document.getElementById('diarioTimeline'); container.innerHTML = ""; if (!currentCommessa || !currentCommessa.note_cantiere) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna nota.</p>`; return; } currentCommessa.note_cantiere.split('\n').reverse().forEach(l => { if(l.trim()) { const r = document.createElement('div'); r.className = "bg-white p-2 rounded-xl border text-xs mt-1 shadow-sm"; r.innerText = l; container.appendChild(r); } }); }
+        async function addDiarioNote() { const input = document.getElementById('newDiarioNote'); const txt = input.value.trim(); if (!txt) return; const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }); let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `📅 [${t}] - ${txt}` : `📅 [${t}] - ${txt}`; const { error } = await db.from('commesse').update({ note_cantiere: full }).eq('id', currentCommessaId); if (!error) { currentCommessa.note_cantiere = full; input.value = ""; fetchDiarioTimeline(); } }
+        async function changeMacroStato() { const val = document.getElementById('commessaMacroSelect').value; const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }); let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `🔄 [${t}] - FASE: ${val}` : `🔄 [${t}] - FASE: ${val}`; await db.from('commesse').update({ stato_macro: val, note_cantiere: full }).eq('id', currentCommessaId); currentCommessa.stato_macro = val; currentCommessa.note_cantiere = full; fetchDiarioTimeline(); const b = document.getElementById('commessaBadgeStato'); b.innerText = val; b.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${val}`; }
+        async function updateCommessaField(field, value) { let obj = {}; obj[field] = value; await db.from('commesse').update(obj).eq('id', currentCommessaId); currentCommessa[field] = value; }
+        async function updateWorker(field, value) { await updateCommessaField(field, value === "" ? null : value); }
+        function toggleFatturaAccontoInvio(checked, save = true) { document.getElementById('boxFattInvioDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_fattura_inviata', checked); }
+        function toggleFatturaAccontoPagamento(checked, save = true) { document.getElementById('boxFattPagamentoDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_pagata', checked); }
+
+        function renderPreventiviSection() {
+            const container = document.getElementById('preventiviList'); container.innerHTML = "";
+            let listAperte = []; allClients.forEach(cl => { if(cl.commesse) cl.commesse.forEach(co => { if(co.stato_macro === prevActiveSubTab) listAperte.push({cl, co}); })});
+            if (listAperte.length === 0) { container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm bg-white border border-dashed rounded-2xl">Nessun cantiere in questa fase.</div>`; return; }
+            listAperte.forEach(item => {
+                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer";
+                card.onclick = () => { currentClienteId = item.cl.id; openCommessaWorkspace(item.co.id); };
+                card.innerHTML = `<h3 class="text-sm font-bold text-slate-900">${item.cl.denominazione}</h3><p class="text-xs text-slate-500">📍 Cantiere: ${item.co.indirizzo_cantiere}</p>`;
+                container.appendChild(card);
+            });
+        }
+        function switchPreventiviSubTab(st) { prevActiveSubTab = st; document.getElementById('subTabPrevContatto').className = st === 'PRIMO_CONTATTO' ? "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all" : "flex-1 py-1.5 text-center rounded-lg transition-all"; document.getElementById('subTabPrevSviluppo').className = st === 'PREVENTIVAZIONE' ? "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all" : "flex-1 py-1.5 text-center rounded-lg transition-all"; renderPreventiviSection(); }
+
+        function renderSettingsWorkers() { const container = document.getElementById('settingsWorkersList'); container.innerHTML = ""; if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">Nessun dipendente.</p>`; return; } listLavoratori.forEach(w => { const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm"; item.innerHTML = `<div><strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span></div><div class="flex space-x-1.5"><button onclick="startEditWorker('${w.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">✏️</button><button onclick="deleteWorker('${w.id}', '${w.nome.replace(/'/g, "\\'")}')" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg">🗑️</button></div>`; container.appendChild(item); }); }
+        function openNewWorkerForm() { document.getElementById('workerEditId').value = ""; document.getElementById('workerNameInput').value = ""; document.getElementById('workerRoleInput').value = "Titolare"; document.getElementById('btnSaveWorker').innerText = "Salva"; document.getElementById('newWorkerForm').classList.remove('hidden'); }
+        function closeNewWorkerForm() { document.getElementById('newWorkerForm').classList.add('hidden'); }
+        function startEditWorker(id) { const worker = listLavoratori.find(l => l.id === id); if (!worker) return; document.getElementById('workerEditId').value = worker.id; document.getElementById('workerNameInput').value = worker.nome; document.getElementById('workerRoleInput').value = worker.ruolo; document.getElementById('btnSaveWorker').innerText = "Aggiorna"; document.getElementById('newWorkerForm').classList.remove('hidden'); }
+        async function deleteWorker(id, n) { if (confirm(`Eliminare permanentemente ${n}?`)) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkers(); } }
+        async function saveNewWorker() { const id = document.getElementById('workerEditId').value; const nome = document.getElementById('workerNameInput').value.trim(); const ruolo = document.getElementById('workerRoleInput').value; if (!nome) return; if (id) await db.from('lavoratori').update({ nome, ruolo }).eq('id', id); else await db.from('lavoratori').insert([{ nome, ruolo }]); document.getElementById('workerNameInput').value = ""; closeNewWorkerForm(); await initLists(); renderSettingsWorkers(); }
 
         async function saveCliente() {
             const tipo = document.getElementById('newTipo').value; const denominazione = document.getElementById('newDenominazione').value.trim();
             const cf = document.getElementById('newCF').value.trim().toUpperCase(); const iva = document.getElementById('newIVA').value.trim();
             const telefono = document.getElementById('newTelefono').value.trim(); const email = document.getElementById('newEmail').value.trim();
-            const indirizzo = document.getElementById('newIndirizzo').value.trim(); const cantiere = document.getElementById('newCantiere').value.trim();
-            const note = document.getElementById('newNote').value.trim(); if (!denominazione) return;
-            const { data: newClient, error: errCliente } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
-            if (errCliente || !newClient) return;
-            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-            await db.from('commesse').insert([{ cliente_id: newClient[0].id, indirizzo_cantiere: cantiere || indirizzo, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Aperta` }]);
-            closeModal(); await fetchClienti(); openCommessaWorkspace(newClient[0].id);
+            const indirizzo = document.getElementById('newIndirizzo').value.trim(); const note = document.getElementById('newNote').value.trim();
+            if (!denominazione) return;
+            const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
+            if (!error && data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
-
-        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function openNewClientModal() { document.getElementById('newTipo').value = 'PRIVATO'; document.getElementById('newDenominazione').value = ''; document.getElementById('newCF').value = ''; document.getElementById('newIVA').value = ''; document.getElementById('newTelefono').value = ''; document.getElementById('newEmail').value = ''; document.getElementById('newIndirizzo').value = ''; document.getElementById('newNote').value = ''; document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-
-        async function updateAnagrafica() {
-            const tipo = document.getElementById('editTipo').value; 
-            const denominazione = document.getElementById('editDenominazione').value.trim();
-            const cf = document.getElementById('editCF').value.trim().toUpperCase(); 
-            const iva = document.getElementById('editIVA').value.trim();
-            const telefono = document.getElementById('editTelefono').value.trim(); 
-            const email = document.getElementById('editEmail').value.trim();
-            const indirizzo = document.getElementById('editIndirizzo').value.trim(); 
-            const cantiere = document.getElementById('editCantiere').value.trim();
-            const note = document.getElementById('editNote').value.trim();
-            
-            if(!denominazione) { alert("La denominazione è obbligatoria!"); return; }
-
-            const { error: err1 } = await db.from('clienti')
-                .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note })
-                .eq('id', currentClienteId);
-            
-            const { error: err2 } = await db.from('commesse')
-                .update({ indirizzo_cantiere: cantiere })
-                .eq('id', currentCommessa.id);
-            
-            if (err1 || err2) { 
-                alert("Errore durante l'aggiornamento dei dati."); 
-                return; 
-            }
-            
-            closeAnagraficaModal(); 
-            await fetchClienti();
-
-            document.getElementById('commessaClientName').innerText = denominazione; 
-            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere || 'Non indicato'}`; 
-            
-            const clienteAggiornato = allClients.find(c => c.id === currentClienteId);
-            if(clienteAggiornato && clienteAggiornato.commesse) {
-                currentCommessa = clienteAggiornato.commesse[0];
-            }
-        }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
