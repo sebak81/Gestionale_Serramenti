@@ -228,13 +228,14 @@
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
                     <h3 class="text-sm font-bold text-slate-800">📋 Elenco Personale</h3>
-                    <p class="text-[11px] text-slate-400">Inserisci chi gestisce le pratiche, preventivi e posa</p>
+                    <p class="text-[11px] text-slate-400">Gestisci i collaboratori e le mansioni aziendali</p>
                 </div>
-                <button onclick="openNewWorkerForm()" class="bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow">➕ Aggiungi</button>
+                <button id="btnToggleWorkerForm" onclick="openNewWorkerForm()" class="bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow">➕ Aggiungi</button>
             </div>
             
-            <!-- Form rapido inserimento lavoratore -->
+            <!-- Form unico inserimento/modifica lavoratore -->
             <div id="newWorkerForm" class="bg-slate-50 p-3 rounded-xl border space-y-2 hidden">
+                <input type="hidden" id="workerEditId">
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <input type="text" id="workerNameInput" placeholder="Nome Cognome" class="w-full p-2 border rounded-lg bg-white">
                     <select id="workerRoleInput" class="w-full p-2 border rounded-lg bg-white">
@@ -247,7 +248,7 @@
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="closeNewWorkerForm()" class="flex-1 py-1 bg-slate-200 text-slate-600 rounded text-xs font-semibold">Annulla</button>
-                    <button onclick="saveNewWorker()" class="flex-1 py-1 bg-blue-600 text-white rounded text-xs font-semibold">Salva</button>
+                    <button id="btnSaveWorker" onclick="saveNewWorker()" class="flex-1 py-1 bg-blue-600 text-white rounded text-xs font-semibold">Salva</button>
                 </div>
             </div>
             <div id="settingsWorkersList" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
@@ -305,7 +306,7 @@
 
     <script>
         const SUPABASE_URL = "https://jskrttromnqvupuzghap.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impza3J0dHJvbW5xdnVwdXpnaGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NjczODgsImV4cCI6MjA5OTA0MzM4OH0.08IaXn5PMVdOGITPjOTmudDbhuXWSo5YCwRnTKxAOQQ";
+        const SUPABASE_ANON_KEY = "METTI_QUI_LA_TUA_ANON_KEY_LUNGHISSIMA";
 
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -503,23 +504,71 @@
         function toggleFatturaAccontoInvio(checked, save = true) { document.getElementById('boxFattInvioDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_fattura_inviata', checked); }
         function toggleFatturaAccontoPagamento(checked, save = true) { document.getElementById('boxFattPagamentoDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_pagata', checked); }
 
+        // STAMPA LISTA PERSONALE NELLE IMPOSTAZIONI (CON TASTO EDIT ✏️)
         function renderSettingsWorkers() {
             const container = document.getElementById('settingsWorkersList'); container.innerHTML = "";
-            if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2">Nessun dipendente salvato.</p>`; return; }
+            if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">Nessun dipendente salvato.</p>`; return; }
             listLavoratori.forEach(w => {
-                const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm";
-                item.innerHTML = `<div><strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span></div>`;
+                const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm";
+                item.innerHTML = `
+                    <div>
+                        <strong>${w.nome}</strong>
+                        <span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span>
+                    </div>
+                    <button onclick="startEditWorker('${w.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100" title="Modifica">✏️</button>
+                `;
                 container.appendChild(item);
             });
         }
 
-        function openNewWorkerForm() { document.getElementById('newWorkerForm').classList.remove('hidden'); }
-        function closeNewWorkerForm() { document.getElementById('newWorkerForm').classList.add('hidden'); }
+        function openNewWorkerForm() {
+            document.getElementById('workerEditId').value = "";
+            document.getElementById('workerNameInput').value = "";
+            document.getElementById('workerRoleInput').value = "Titolare";
+            document.getElementById('btnSaveWorker').innerText = "Salva";
+            document.getElementById('newWorkerForm').classList.remove('hidden');
+        }
+        
+        function closeNewWorkerForm() { 
+            document.getElementById('newWorkerForm').classList.add('hidden'); 
+        }
+
+        // PREPARAZIONE MODIFICA LAVORATORE
+        function startEditWorker(id) {
+            const worker = listLavoratori.find(l => l.id === id);
+            if (!worker) return;
+
+            document.getElementById('workerEditId').value = worker.id;
+            document.getElementById('workerNameInput').value = worker.nome;
+            document.getElementById('workerRoleInput').value = worker.ruolo;
+            document.getElementById('btnSaveWorker').innerText = "Aggiorna";
+            
+            document.getElementById('newWorkerForm').classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        // SALVATAGGIO INTELLIGENTE: SE ID C'È FA AGGIORNAMENTO, SE NO FA INSERIMENTO
         async function saveNewWorker() {
-            const nome = document.getElementById('workerNameInput').value.trim(); const ruolo = document.getElementById('workerRoleInput').value;
+            const id = document.getElementById('workerEditId').value;
+            const nome = document.getElementById('workerNameInput').value.trim(); 
+            const ruolo = document.getElementById('workerRoleInput').value;
             if (!nome) return;
-            const { error } = await db.from('lavoratori').insert([{ nome, ruolo }]);
-            if (!error) { document.getElementById('workerNameInput').value = ""; closeNewWorkerForm(); await initLists(); renderSettingsWorkers(); } else { alert("Errore inserimento."); }
+
+            if (id) {
+                // MODIFICA
+                const { error } = await db.from('lavoratori').update({ nome, ruolo }).eq('id', id);
+                if (error) { alert("Errore modifica."); return; }
+            } else {
+                // NUOVO INSERIMENTO
+                const { error } = await db.from('lavoratori').insert([{ nome, ruolo }]);
+                if (error) { alert("Errore inserimento."); return; }
+            }
+
+            document.getElementById('workerNameInput').value = "";
+            document.getElementById('workerEditId').value = "";
+            closeNewWorkerForm();
+            await initLists();
+            renderSettingsWorkers();
         }
 
         async function saveCliente() {
