@@ -12,6 +12,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Libreria Ufficiale Supabase -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- CARICAMENTO DEL FILE DI CONFIGURAZIONE ESTERNO -->
@@ -279,7 +280,7 @@
         </div>
     </div>
 
-    <!-- MODALE ANAGRAFICA COMPLETA REALE E FUNZIONANTE -->
+    <!-- MODALE ANAGRAFICA COMPLETA REALE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -608,7 +609,6 @@
             closeNewWorkerForm(); await initLists(); renderSettingsWorkers();
         }
 
-        // AGGIORNATA: APRE IL MODALE E PRECOMPILA TUTTI I CAMPI CORRETTAMENTE
         function openAnagraficaModal() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -644,20 +644,50 @@
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
+        // CORRETTA E IMPLEMENTATA: AGGIORNA I CAMPI IN CLOUD E ALLINEA IMMEDIATAMENTE L'INTERFACCIA DELLA COMMESSA
         async function updateAnagrafica() {
-            const tipo = document.getElementById('editTipo').value; const denominazione = document.getElementById('editDenominazione').value.trim();
-            const cf = document.getElementById('editCF').value.trim().toUpperCase(); const iva = document.getElementById('editIVA').value.trim();
-            const telefono = document.getElementById('editTelefono').value.trim(); const email = document.getElementById('editEmail').value.trim();
-            const indirizzo = document.getElementById('editIndirizzo').value.trim(); const cantiere = document.getElementById('editCantiere').value.trim();
+            const tipo = document.getElementById('editTipo').value; 
+            const denominazione = document.getElementById('editDenominazione').value.trim();
+            const cf = document.getElementById('editCF').value.trim().toUpperCase(); 
+            const iva = document.getElementById('editIVA').value.trim();
+            const telefono = document.getElementById('editTelefono').value.trim(); 
+            const email = document.getElementById('editEmail').value.trim();
+            const indirizzo = document.getElementById('editIndirizzo').value.trim(); 
+            const cantiere = document.getElementById('editCantiere').value.trim();
             const note = document.getElementById('editNote').value.trim();
             
-            await db.from('clienti').update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }).eq('id', currentClienteId);
-            await db.from('commesse').update({ indirizzo_cantiere: cantiere }).eq('id', currentCommessa.id);
+            if(!denominazione) { alert("La denominazione è obbligatoria!"); return; }
+
+            // 1. Aggiorna l'anagrafica cliente in Cloud
+            const { error: err1 } = await db.from('clienti')
+                .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note })
+                .eq('id', currentClienteId);
             
+            // 2. Aggiorna l'indirizzo cantiere nella Commessa associata
+            const { error: err2 } = await db.from('commesse')
+                .update({ indirizzo_cantiere: cantiere })
+                .eq('id', currentCommessa.id);
+            
+            if (err1 || err2) { 
+                alert("Errore durante l'aggiornamento dei dati."); 
+                return; 
+            }
+            
+            // 3. Chiudi la finestra di modifica
             closeAnagraficaModal(); 
+            
+            // 4. Forza l'app a riscaricare i dati freschi da Supabase per aggiornare la cache locale (allClients)
+            await fetchClienti();
+
+            // 5. Rinfresca immediatamente i testi visibili nell'intestazione del Workspace aperto
             document.getElementById('commessaClientName').innerText = denominazione; 
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere || 'Non indicato'}`; 
-            await fetchClienti();
+            
+            // 6. Sincronizza i dati della commessa corrente con quelli nuovi appena riscaricati
+            const clienteAggiornato = allClients.find(c => c.id === currentClienteId);
+            if(clienteAggiornato && clienteAggiornato.commesse) {
+                currentCommessa = clienteAggiornato.commesse[0];
+            }
         }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
