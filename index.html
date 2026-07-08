@@ -9,33 +9,33 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SerramentiPro">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase per il Browser -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        body {
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-        .safe-bottom {
-            padding-bottom: env(safe-area-inset-bottom, 16px);
-        }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center space-x-2">
             <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Serramenti<span class="text-white font-medium">Pro</span></span>
         </div>
-        <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">
-            Dev: Sebak
-        </div>
+        <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- Contenuto Principale -->
     <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         
+        <!-- Barra di Ricerca e Bottone Nuovo -->
         <div class="flex space-x-2">
             <div class="relative flex-1">
-                <input type="text" id="searchClient" placeholder="Cerca cliente o cantiere..." 
+                <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente..." 
                        class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
             </div>
@@ -44,68 +44,169 @@
             </button>
         </div>
 
-        <div class="space-y-3" id="clientList">
-            
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800">In Misurazione</span>
-                        <h3 class="text-base font-bold text-slate-900 mt-1">Rossi Mario</h3>
-                    </div>
-                    <a href="tel:+393331234567" class="p-2 bg-slate-100 hover:bg-blue-50 text-blue-600 rounded-full transition-colors">📞</a>
-                </div>
-                <p class="text-xs text-slate-500 mb-1">📍 Via Roma 15, Galliera Veneta</p>
-                <p class="text-xs text-slate-600 italic">💬 Diario: Verificare pendenza foro finestra cucina prima dell'ordine.</p>
-            </div>
-
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">Preventivazione</span>
-                        <h3 class="text-base font-bold text-slate-900 mt-1">Impresa Costruzioni Veneta Srl</h3>
-                    </div>
-                    <a href="tel:+39049999888" class="p-2 bg-slate-100 hover:bg-blue-50 text-blue-600 rounded-full transition-colors">📞</a>
-                </div>
-                <p class="text-xs text-slate-500 mb-1">📍 Cantiere: Via Padova 42, Cittadella</p>
-                <p class="text-xs text-slate-600 italic">💬 Diario: Inviato preventivo per 12 infissi in PVC finto legno.</p>
-            </div>
-
+        <!-- Stato di Caricamento -->
+        <div id="loading" class="text-center py-8 text-slate-500 text-sm">
+            ⏳ Caricamento clienti da Supabase...
         </div>
+
+        <!-- Lista Clienti Dinamica -->
+        <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- Modale per inserimento Nuovo Cliente (Nascosto di base) -->
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tipo Cliente</label>
+                    <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50">
+                        <option value="PRIVATO">Privato</option>
+                        <option value="AZIENDA">Azienda</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nome / Ragione Sociale</label>
+                    <input type="text" id="newDenominazione" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Es: Mario Rossi">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Telefono</label>
+                    <input type="tel" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Es: 333123456">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Indirizzo</label>
+                    <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Es: Via Roma 10, Cittadella">
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors">Annulla</button>
+                <button onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra Navigazione Inferiore -->
     <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center">
             <a href="#" class="flex flex-col items-center text-blue-600 font-semibold text-xs flex-1">
-                <span class="text-xl">👥</span>
-                <span>Clienti</span>
+                <span class="text-xl">👥</span><span>Clienti</span>
             </a>
-            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
-                <span class="text-xl">📄</span>
-                <span>Preventivi</span>
+            <a href="#" class="flex flex-col items-center text-slate-400 text-xs flex-1">
+                <span class="text-xl">📄</span><span>Preventivi</span>
             </a>
-            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
-                <span class="text-xl">📦</span>
-                <span>Ordini</span>
+            <a href="#" class="flex flex-col items-center text-slate-400 text-xs flex-1">
+                <span class="text-xl">📦</span><span>Ordini</span>
             </a>
-            <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-600 text-xs flex-1">
-                <span class="text-xl">📊</span>
-                <span>Fatture</span>
+            <a href="#" class="flex flex-col items-center text-slate-400 text-xs flex-1">
+                <span class="text-xl">📊</span><span>Fatture</span>
             </a>
         </div>
     </nav>
 
+    <!-- Logica di Connessione ed Eventi JS -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registrato con successo!', reg))
-                    .catch(err => console.error('Errore registrazione SW:', err));
+        // CONFIGURAZIONE SUPABASE - INSERISCI QUI I TUOI DATI REALI
+        const SUPABASE_URL = "https://jskrttromnqvupuzghap.supabase.co"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impza3J0dHJvbW5xdnVwdXpnaGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NjczODgsImV4cCI6MjA5OTA0MzM4OH0.08IaXn5PMVdOGITPjOTmudDbhuXWSo5YCwRnTKxAOQQ";
+
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let allClients = [];
+
+        // Funzione per scaricare i clienti dal database
+        async function fetchClienti() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('clientList').classList.add('hidden');
+
+            const { data, error } = await supabase
+                .from('clienti')
+                .select('*')
+                .order('denominazione', { ascending: true });
+
+            if (error) {
+                console.error("Errore scaricamento dati:", error);
+                alert("Errore nel caricamento dei dati.");
+                return;
+            }
+
+            allClients = data;
+            renderClients(allClients);
+        }
+
+        // Funzione per disegnare le card dei clienti a schermo
+        function renderClients(list) {
+            const container = document.getElementById('clientList');
+            container.innerHTML = "";
+            document.getElementById('loading').classList.add('hidden');
+            container.classList.remove('hidden');
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">Nessun cliente trovato.</div>`;
+                return;
+            }
+
+            list.forEach(cliente => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-all cursor-pointer flex justify-between items-start";
+                card.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">${cliente.tipo_cliente}</span>
+                        <h3 class="text-base font-bold text-slate-900 mt-1">${cliente.denominazione}</h3>
+                        <p class="text-xs text-slate-500 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Nessun indirizzo'}</p>
+                    </div>
+                    ${cliente.telefono ? `<a href="tel:${cliente.telefono}" class="p-2 bg-slate-50 hover:bg-blue-50 text-blue-600 rounded-full transition-colors">📞</a>` : ''}
+                `;
+                container.appendChild(card);
             });
         }
-        
-        function openModal() {
-            alert("Pulsante funzionante! Presto qui collegheremo la schermata di inserimento clienti legata a Supabase.");
+
+        // Filtro di ricerca in tempo reale
+        function filterClients() {
+            const term = document.getElementById('searchClient').value.toLowerCase();
+            const filtered = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
+            renderClients(filtered);
         }
+
+        // Funzioni Gestione Finestra di Inserimento (Modale)
+        function openModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
+
+        // Funzione per salvare il nuovo cliente su Supabase
+        async function saveCliente() {
+            const tipo = document.getElementById('newTipo').value;
+            const denominazione = document.getElementById('newDenominazione').value.trim();
+            const telefono = document.getElementById('newTelefono').value.trim();
+            const indirizzo = document.getElementById('newIndirizzo').value.trim();
+
+            if (!denominazione) {
+                alert("Il campo Nome/Ragione Sociale è obbligatorio!");
+                return;
+            }
+
+            const { error } = await supabase
+                .from('clienti')
+                .insert([{ tipo_cliente: tipo, denominazione, telefono, indirizzo_fatturazione: indirizzo }]);
+
+            if (error) {
+                console.error("Errore salvataggio:", error);
+                alert("Errore durante il salvataggio.");
+            } else {
+                closeModal();
+                // Pulisce i campi
+                document.getElementById('newDenominazione').value = "";
+                document.getElementById('newTelefono').value = "";
+                document.getElementById('newIndirizzo').value = "";
+                // Ricarica la lista aggiornata
+                fetchClienti();
+            }
+        }
+
+        // Avvio automatico al caricamento della pagina
+        window.onload = () => {
+            fetchClienti();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.error(err));
+            }
+        };
     </script>
 </body>
 </html>
