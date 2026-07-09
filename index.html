@@ -321,6 +321,20 @@
         </div>
     </div>
 
+    <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
+                <span class="text-lg">👥</span><span>Clienti</span>
+            </button>
+            <button id="navBtnPreventivi" onclick="navigateTo('preventivi')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">📄</span><span>Preventivi</span>
+            </button>
+            <button id="navBtnSettings" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">⚙️</span><span>Impostazioni</span>
+            </button>
+        </div>
+    </nav>
+
     <script>
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -538,7 +552,6 @@
         }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
 
-        // SALVATAGGIO CORRETTO CON INVIO DI TITOLO_LAVORO E INDIRIZZO_CANTIERE
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value;
             const titolo = document.getElementById('modalTitoloInput').value.trim();
@@ -547,10 +560,8 @@
             if (!titolo || !cantiere) { alert("Compila sia l'identificativo che l'indirizzo!"); return; }
 
             if (id) {
-                // Modifica esistente
                 await db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
             } else {
-                // Inserimento Nuova Commessa Autonoma
                 const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
                 await db.from('commesse').insert([{ 
                     cliente_id: currentClienteId, 
@@ -561,11 +572,10 @@
                 }]);
             }
 
-            closeCommessaModal(); // Chiusura automatica
+            closeCommessaModal();
             await fetchClienti();
             
             if(!document.getElementById('detailScreen').classList.contains('hidden')) {
-                // Se l'utente era dentro il workspace operativo, aggiorna la grafica immediata
                 document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere}`;
                 document.getElementById('commessaBadgeTitolo').innerText = titolo;
             }
