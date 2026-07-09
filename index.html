@@ -213,9 +213,6 @@
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
                 <span class="text-lg">👥</span><span>Clienti</span>
             </button>
-            <button id="navBtnPreventivi" onclick="navigateTo('preventivi')" class="flex flex-col items-center text-slate-400 flex-1">
-                <span class="text-lg">📋</span><span>Sviluppo</span>
-            </button>
         </div>
     </nav>
 
@@ -277,23 +274,18 @@
         ];
 
         function navigateTo(screen) {
-            document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('clientHubScreen').classList.add('hidden');
-            document.getElementById('preventiviScreen').classList.add('hidden');
-            document.getElementById('detailScreen').classList.add('hidden');
-            document.getElementById('settingsScreen').classList.add('hidden');
+            if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
+            if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
+            if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
             
             if (screen === 'main') {
-                document.getElementById('mainScreen').classList.remove('hidden');
+                if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
                 fetchClienti();
             } else if (screen === 'hub') {
-                document.getElementById('clientHubScreen').classList.remove('hidden');
+                if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
                 renderClientHub();
             } else if (screen === 'detail') {
-                document.getElementById('detailScreen').classList.remove('hidden');
-            } else if (screen === 'preventivi') {
-                document.getElementById('preventiviScreen').classList.remove('hidden');
-                fetchClienti().then(() => renderPreventiviSection());
+                if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
             }
         }
 
@@ -304,7 +296,7 @@
         }
 
         function populateSelects() {
-            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect', 'workerFattInviataSelect'];
+            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect'];
             sels.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
@@ -314,12 +306,13 @@
         async function fetchClienti() {
             const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
             if (!error && data) allClients = data;
-            if (!document.getElementById('mainScreen').classList.contains('hidden')) renderClientsList();
+            if (document.getElementById('mainScreen') && !document.getElementById('mainScreen').classList.contains('hidden')) renderClientsList();
         }
 
         function renderClientsList() {
             const container = document.getElementById('clientList'); container.innerHTML = "";
-            document.getElementById('loading').classList.add('hidden'); container.classList.remove('hidden');
+            if(document.getElementById('loading')) document.getElementById('loading').classList.add('hidden'); 
+            container.classList.remove('hidden');
             const term = document.getElementById('searchClient').value.toLowerCase();
 
             let listFiltrata = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
@@ -346,7 +339,7 @@
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 shadow-sm font-medium";
                 
                 const mainInfo = document.createElement('div');
-                mainInfo.className = "flex-1 pr-4";
+                mainInfo.className = "flex-1 pr-4 cursor-pointer";
                 mainInfo.onclick = () => { openCommessaWorkspace(com.id); };
                 const dataCreazione = new Date(com.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -388,11 +381,11 @@
             
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
-            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
-            document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
-            document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
-            document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
+            if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
+            if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
+            if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
+            if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
+            if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
 
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
@@ -443,8 +436,8 @@
                 }
             }
 
-            document.getElementById('workerContattoSelect').value = ""; 
-            document.getElementById('workerAssegnatoSelect').value = ""; 
+            if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = ""; 
+            if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = ""; 
             
             adjustWorkerLabels(nuovaFaseSelezionata);
             alert(`Fase modificata in "${nuovaFaseSelezionata}".\nSeleziona obbligatoriamente il nuovo Incaricato responsabile e inserisci le Annotazioni per registrare il passaggio.`);
@@ -455,11 +448,11 @@
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
             
-            const op1Value = op1Select.value;
-            const op2Value = op2Select.value;
+            const op1Value = op1Select ? op1Select.value : '';
+            const op2Value = op2Select ? op2Select.value : '';
             
-            const op1Text = op1Select.options[op1Select.selectedIndex]?.text || '';
-            const op2Text = op2Select.options[op2Select.selectedIndex]?.text || '';
+            const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || '') : '';
+            const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || '') : '';
 
             if (nuovaFase === currentCommessa.stato_macro) {
                 await db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value }).eq('id', currentCommessaId);
@@ -476,7 +469,7 @@
             const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
             if (!annotazioniFase) {
                 alert("ANNOTAZIONE RICHIESTA:\nInserisci una nota esplicativa del passaggio nella casella 'Annotazioni per il cambio fase'!");
-                op1Select.value = ""; 
+                if(op1Select) op1Select.value = ""; 
                 return;
             }
 
@@ -498,7 +491,9 @@
             currentCommessa.preventivo_assegnato_a = op2Value;
 
             const badge = document.getElementById('commessaBadgeStato');
-            badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`;
+            if(badge) {
+                badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`;
+            }
             
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
@@ -527,12 +522,15 @@
 
         function switchTab(tab) {
             ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
-                document.getElementById(`tabContent${t === 'diario' ? 'Diario' : (t === 'preventiviTab' ? 'PreventiviTab' : 'ContrattoTab')}`).classList.add('hidden');
-                document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg transition-all";
+                const target = document.getElementById(`tabContent${t === 'diario' ? 'Diario' : (t === 'preventiviTab' ? 'PreventiviTab' : 'ContrattoTab')}`);
+                if(target) target.classList.add('hidden');
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if(btn) btn.className = "flex-1 py-2 text-center rounded-lg transition-all";
             });
             const contentId = tab === 'diario' ? 'tabContentDiario' : (tab === 'preventiviTab' ? 'tabContentPreventiviTab' : (tab === 'contrattoTab' ? 'tabContentContrattoTab' : 'tabContentDiario'));
-            document.getElementById(contentId).classList.remove('hidden');
-            document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
+            if(document.getElementById(contentId)) document.getElementById(contentId).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+            if(activeBtn) activeBtn.className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
         }
 
         function fetchDiarioTimeline() {
@@ -580,8 +578,7 @@
         }
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-        function switchPreventiviSubTab(t) {}
-        function renderPreventiviSection() {}
+        function switchClientSubTab(tab) {}
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
