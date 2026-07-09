@@ -48,9 +48,6 @@
                            class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
                 </div>
-                <select id="filterYearSelect" onchange="filterClients()" class="bg-white border border-slate-300 rounded-lg px-2 text-xs font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="ALL">Tutti gli Anni</option>
-                </select>
                 <button onclick="openNewClientModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium shadow text-sm transition-colors shrink-0">
                     ➕ Nuovo
                 </button>
@@ -73,7 +70,6 @@
             <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
-        <!-- Box Anagrafica Sintetica -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-start">
                 <div>
@@ -85,7 +81,6 @@
             <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
         </div>
 
-        <!-- Sezione Commesse Collegate -->
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📦 Commesse e Cantieri di lavoro</h3>
@@ -123,10 +118,10 @@
 
         <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
                     <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Fase di Lavorazione</label>
-                    <select id="commessaMacroSelect" onchange="changeMacroStato()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                    <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                         <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
                         <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
                         <option value="MISURE_ESECUTIVE">📐 3. MISURE E CONTRATTO</option>
@@ -137,32 +132,31 @@
                     </select>
                 </div>
                 
-                <!-- Gestione Incaricati / Operatori -->
+                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
-                        <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da:</label>
-                        <select id="workerContattoSelect" onchange="updateWorkerAndLog('contatto_gestito_da', this.value, 'Incaricato')" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
+                        <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
+                        <select id="workerContattoSelect" onchange="saveFaseLavorazioneConDati()" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
                     <div id="boxWorkerAssegnato">
                         <label class="block font-bold text-slate-700">Assegnato a:</label>
-                        <select id="workerAssegnatoSelect" onchange="updateWorkerAndLog('preventivo_assegnato_a', this.value, 'Assegnato a')" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
+                        <select id="workerAssegnatoSelect" onchange="saveWorkerSenzaFaseChange('preventivo_assegnato_a', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
                 </div>
 
-                <!-- CAMPO OBBLIGATORIO ANNOTAZIONI DI CAMBIO FASE -->
-                <div class="border-t pt-2 space-y-1">
+                <!-- CASSELLA DI TESTO DELLE ANNOTAZIONI DI CAMBIO FASE - SEMPRE VISIBILE -->
+                <div class="border-t pt-2 space-y-1 block">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                         <label>Annotazioni per il cambio fase</label>
                         <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                     </div>
-                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Inserisci il motivo o dettagli del passaggio (es. concordato appuntamento)..." class="w-full p-2 border border-slate-300 rounded-lg bg-slate-50 text-xs focus:ring-2 focus:ring-blue-500">
-                    <p class="text-[9px] text-slate-400 italic font-medium">Nota: Verranno inserite automaticamente nel diario per tracciare l'azione.</p>
+                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Aggiungi note per questo passaggio di fase..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
             </div>
             
-            <!-- DIARIO GENERALE -->
+            <!-- DIARIO -->
             <div class="space-y-2">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Attività</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
                     <input type="text" id="newDiarioNote" placeholder="Scrivi una nota manuale nel diario..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                     <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-semibold rounded-lg shadow">Invia</button>
@@ -229,32 +223,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 5: SEZIONE PREVENTIVI APERTI -->
-    <main id="preventiviScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <div class="space-y-2">
-            <h2 class="text-lg font-bold text-slate-900 px-1">📋 Gestione Richieste & Sviluppo</h2>
-            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
-                <button id="subTabPrevContatto" onclick="switchPreventiviSubTab('PRIMO_CONTATTO')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">1. Primo Contatto</button>
-                <button id="subTabPrevSviluppo" onclick="switchPreventiviSubTab('PREVENTIVAZIONE')" class="flex-1 py-1.5 text-center rounded-lg transition-all">2. Preventivazione</button>
-            </div>
-        </div>
-        <div id="preventiviList" class="space-y-3"></div>
-    </main>
-
-    <!-- SCHERMATA 6: IMPOSTAZIONI PERSONALE -->
-    <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <h2 class="text-xl font-bold text-slate-900">⚙️ Impostazioni Sistema</h2>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-800">📋 Elenco Personale</h3>
-                </div>
-                <button id="btnToggleWorkerForm" onclick="openNewWorkerForm()" class="bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow">➕ Aggiungi</button>
-            </div>
-            <div id="settingsWorkersList" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
-        </div>
-    </main>
-
     <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
@@ -264,13 +232,10 @@
             <button id="navBtnPreventivi" onclick="navigateTo('preventivi')" class="flex flex-col items-center text-slate-400 flex-1">
                 <span class="text-lg">📋</span><span>Sviluppo</span>
             </button>
-            <button id="navBtnSettings" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
-                <span class="text-lg">⚙️</span><span>Personale</span>
-            </button>
         </div>
     </nav>
 
-    <!-- MODALI DI APERTURA -->
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3><button onclick="closeModal()" class="text-slate-400 text-lg">✕</button></div>
@@ -318,9 +283,7 @@
         let currentCommessaId = null;
         let currentCommessa = null;
         
-        let oldMacroStato = ""; // Salva lo stato precedente in caso di annullamento obbligatorio
-        let clientActiveSubTab = 'all';
-        let prevActiveSubTab = 'PRIMO_CONTATTO';
+        let targetMacroStato = ""; // Tiene traccia della fase che l'utente vorrebbe inserire
 
         function navigateTo(screen) {
             document.getElementById('mainScreen').classList.add('hidden');
@@ -340,9 +303,6 @@
             } else if (screen === 'preventivi') {
                 document.getElementById('preventiviScreen').classList.remove('hidden');
                 fetchClienti().then(() => renderPreventiviSection());
-            } else if (screen === 'settings') {
-                document.getElementById('settingsScreen').classList.remove('hidden');
-                renderSettingsWorkers();
             }
         }
 
@@ -406,7 +366,7 @@
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
             currentCommessaId = commessaId;
-            oldMacroStato = currentCommessa.stato_macro; // Memorizziamo lo stato iniziale di ingresso
+            targetMacroStato = currentCommessa.stato_macro; 
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
@@ -419,7 +379,6 @@
             document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
             document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
 
-            // Pulisce il campo delle annotazioni per un nuovo avvio
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
@@ -441,8 +400,21 @@
             fetchDiarioTimeline();
         }
 
-        // AZIONE CAMBIO STATO: OBBLIGATORIETÀ DELL'INCARICATO E GESTIONE DELLE ANNOTAZIONI DI SOTTO-FASE
-        async function changeMacroStato() {
+        // REGOLE DI FLUSSO: RESET INCALZANTE DELL'OPERATORE AL CAMBIO DELLA TENDA FASE
+        function handleFaseChange() {
+            const nuovaFase Selezionata = document.getElementById('commessaMacroSelect').value;
+            
+            // Se la fase scelta è diversa da quella reale salvata, forziamo il reset operatore
+            if (nuovaFaseSelezionata !== currentCommessa.stato_macro) {
+                document.getElementById('workerContattoSelect').value = ""; // Svuota la scelta operatore principale
+                document.getElementById('workerAssegnatoSelect').value = ""; // Svuota l'eventuale secondo
+                adjustWorkerLabels(nuovaFaseSelezionata);
+                alert(`Hai modificato la fase in "${nuovaFaseSelezionata}".\nIl vecchio operatore è stato rimosso: seleziona obbligatoriamente il nuovo Incaricato per salvare.`);
+            }
+        }
+
+        // SALVATAGGIO CONSOLIDATO DI FASE, INCARICATO ED ANNOTAZIONI OBBLIGATORIE CONNESSE
+        async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
@@ -453,44 +425,59 @@
             const op1Text = op1Select.options[op1Select.selectedIndex]?.text || '';
             const op2Text = op2Select.options[op2Select.selectedIndex]?.text || '';
 
-            // REGOLA OBBLIGATORIA: Controlla che ci sia una persona incaricata selezionata
-            if (!op1Value) {
-                alert(`ATTENZIONE OBBLIGATORIA:\nImpossibile passare alla fase "${nuovaFase}" senza aver prima selezionato la persona Incaricata!`);
-                document.getElementById('commessaMacroSelect').value = oldMacroStato; // Annulla il movimento e ripristina
+            // Se l'utente ha cliccato l'operatore ma non ha cambiato fase, salviamo solo l'operatore normalmente
+            if (nuovaFase === currentCommessa.stato_macro) {
+                await db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value }).eq('id', currentCommessaId);
+                currentCommessa.contatto_gestito_da = op1Value;
+                await logAutomaticActivity(`Cambio operatore eseguito -> Incaricato: ${op1Text}`);
                 return;
             }
 
-            // Estrae le annotazioni obbligatorie inserite (se lasciate vuote, mette una dicitura neutra)
-            const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim() || 'Nessun commento aggiuntivo inserito.';
-
-            let notaLog = `FASE AZIENDALE AVANZATA: ${nuovaFase}.`;
-            if (nuovaFase === 'PRIMO_CONTATTO') {
-                notaLog += ` [Contatto gestito da: ${op1Text} | Assegnato a: ${op2Text}]. Appunti fase: "${annotazioniFase}"`;
-            } else {
-                notaLog += ` [Incaricato: ${op1Text}]. Appunti fase: "${annotazioniFase}"`;
+            // Se invece stiamo cambiando fase, l'operatore DEVE essere presente
+            if (!op1Value) {
+                alert("ERRORE DI ASSEGNAZIONE:\nSeleziona una persona Incaricata dall'elenco operatori per poter confermare il cambio fase lavorativa!");
+                return;
             }
 
-            // Scrittura finale consolidata
-            await db.from('commesse').update({ stato_macro: nuovaFase }).eq('id', currentCommessaId);
+            const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
+            if (!annotazioniFase) {
+                alert("ANNOTAZIONE OBBLIGATORIA:\nInserisci una breve nota o spiegazione nel campo 'Annotazioni per il cambio fase' prima di selezionare l'incaricato!");
+                op1Select.value = ""; // Forza di nuovo il reset per obbligarlo a scrivere prima
+                return;
+            }
+
+            let notaLog = `FASE AZIENDALE MODIFICATA: ${nuovaFase}.`;
+            if (nuovaFase === 'PRIMO_CONTATTO') {
+                notaLog += ` [Contatto preso da: ${op1Text} | Assegnato a: ${op2Text}]. Dettagli: "${annotazioniFase}"`;
+            } else {
+                notaLog += ` [Incaricato: ${op1Text}]. Dettagli: "${annotazioniFase}"`;
+            }
+
+            // Eseguiamo il salvataggio combinato e definitivo in cloud
+            await db.from('commesse').update({ 
+                stato_macro: nuovaFase, 
+                contatto_gestito_da: op1Value,
+                preventivo_assegnato_a: op2Value === "" ? null : op2Value
+            }).eq('id', currentCommessaId);
+            
             currentCommessa.stato_macro = nuovaFase;
-            oldMacroStato = nuovaFase; // Aggiorna lo storico di sicurezza della schermata
+            currentCommessa.contatto_gestito_da = op1Value;
+            currentCommessa.preventivo_assegnato_a = op2Value;
 
             const badge = document.getElementById('commessaBadgeStato');
             badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`;
             
-            // Pulisce l'input annotazioni pronto per il prossimo passaggio
+            // Reset dei campi di immissione
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            adjustWorkerLabels(nuovaFase);
             await logAutomaticActivity(notaLog);
         }
 
-        async function updateWorkerAndLog(field, value, labelName) {
+        async function saveWorkerSenzaFaseChange(field, value) {
             await db.from('commesse').update({ [field]: value === "" ? null : value }).eq('id', currentCommessaId);
             currentCommessa[field] = value;
-            const opText = document.getElementById(field === 'contatto_gestito_da' ? 'workerContattoSelect' : 'workerAssegnatoSelect').options[document.getElementById(field === 'contatto_gestito_da' ? 'workerContattoSelect' : 'workerAssegnatoSelect').selectedIndex]?.text || 'Nessuno';
-            await logAutomaticActivity(`Cambio Operatore -> ${labelName}: ${opText}`);
+            await logAutomaticActivity(`Aggiornato campo secondario della commessa (${field})`);
         }
 
         function adjustWorkerLabels(fase) {
