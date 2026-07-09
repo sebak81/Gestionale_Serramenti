@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -59,6 +64,7 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -85,11 +91,13 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
+        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -102,12 +110,14 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
+        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
-            <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all">📄 Preventivi</button>
-            <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all">✍️ Contratto</button>
+            <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">📄 Preventivi</button>
+            <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
+        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -123,6 +133,7 @@
                     </select>
                 </div>
                 
+                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
@@ -134,14 +145,16 @@
                     </div>
                 </div>
 
+                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        <label>Annotazioni per il cambio fase *</label>
+                        <label>Annotazioni *</label>
                         <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                     </div>
                     <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi i dettagli del passaggio qui prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
 
+                <!-- PULSANTE SALVA CONSOLIDATO -->
                 <div class="pt-2 border-t">
                     <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
                         <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -149,6 +162,7 @@
                 </div>
             </div>
             
+            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Lavorazione Global</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -159,6 +173,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -176,7 +191,7 @@
                 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                        <label class="block text-slate-500">Data Inzio Attività</label>
+                        <label class="block text-slate-500">Data Inizio Attività</label>
                         <input type="date" id="dateInvioPrev" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
                     </div>
                     <div>
@@ -197,12 +212,14 @@
                 </div>
             </div>
 
+            <!-- CRONOLOGIA INTERNA PREVENTIVAZIONE -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">⏳ Attività e Storico Preventivazione</h3>
                 <div id="preventivoTimeline" class="space-y-2"></div>
             </div>
         </div>
 
+        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -233,6 +250,7 @@
         </div>
     </main>
 
+    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -241,6 +259,7 @@
         </div>
     </nav>
 
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -292,6 +311,7 @@
         </div>
     </div>
 
+    <!-- MODALE: MODIFICA ANAGRAFICA CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -339,6 +359,7 @@
         </div>
     </div>
 
+    <!-- MODALE: MODIFICA / AGGIUNGI COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -571,11 +592,27 @@
             fetchPreventivoTimeline();
             navigateTo('detail');
             
-            // Attivazione automatica della tab in base allo stato
-            if (currentCommessa.stato_macro === 'PREVENTIVAZIONE') {
-                switchTab('preventiviTab');
-            } else {
+            // Applica stili visivi e sblocchi in base allo stato attuale della commessa
+            renderTabPrivileges(currentCommessa.stato_macro);
+        }
+
+        // LOGICA DI CONTROLLO PRIVILEGI DEI TAB (BLINDATURA VISIVA)
+        function renderTabPrivileges(fase) {
+            const btnPrev = document.getElementById('tabBtnPreventiviTab');
+            const btnContratto = document.getElementById('tabBtnContrattoTab');
+            
+            if (fase === 'PRIMO_CONTATTO') {
+                if(btnPrev) btnPrev.classList.add('opacity-40');
+                if(btnContratto) btnContratto.classList.add('opacity-40');
                 switchTab('diario');
+            } else {
+                if(btnPrev) btnPrev.classList.remove('opacity-40');
+                if(btnContratto) btnContratto.classList.remove('opacity-40');
+                if (fase === 'PREVENTIVAZIONE') {
+                    switchTab('preventiviTab');
+                } else {
+                    switchTab('diario');
+                }
             }
         }
 
@@ -630,6 +667,7 @@
             adjustWorkerLabels(nuovaFaseSelezionata);
         }
 
+        // SALVATAGGIO DEI DATI OPERATIVI CON FORMATTAZIONE SPECIFICA RICHIESTA
         async function saveFaseLavorazioneConDati() {
             if (!currentCommessa) return;
 
@@ -643,9 +681,18 @@
             const op1Value = op1Select ? op1Select.value : '';
             const op2Value = op2Select ? op2Select.value : '';
             
-            const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || '') : '';
-            const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || '') : '';
+            const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || 'Non specificato') : 'Non specificato';
+            const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || 'Non specificato') : 'Non specificato';
             const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
+
+            // Costruiamo la stringa con la formattazione richiesta: <Fase>. <Contatto preso da: xx> <Incaricato: xx> #<Appunti: xx>
+            let rigaFormattataDettaglio = `Fase: ${nuovaFase}. `;
+            if (nuovaFase === 'PRIMO_CONTATTO') {
+                rigaFormattataDettaglio += `Contatto preso da: ${op1Text} | Assegnato a: ${op2Text} `;
+            } else {
+                rigaFormattataDettaglio += `Incaricato: ${op1Text} `;
+            }
+            rigaFormattataDettaglio += `#Appunti: ${annotazioniFase || 'Nessuno'}`;
 
             if (nuovaFase === currentCommessa.stato_macro) {
                 try {
@@ -659,13 +706,9 @@
                     currentCommessa.contatto_gestito_da = op1Value;
                     currentCommessa.preventivo_assegnato_a = op2Value;
                     
-                    let logSupporto = `Aggiornati dati operativi commessa.`;
-                    if(op1Value) logSupporto += ` Incaricato: ${op1Text}.`;
-                    if(annotazioniFase) logSupporto += ` Appunti: "${annotazioniFase}"`;
-                    
-                    await logAutomaticActivity(logSupporto);
+                    await logAutomaticActivity(rigaFormattataDettaglio);
                     document.getElementById('faseAnnotazioniInput').value = "";
-                    alert("✅ Modifiche salvate con successo!");
+                    alert("✅ Modifiche apportate registrate nel diario!");
                 } catch (err) {
                     alert("Errore durante il salvataggio: " + err.message);
                 } finally {
@@ -675,20 +718,13 @@
             }
 
             if (!op1Value) {
-                alert("❌ INCARICATO MANCANTE:\nSeleziona obbligatoriamente il collaboratore responsabile per la nuova fase prima di salvare!");
+                alert("❌ COLLABORATORE MANCANTE:\nSeleziona obbligatoriamente il personale responsabile della fase prima di procedere al salvataggio!");
                 return;
             }
 
             if (!annotazioniFase) {
-                alert("❌ ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota esplicativa del passaggio nella casella 'Annotazioni per il cambio fase'!");
+                alert("❌ ANNOTAZIONE OBBLIGATORIA:\nInserisci una nota esplicativa del passaggio nella casella 'Annotazioni' prima di salvare!");
                 return;
-            }
-
-            let notaLog = `AVANZAMENTO FASE CONFERMATO: ${nuovaFase}.`;
-            if (nuovaFase === 'PRIMO_CONTATTO') {
-                notaLog += ` [Incaricato: ${op1Text} | Assegnato: ${op2Text}]. Note: "${annotazioniFase}"`;
-            } else {
-                notaLog += ` [Incaricato: ${op1Text}]. Note: "${annotazioniFase}"`;
             }
 
             try {
@@ -713,12 +749,10 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 document.getElementById('charCounter').innerText = "0 / 150";
 
-                await logAutomaticActivity(notaLog);
+                await logAutomaticActivity(rigaFormattataDettaglio);
                 alert(`🎉 Commessa avanzata con successo allo stato: ${nuovaFase}!`);
                 
-                if(nuovaFase === 'PREVENTIVAZIONE') {
-                    switchTab('preventiviTab');
-                }
+                renderTabPrivileges(nuovaFase);
             } catch (err) {
                 alert("Errore avanzamento fase: " + err.message);
             } finally {
@@ -745,20 +779,15 @@
 
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
-            // Creazione riga attività specifica preventivo
             let nuovaAttivitaPrev = `[${t}] - Stato: ${testoStato} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
             if (giorniScadenza) nuovaAttivitaPrev += ` | Scadenza: ${giorniScadenza} gg`;
 
-            // Aggiornamento della lista stringa (struttura simile a note_cantiere per il preventivo)
-            // Sfruttiamo una colonna di testo o creiamo una stringa accumulata. Per semplicità usiamo un campo accumulato 'preventivo_note_storico' o simile, altrimenti lo agganciamo.
-            // Nota: Useremo 'descrizione_lavoro' temporaneamente per accumulare lo storico del preventivo se non presente, oppure lo gestiamo all'interno di un campo dedicato. Assumiamo che memorizziamo lo storico dentro descrizione_lavoro o un campo specifico. Lo salviamo nel database.
             let storicoAggiornato = currentCommessa.descrizione_lavoro ? currentCommessa.descrizione_lavoro + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
 
             try {
                 btn.disabled = true;
                 
-                // Aggiornamento record principale commessa
                 const { error } = await db.from('commesse').update({
                     preventivo_stato: nuovoSubStato,
                     preventivo_data_invio: dataInizio === "" ? null : dataInizio,
@@ -768,16 +797,13 @@
 
                 if (error) throw error;
 
-                // Aggiornamento variabili locali
                 currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.preventivo_data_invio = dataInizio;
                 currentCommessa.preventivo_scadenza_promemoria = giorniScadenza;
                 currentCommessa.descrizione_lavoro = storicoAggiornato;
 
-                // Rendering della timeline interna del preventivo
                 fetchPreventivoTimeline();
 
-                // COPIA DEL LOG ANCHE NEL DIARIO GLOBAL "FASE DI LAVORAZIONE"
                 let notaPerDiarioGlobal = `📄 [ATTIVITÀ PREVENTIVO] - ${testoStato}. Nota: "${annotazioni}"`;
                 await logAutomaticActivity(notaPerDiarioGlobal);
 
@@ -823,6 +849,12 @@
         }
 
         function switchTab(tab) {
+            // Se la commessa è in PRIMO CONTATTO, blocca i click sui tab protetti
+            if (currentCommessa && currentCommessa.stato_macro === 'PRIMO_CONTATTO' && tab !== 'diario') {
+                alert("🔒 FUNZIONE BLOCCATA:\nQuesta sezione sarà accessibile solo quando la commessa avanzerà allo stato '2. PREVENTIVAZIONE'.");
+                return;
+            }
+
             ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
                 const target = document.getElementById(`tabContent${t === 'diario' ? 'Diario' : (t === 'preventiviTab' ? 'PreventiviTab' : 'ContrattoTab')}`);
                 if(target) target.classList.add('hidden');
