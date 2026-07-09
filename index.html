@@ -303,7 +303,7 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE CON SCRITTE DI AIUTO (LABEL CHIARE) -->
+    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE CON LABEL CHIARE SUI CONTENITORI -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 class="text-base font-bold text-slate-900 border-b pb-2">Modifica Anagrafica Cliente</h3>
@@ -604,7 +604,6 @@
         }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
 
-        // SALVATAGGIO CON BLOCCO EXPLICIT IN CASO DI ERRORE SUPABASE
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value;
             const titolo = document.getElementById('modalTitoloInput').value.trim();
@@ -637,9 +636,11 @@
             renderClientHub();
         }
 
+        // CORRETTO: ORA ALLINEA GLI INPUT DEL MODALE CON I CAMPI DELLA TABELLA E RENDI VISIBILI LE ETICHETTE SUI CAMPI VUOTI
         function openAnagraficaModal() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
+            
             document.getElementById('editTipo').value = cliente.tipo_cliente || 'PRIVATO';
             document.getElementById('editDenominazione').value = cliente.denominazione || '';
             document.getElementById('editCF').value = cliente.codice_fiscale || '';
@@ -648,6 +649,7 @@
             document.getElementById('editEmail').value = cliente.email || '';
             document.getElementById('editIndirizzo').value = cliente.indirizzo_fatturazione || '';
             document.getElementById('editNote').value = cliente.note_generali || '';
+            
             document.getElementById('anagraficaModal').classList.remove('hidden');
         }
         function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
@@ -665,7 +667,7 @@
             if(!denominazione) return;
 
             const { error } = await db.from('clienti')
-                .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note })
+                .update({ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono: telefono, email: email, indirizzo_fatturazione: indirizzo, note_generali: note })
                 .eq('id', currentClienteId);
 
             if(!error) {
@@ -713,7 +715,7 @@
             const telefono = document.getElementById('newTelefono').value.trim(); const email = document.getElementById('newEmail').value.trim();
             const indirizzo = document.getElementById('newIndirizzo').value.trim(); const note = document.getElementById('newNote').value.trim();
             if (!denominazione) return;
-            const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telephone: telefono, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
+            const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono: telefono, email: email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
             if (!error && data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
