@@ -150,7 +150,7 @@
             </div>
             
             <div class="space-y-2">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Lavorazione Global</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
                     <input type="text" id="newDiarioNote" placeholder="Scrivi una nota manuale nel diario..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                     <button id="btnSendDiario" onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-semibold rounded-lg shadow">Invia</button>
@@ -161,10 +161,11 @@
 
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-                <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Iter Gestione Preventivo</h3>
+                <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
+                
                 <div>
                     <label class="block text-xs font-medium text-slate-500 mb-1">Stato Avanzamento Preventivo</label>
-                    <select id="subStatoPreventivo" onchange="updateCommessaField('preventivo_stato', this.value)" class="w-full p-2 border rounded-lg bg-slate-50 text-xs font-semibold">
+                    <select id="subStatoPreventivo" class="w-full p-2 border rounded-lg bg-slate-50 text-xs font-semibold">
                         <option value="IN_CORSO">⏳ In Corso (Richieste prezzi o sviluppo)</option>
                         <option value="PRONTO_DA_SPEDIRE">📦 Pronto da Spedire / Consegnare</option>
                         <option value="INVIATO_CONSEGNATO">📬 Inviato / Consegnato al cliente</option>
@@ -172,16 +173,33 @@
                         <option value="CONFERMATO">🎉 CONFERMATO / ACCETTATO</option>
                     </select>
                 </div>
+                
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                        <label class="block text-slate-500">Data Invio</label>
-                        <input type="date" id="dateInvioPrev" onchange="updateCommessaField('preventivo_data_invio', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
+                        <label class="block text-slate-500">Data Inzio Attività</label>
+                        <input type="date" id="dateInvioPrev" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
                     </div>
                     <div>
-                        <label class="block text-slate-500">Scadenza Promemoria</label>
-                        <input type="date" id="dateReminderPrev" onchange="updateCommessaField('preventivo_scadenza_promemoria', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
+                        <label class="block text-slate-500">Giorni per Scadenza</label>
+                        <input type="number" id="dateReminderPrev" min="0" placeholder="Es. 10" class="w-full mt-1 p-2 border rounded-lg bg-slate-50">
                     </div>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Annotazioni Preventivo *</label>
+                    <input type="text" id="annotazioniPreventivoInput" placeholder="Inserisci qui i dettagli sull'avanzamento del preventivo..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
+                </div>
+
+                <div class="pt-1">
+                    <button id="btnSaveSubPreventivo" onclick="saveStatoPreventivoDettagli()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
+                        <span>💾</span> <span>Salva Stato Preventivo</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">⏳ Attività e Storico Preventivazione</h3>
+                <div id="preventivoTimeline" class="space-y-2"></div>
             </div>
         </div>
 
@@ -539,16 +557,26 @@
             if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
+            if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = currentWorkspaceValue('preventivo_data_invio');
+            if(document.getElementById('dateReminderPrev')) document.getElementById('dateReminderPrev').value = currentWorkspaceValue('preventivo_scadenza_promemoria');
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
 
             document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('annotazioniPreventivoInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
             adjustWorkerLabels(currentCommessa.stato_macro);
             fetchDiarioTimeline();
+            fetchPreventivoTimeline();
             navigateTo('detail');
-            switchTab('diario');
+            
+            // Attivazione automatica della tab in base allo stato
+            if (currentCommessa.stato_macro === 'PREVENTIVAZIONE') {
+                switchTab('preventiviTab');
+            } else {
+                switchTab('diario');
+            }
         }
 
         function currentWorkspaceValue(field) {
@@ -687,11 +715,98 @@
 
                 await logAutomaticActivity(notaLog);
                 alert(`🎉 Commessa avanzata con successo allo stato: ${nuovaFase}!`);
+                
+                if(nuovaFase === 'PREVENTIVAZIONE') {
+                    switchTab('preventiviTab');
+                }
             } catch (err) {
                 alert("Errore avanzamento fase: " + err.message);
             } finally {
                 btn.disabled = false; if(txt) txt.innerText = "Salva Modifiche e Fase";
             }
+        }
+
+        async function saveStatoPreventivoDettagli() {
+            if (!currentCommessa) return;
+
+            const btn = document.getElementById('btnSaveSubPreventivo');
+            const selectStato = document.getElementById('subStatoPreventivo');
+            const nuovoSubStato = selectStato.value;
+            const testoStato = selectStato.options[selectStato.selectedIndex].text;
+            
+            const dataInizio = document.getElementById('dateInvioPrev').value;
+            const giorniScadenza = document.getElementById('dateReminderPrev').value.trim();
+            const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
+
+            if (!annotazioni) {
+                alert("❌ ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota nei dettagli del preventivo prima di salvare lo stato!");
+                return;
+            }
+
+            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+            
+            // Creazione riga attività specifica preventivo
+            let nuovaAttivitaPrev = `[${t}] - Stato: ${testoStato} | Note: ${annotazioni}`;
+            if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
+            if (giorniScadenza) nuovaAttivitaPrev += ` | Scadenza: ${giorniScadenza} gg`;
+
+            // Aggiornamento della lista stringa (struttura simile a note_cantiere per il preventivo)
+            // Sfruttiamo una colonna di testo o creiamo una stringa accumulata. Per semplicità usiamo un campo accumulato 'preventivo_note_storico' o simile, altrimenti lo agganciamo.
+            // Nota: Useremo 'descrizione_lavoro' temporaneamente per accumulare lo storico del preventivo se non presente, oppure lo gestiamo all'interno di un campo dedicato. Assumiamo che memorizziamo lo storico dentro descrizione_lavoro o un campo specifico. Lo salviamo nel database.
+            let storicoAggiornato = currentCommessa.descrizione_lavoro ? currentCommessa.descrizione_lavoro + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
+
+            try {
+                btn.disabled = true;
+                
+                // Aggiornamento record principale commessa
+                const { error } = await db.from('commesse').update({
+                    preventivo_stato: nuovoSubStato,
+                    preventivo_data_invio: dataInizio === "" ? null : dataInizio,
+                    preventivo_scadenza_promemoria: giorniScadenza === "" ? null : giorniScadenza,
+                    descrizione_lavoro: storicoAggiornato
+                }).eq('id', currentCommessaId);
+
+                if (error) throw error;
+
+                // Aggiornamento variabili locali
+                currentCommessa.preventivo_stato = nuovoSubStato;
+                currentCommessa.preventivo_data_invio = dataInizio;
+                currentCommessa.preventivo_scadenza_promemoria = giorniScadenza;
+                currentCommessa.descrizione_lavoro = storicoAggiornato;
+
+                // Rendering della timeline interna del preventivo
+                fetchPreventivoTimeline();
+
+                // COPIA DEL LOG ANCHE NEL DIARIO GLOBAL "FASE DI LAVORAZIONE"
+                let notaPerDiarioGlobal = `📄 [ATTIVITÀ PREVENTIVO] - ${testoStato}. Nota: "${annotazioni}"`;
+                await logAutomaticActivity(notaPerDiarioGlobal);
+
+                document.getElementById('annotazioniPreventivoInput').value = "";
+                alert("✅ Stato e attività del preventivo registrati con successo!");
+
+            } catch (err) {
+                alert("Errore salvataggio dettagli preventivo: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function fetchPreventivoTimeline() {
+            const container = document.getElementById('preventivoTimeline');
+            if(!container) return;
+            container.innerHTML = "";
+            if (!currentCommessa || !currentCommessa.descrizione_lavoro) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
+                return;
+            }
+            currentCommessa.descrizione_lavoro.split('\n').reverse().forEach(l => {
+                if(l.trim()) {
+                    const r = document.createElement('div');
+                    r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 shadow-sm font-medium border-slate-100 text-slate-700";
+                    r.innerText = l;
+                    container.appendChild(r);
+                }
+            });
         }
 
         function adjustWorkerLabels(fase) {
