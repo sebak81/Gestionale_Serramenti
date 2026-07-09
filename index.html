@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -59,6 +64,7 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -84,11 +90,13 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
+        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -101,12 +109,14 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
+        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all">📄 Preventivi</button>
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all">✍️ Contratto</button>
         </div>
 
+        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -122,26 +132,36 @@
                     </select>
                 </div>
                 
+                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
-                        <select id="workerContattoSelect" onchange="saveFaseLavorazioneConDati()" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
+                        <select id="workerContattoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
                     <div id="boxWorkerAssegnato">
                         <label class="block font-bold text-slate-700">Assegnato a:</label>
-                        <select id="workerAssegnatoSelect" onchange="saveWorkerSenzaFaseChange('preventivo_assegnato_a', this.value)" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
+                        <select id="workerAssegnatoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
                 </div>
 
+                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                         <label>Annotazioni per il cambio fase *</label>
                         <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                     </div>
-                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi obbligatoriamente qui prima di selezionare l'incaricato..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
+                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi i dettagli del passaggio qui prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
+                </div>
+
+                <!-- PULSANTE SALVA CONSOLIDATO -->
+                <div class="pt-2 border-t">
+                    <button onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
+                        <span>💾</span> <span>Salva Modifiche e Fase</span>
+                    </button>
                 </div>
             </div>
             
+            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -152,6 +172,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: PREVENTIVI -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Iter Gestione Preventivo</h3>
@@ -178,6 +199,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -208,6 +230,7 @@
         </div>
     </main>
 
+    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -216,6 +239,7 @@
         </div>
     </nav>
 
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3><button onclick="closeModal()" class="text-slate-400 text-lg">✕</button></div>
@@ -385,7 +409,7 @@
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
-            if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
+            if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
 
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
@@ -421,12 +445,14 @@
             const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
             const indexNuovo = workflowOrdinato.indexOf(nuovaFaseSelezionata);
 
+            // Controllo 1: Retrocessione vietata immediata
             if (indexNuovo < indexAttuale) {
                 alert(`⚠️ AZIONE BLOCCATA:\nNon è consentito retrocedere di fase aziendale. La commessa si trova nello stato "${faseAttuale}" e non può tornare a "${nuovaFaseSelezionata}".`);
                 document.getElementById('commessaMacroSelect').value = faseAttuale;
                 return;
             }
 
+            // Controllo 2: Salto di più di 2 lavorazioni (Avviso)
             const saltoFasi = indexNuovo - indexAttuale;
             if (saltoFasi > 2) {
                 const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFaseSelezionata}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
@@ -436,14 +462,16 @@
                 }
             }
 
+            // Svuotiamo le tendine visive per costringere a riassegnare il nuovo incaricato
             if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = ""; 
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = ""; 
             
             adjustWorkerLabels(nuovaFaseSelezionata);
-            alert(`Fase modificata in "${nuovaFaseSelezionata}".\nSeleziona obbligatoriamente il nuovo Incaricato responsabile e inserisci le Annotazioni per registrare il passaggio.`);
         }
 
         async function saveFaseLavorazioneConDati() {
+            if (!currentCommessa) return;
+
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
@@ -453,26 +481,40 @@
             
             const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || '') : '';
             const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || '') : '';
-
-            if (nuovaFase === currentCommessa.stato_macro) {
-                await db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value }).eq('id', currentCommessaId);
-                currentCommessa.contatto_gestito_da = op1Value;
-                await logAutomaticActivity(`Modifica Operatore -> Incaricato: ${op1Text}`);
-                return;
-            }
-
-            if (!op1Value) {
-                alert("INCARICATO MANCANTE:\nSeleziona il collaboratore responsabile per la nuova fase prima di procedere!");
-                return;
-            }
-
             const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
-            if (!annotazioniFase) {
-                alert("ANNOTAZIONE RICHIESTA:\nInserisci una nota esplicativa del passaggio nella casella 'Annotazioni per il cambio fase'!");
-                if(op1Select) op1Select.value = ""; 
+
+            // CASO A: Modifiche senza cambio di fase macro
+            if (nuovaFase === currentCommessa.stato_macro) {
+                await db.from('commesse').update({ 
+                    contatto_gestito_da: op1Value === "" ? null : op1Value,
+                    preventivo_assegnato_a: op2Value === "" ? null : op2Value
+                }).eq('id', currentCommessaId);
+                
+                currentCommessa.contatto_gestito_da = op1Value;
+                currentCommessa.preventivo_assegnato_a = op2Value;
+                
+                let logSupporto = `Aggiornati dati operativi commessa.`;
+                if(op1Value) logSupporto += ` Incaricato: ${op1Text}.`;
+                if(annotazioniFase) logSupporto += ` Appunti: "${annotazioniFase}"`;
+                
+                await logAutomaticActivity(logSupporto);
+                document.getElementById('faseAnnotazioniInput').value = "";
+                alert("✅ Modifiche salvate con successo!");
                 return;
             }
 
+            // CASO B: Avanzamento di fase effettivo -> CONTROLLI OBBLIGATORI AL CLICK
+            if (!op1Value) {
+                alert("❌ INCARICATO MANCANTE:\nSeleziona obbligatoriamente il collaboratore responsabile per la nuova fase prima di salvare!");
+                return;
+            }
+
+            if (!annotazioniFase) {
+                alert("❌ ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota esplicativa del passaggio nella casella 'Annotazioni per il cambio fase'!");
+                return;
+            }
+
+            // Se tutto è corretto eseguiamo il salvataggio combinato su Supabase
             let notaLog = `AVANZAMENTO FASE CONFERMATO: ${nuovaFase}.`;
             if (nuovaFase === 'PRIMO_CONTATTO') {
                 notaLog += ` [Incaricato: ${op1Text} | Assegnato: ${op2Text}]. Note: "${annotazioniFase}"`;
@@ -499,6 +541,7 @@
             document.getElementById('charCounter').innerText = "0 / 150";
 
             await logAutomaticActivity(notaLog);
+            alert(`🎉 Commessa avanzata con successo allo stato: ${nuovaFase}!`);
         }
 
         async function saveWorkerSenzaFaseChange(field, value) {
@@ -578,7 +621,6 @@
         }
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-        function switchClientSubTab(tab) {}
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
