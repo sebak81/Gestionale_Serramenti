@@ -419,6 +419,7 @@
             fetchDiarioTimeline();
         }
 
+        // CORRETTA SINTASSI VARIABILE (nuovaFaseSelezionata) SBLOCCATA
         function handleFaseChange() {
             const faseAttuale = currentCommessa.stato_macro;
             const nuovaFaseSelezionata = document.getElementById('commessaMacroSelect').value;
@@ -450,6 +451,7 @@
             alert(`Fase modificata in "${nuovaFaseSelezionata}".\nSeleziona obbligatoriamente il nuovo Incaricato responsabile e inserisci le Annotazioni per registrare il passaggio.`);
         }
 
+        // CORRETTA VARIABILE INTERNA (annotazioniFase) SBLOCCATA
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
