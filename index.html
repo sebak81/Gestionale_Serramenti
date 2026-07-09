@@ -303,19 +303,48 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA STABILE CLIENTE -->
+    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE CON SCRITTE DI AIUTO (LABEL CHIARE) -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 class="text-base font-bold text-slate-900 border-b pb-2">Modifica Anagrafica Cliente</h3>
             <div class="space-y-3 text-xs">
-                <select id="editTipo" class="w-full p-2 border rounded-lg bg-slate-50"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
-                <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50">
-                <div class="grid grid-cols-2 gap-2"><input type="text" id="editCF" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="16"><input type="text" id="editIVA" class="w-full p-2 border rounded-lg bg-slate-50" maxlength="11"></div>
-                <input type="tel" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
-                <textarea id="editNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50"></textarea>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Tipo Soggetto</label>
+                    <select id="editTipo" class="w-full p-2 border rounded-lg bg-slate-50"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Nome / Ragione Sociale *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun dato salvato">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Codice Fiscale</label>
+                        <input type="text" id="editCF" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Vuoto" maxlength="16">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Partita IVA</label>
+                        <input type="text" id="editIVA" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Vuoto" maxlength="11">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Recapito Telefono</label>
+                    <input type="tel" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun numero inserito">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Indirizzo Email</label>
+                    <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun indirizzo inserito">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Indirizzo di Fatturazione</label>
+                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessuna sede di fatturazione inserita">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Note Interne Stabili</label>
+                    <textarea id="editNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Aggiungi appunti fissi sul cliente..."></textarea>
+                </div>
             </div>
             <div class="flex space-x-3 pt-2">
-                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs">Chiudi</button>
+                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs font-semibold">Chiudi</button>
                 <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold">Aggiorna</button>
             </div>
         </div>
@@ -575,6 +604,7 @@
         }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
 
+        // SALVATAGGIO CON BLOCCO EXPLICIT IN CASO DI ERRORE SUPABASE
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value;
             const titolo = document.getElementById('modalTitoloInput').value.trim();
@@ -583,16 +613,18 @@
             if (!titolo || !cantiere) { alert("Compila sia l'identificativo che l'indirizzo!"); return; }
 
             if (id) {
-                await db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
+                const { error } = await db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
+                if (error) { alert("Errore modifica commessa: " + error.message); return; }
             } else {
                 const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-                await db.from('commesse').insert([{ 
+                const { error } = await db.from('commesse').insert([{ 
                     cliente_id: currentClienteId, 
                     titolo_lavoro: titolo,
                     indirizzo_cantiere: cantiere, 
                     stato_macro: 'PRIMO_CONTATTO', 
                     note_cantiere: `🏁 [${t}] - Aperta Nuova Commessa: ${titolo}.` 
                 }]);
+                if (error) { alert("Errore inserimento commessa: " + error.message); return; }
             }
 
             closeCommessaModal();
@@ -640,6 +672,8 @@
                 closeAnagraficaModal();
                 await fetchClienti();
                 renderClientHub();
+            } else {
+                alert("Errore modifica anagrafica: " + error.message);
             }
         }
 
@@ -679,7 +713,7 @@
             const telefono = document.getElementById('newTelefono').value.trim(); const email = document.getElementById('newEmail').value.trim();
             const indirizzo = document.getElementById('newIndirizzo').value.trim(); const note = document.getElementById('newNote').value.trim();
             if (!denominazione) return;
-            const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
+            const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telephone: telefono, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
             if (!error && data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
         function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
