@@ -144,19 +144,19 @@
                     </div>
                 </div>
 
-                <!-- CASSELLA DI TESTO DELLE ANNOTAZIONI DI CAMBIO FASE - SEMPRE VISIBILE -->
-                <div class="border-t pt-2 space-y-1 block">
-                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                        <label>Annotazioni per il cambio fase</label>
+                <!-- CASSELLA DI TESTO ANNOTAZIONI - FORZATA GRAFICAMENTE AD ESSERE SEMPRE VISIBILE -->
+                <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        <label>Annotazioni per il cambio fase *</label>
                         <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                     </div>
-                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Aggiungi note per questo passaggio di fase..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
+                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi obbligatoriamente qui prima di selezionare l'incaricato..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
             </div>
             
             <!-- DIARIO -->
             <div class="space-y-2">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Attività</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
                     <input type="text" id="newDiarioNote" placeholder="Scrivi una nota manuale nel diario..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                     <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-semibold rounded-lg shadow">Invia</button>
@@ -283,7 +283,16 @@
         let currentCommessaId = null;
         let currentCommessa = null;
         
-        let targetMacroStato = ""; // Tiene traccia della fase che l'utente vorrebbe inserire
+        // Elenco ordinato dei passaggi per calcolare matematicamente salti e retrocessioni
+        const workflowOrdinato = [
+            "PRIMO_CONTATTO",
+            "PREVENTIVAZIONE",
+            "MISURE_ESECUTIVE",
+            "FATTURA_ACCONTO",
+            "ORDINI_FORNITORI",
+            "INSTALLAZIONE",
+            "SALDO_CONCLUSO"
+        ];
 
         function navigateTo(screen) {
             document.getElementById('mainScreen').classList.add('hidden');
@@ -366,11 +375,12 @@
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
             currentCommessaId = commessaId;
-            targetMacroStato = currentCommessa.stato_macro; 
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
+            
+            // Forza la tendina sul valore corretto salvato nel DB
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
@@ -400,20 +410,42 @@
             fetchDiarioTimeline();
         }
 
-        // REGOLE DI FLUSSO: RESET INCALZANTE DELL'OPERATORE AL CAMBIO DELLA TENDA FASE
+        // CONTROLLO DI PROMOZIONE, RETROCESSIONE E SALTI NEL WORKFLOW CON POPUP DI CONFERMA OBBLIGATORIO
         function handleFaseChange() {
-            const nuovaFase Selezionata = document.getElementById('commessaMacroSelect').value;
-            
-            // Se la fase scelta è diversa da quella reale salvata, forziamo il reset operatore
-            if (nuovaFaseSelezionata !== currentCommessa.stato_macro) {
-                document.getElementById('workerContattoSelect').value = ""; // Svuota la scelta operatore principale
-                document.getElementById('workerAssegnatoSelect').value = ""; // Svuota l'eventuale secondo
-                adjustWorkerLabels(nuovaFaseSelezionata);
-                alert(`Hai modificato la fase in "${nuovaFaseSelezionata}".\nIl vecchio operatore è stato rimosso: seleziona obbligatoriamente il nuovo Incaricato per salvare.`);
+            const faseAttuale = currentCommessa.stato_macro;
+            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+
+            if (faseAttuale === nuovaFase) return;
+
+            const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
+            const indexNuovo = workflowOrdinato.indexOf(nuovaFase);
+
+            // CONTROLLO 1: RETROCESSIONE VIETATA
+            if (indexNuovo < indexAttuale) {
+                alert(`⚠️ AZIONE REVOLUTAMENTE BLOCCATA:\nNon è consentito retrocedere di fase aziendale. La commessa si trova nello stato "${faseAttuale}" e non può tornare a "${nuovaFase}".`);
+                document.getElementById('commessaMacroSelect').value = faseAttuale; // Ripristina
+                return;
             }
+
+            // CONTROLLO 2: AVANZAMENTO CON SALTO SUPERIORE A 2 LAVORAZIONI
+            const saltoFasi = indexNuovo - indexAttuale;
+            if (saltoFasi > 2) {
+                const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFase}").\n\nConfermi che l'azione è intenzionale e non un errore? Clicca su OK per procedere.`);
+                if (!confermaSalto) {
+                    document.getElementById('commessaMacroSelect').value = faseAttuale; // Ripristina
+                    return;
+                }
+            }
+
+            // SE IL CONTROLLO PASSA ➡️ RESET ISTANTANEO REALE DELL'INCARICATO E SVUOTAMENTO
+            document.getElementById('workerContattoSelect').value = ""; 
+            document.getElementById('workerAssegnatoSelect').value = ""; 
+            
+            adjustWorkerLabels(nuovaFase);
+            alert(`Fase modificata con successo in "${nuovaFase}".\nInserisci ora obbligatoriamente le Annotazioni di testo e seleziona il nuovo Incaricato responsabile per confermare.`);
         }
 
-        // SALVATAGGIO CONSOLIDATO DI FASE, INCARICATO ED ANNOTAZIONI OBBLIGATORIE CONNESSE
+        // SALVATAGGIO DEI DATI DOPO IL RESET ED IL CONTROLLO DEL WORKFLOW
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
@@ -425,35 +457,36 @@
             const op1Text = op1Select.options[op1Select.selectedIndex]?.text || '';
             const op2Text = op2Select.options[op2Select.selectedIndex]?.text || '';
 
-            // Se l'utente ha cliccato l'operatore ma non ha cambiato fase, salviamo solo l'operatore normalmente
+            // Se l'utente tocca l'operatore senza aver modificato la fase, salva normalmente l'operatore
             if (nuovaFase === currentCommessa.stato_macro) {
                 await db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value }).eq('id', currentCommessaId);
                 currentCommessa.contatto_gestito_da = op1Value;
-                await logAutomaticActivity(`Cambio operatore eseguito -> Incaricato: ${op1Text}`);
+                await logAutomaticActivity(`Modifica Operatore -> Incaricato: ${op1Text}`);
                 return;
             }
 
-            // Se invece stiamo cambiando fase, l'operatore DEVE essere presente
+            // Se stiamo cambiando fase, l'incaricato è obbligatorio
             if (!op1Value) {
-                alert("ERRORE DI ASSEGNAZIONE:\nSeleziona una persona Incaricata dall'elenco operatori per poter confermare il cambio fase lavorativa!");
+                alert("INCARICATO MANCANTE:\nSeleziona il collaboratore responsabile per la nuova fase prima di procedere!");
                 return;
             }
 
+            // L'annotazione di cantiere per la fase deve essere presente
             const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
             if (!annotazioniFase) {
-                alert("ANNOTAZIONE OBBLIGATORIA:\nInserisci una breve nota o spiegazione nel campo 'Annotazioni per il cambio fase' prima di selezionare l'incaricato!");
-                op1Select.value = ""; // Forza di nuovo il reset per obbligarlo a scrivere prima
+                alert("ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota esplicativa del passaggio nella casella di testo 'Annotazioni per il cambio fase'!");
+                op1Select.value = ""; // Svuota nuovamente per costringerlo
                 return;
             }
 
-            let notaLog = `FASE AZIENDALE MODIFICATA: ${nuovaFase}.`;
+            let notaLog = `AVANZAMENTO FASE CONFERMATO: ${nuovaFase}.`;
             if (nuovaFase === 'PRIMO_CONTATTO') {
-                notaLog += ` [Contatto preso da: ${op1Text} | Assegnato a: ${op2Text}]. Dettagli: "${annotazioniFase}"`;
+                notaLog += ` [Incaricato: ${op1Text} | Assegnato: ${op2Text}]. Note: "${annotazioniFase}"`;
             } else {
-                notaLog += ` [Incaricato: ${op1Text}]. Dettagli: "${annotazioniFase}"`;
+                notaLog += ` [Incaricato: ${op1Text}]. Note: "${annotazioniFase}"`;
             }
 
-            // Eseguiamo il salvataggio combinato e definitivo in cloud
+            // Aggiornamento definitivo nel Cloud di Supabase
             await db.from('commesse').update({ 
                 stato_macro: nuovaFase, 
                 contatto_gestito_da: op1Value,
@@ -467,7 +500,7 @@
             const badge = document.getElementById('commessaBadgeStato');
             badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`;
             
-            // Reset dei campi di immissione
+            // Pulisce l'input annotazioni
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
@@ -477,7 +510,7 @@
         async function saveWorkerSenzaFaseChange(field, value) {
             await db.from('commesse').update({ [field]: value === "" ? null : value }).eq('id', currentCommessaId);
             currentCommessa[field] = value;
-            await logAutomaticActivity(`Aggiornato campo secondario della commessa (${field})`);
+            await logAutomaticActivity(`Aggiornato collaboratore di supporto commessa (${field})`);
         }
 
         function adjustWorkerLabels(fase) {
@@ -555,7 +588,6 @@
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
         function switchPreventiviSubTab(t) {}
         function renderPreventiviSection() {}
-        function renderSettingsWorkers() {}
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
