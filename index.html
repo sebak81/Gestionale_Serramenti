@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -62,11 +67,13 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
+        <!-- Box Anagrafica Sintetica -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-start">
                 <div>
@@ -78,6 +85,7 @@
             <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
         </div>
 
+        <!-- Sezione Commesse Collegate -->
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📦 Commesse e Cantieri</h3>
@@ -87,11 +95,13 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
+        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-1.5">
@@ -109,6 +119,7 @@
             <button id="tabBtnTecnico" onclick="switchTab('tecnico')" class="flex-1 py-2 text-center rounded-lg transition-all">📝 Avanzamento</button>
         </div>
 
+        <!-- TAB CONTENT 1: DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div>
@@ -144,7 +155,9 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: AVANZAMENTO DETTAGLIATO -->
         <div id="tabContentTecnico" class="space-y-4 hidden">
+            <!-- Sotto-Stato Preventivazione -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Iter Gestione Preventivo</h3>
                 <div>
@@ -169,6 +182,7 @@
                 </div>
             </div>
 
+            <!-- Misure e Contratto -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
                 <div>
@@ -196,6 +210,7 @@
                 </div>
             </div>
 
+            <!-- Fattura Acconto -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">💰 Gestione Fatturazione Acconto</h3>
                 <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 space-y-3 text-xs">
@@ -222,6 +237,7 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 5: SEZIONE PREVENTIVI APERTI -->
     <main id="preventiviScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <div class="space-y-2">
             <h2 class="text-lg font-bold text-slate-900 px-1">📋 Gestione Richieste & Sviluppo</h2>
@@ -233,6 +249,7 @@
         <div id="preventiviList" class="space-y-3"></div>
     </main>
 
+    <!-- SCHERMATA 6: IMPOSTAZIONI PERSONALE -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-xl font-bold text-slate-900">⚙️ Impostazioni Sistema</h2>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -264,6 +281,9 @@
         </div>
     </main>
 
+    <!-- MODALI DI APERTURA E MODIFICA -->
+    
+    <!-- MODALE INSERIMENTO NUOVO CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3>
@@ -283,6 +303,7 @@
         </div>
     </div>
 
+    <!-- MODALE MODIFICA ANAGRAFICA STABILE CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 class="text-base font-bold text-slate-900 border-b pb-2">Modifica Anagrafica Cliente</h3>
@@ -300,6 +321,7 @@
         </div>
     </div>
 
+    <!-- MODALE AGGIUNGI / MODIFICA SINGOLA COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Dati Commessa di Lavoro</h3>
@@ -321,6 +343,7 @@
         </div>
     </div>
 
+    <!-- FIXED BAR NAVIGATION -->
     <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
