@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,13 +30,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -64,7 +59,6 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -90,13 +84,11 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
-        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -109,14 +101,12 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
-        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all">📄 Preventivi</button>
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all">✍️ Contratto</button>
         </div>
 
-        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -132,7 +122,6 @@
                     </select>
                 </div>
                 
-                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
@@ -144,7 +133,6 @@
                     </div>
                 </div>
 
-                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                         <label>Annotazioni per il cambio fase *</label>
@@ -154,7 +142,6 @@
                 </div>
             </div>
             
-            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -165,7 +152,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: PREVENTIVI -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Iter Gestione Preventivo</h3>
@@ -192,7 +178,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -223,7 +208,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -235,7 +219,6 @@
         </div>
     </nav>
 
-    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3><button onclick="closeModal()" class="text-slate-400 text-lg">✕</button></div>
@@ -373,7 +356,7 @@
                         <span class="text-xs font-bold text-blue-600">${com.titolo_lavoro || 'Lavoro Senza Titolo'}</span>
                     </div>
                     <h4 class="font-semibold text-slate-700 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">📅 Data Creazione Commessa: ${dataCreazione}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">📅 Data Creazione: ${dataCreazione}</p>
                 `;
                 
                 const btnOpt = document.createElement('button');
@@ -408,7 +391,7 @@
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
-            document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
+            document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
 
             document.getElementById('faseAnnotazioniInput').value = "";
@@ -418,6 +401,10 @@
             fetchDiarioTimeline();
             navigateTo('detail');
             switchTab('diario');
+        }
+
+        function currentWorkspaceValue(field) {
+            return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : '';
         }
 
         function updateCharCounter(input) {
@@ -434,22 +421,22 @@
 
         function handleFaseChange() {
             const faseAttuale = currentCommessa.stato_macro;
-            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            const nuovaFaseSelezionata = document.getElementById('commessaMacroSelect').value;
 
-            if (faseAttuale === nuovaFase) return;
+            if (faseAttuale === nuovaFaseSelezionata) return;
 
             const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
-            const indexNuovo = workflowOrdinato.indexOf(nuovaFase);
+            const indexNuovo = workflowOrdinato.indexOf(nuovaFaseSelezionata);
 
             if (indexNuovo < indexAttuale) {
-                alert(`⚠️ AZIONE BLOCCATA:\nNon è consentito retrocedere di fase aziendale. La commessa si trova nello stato "${faseAttuale}" e non può tornare a "${nuovaFase}".`);
+                alert(`⚠️ AZIONE BLOCCATA:\nNon è consentito retrocedere di fase aziendale. La commessa si trova nello stato "${faseAttuale}" e non può tornare a "${nuovaFaseSelezionata}".`);
                 document.getElementById('commessaMacroSelect').value = faseAttuale;
                 return;
             }
 
             const saltoFasi = indexNuovo - indexAttuale;
             if (saltoFasi > 2) {
-                const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFase}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
+                const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFaseSelezionata}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
                 if (!confermaSalto) {
                     document.getElementById('commessaMacroSelect').value = faseAttuale;
                     return;
@@ -459,8 +446,8 @@
             document.getElementById('workerContattoSelect').value = ""; 
             document.getElementById('workerAssegnatoSelect').value = ""; 
             
-            adjustWorkerLabels(nuovaFase);
-            alert(`Fase modificata in "${nuovaFase}".\nSeleziona obbligatoriamente il nuovo Incaricato responsabile e inserisci le Annotazioni per registrare il passaggio.`);
+            adjustWorkerLabels(nuovaFaseSelezionata);
+            alert(`Fase modificata in "${nuovaFaseSelezionata}".\nSeleziona obbligatoriamente il nuovo Incaricato responsabile e inserisci le Annotazioni per registrare il passaggio.`);
         }
 
         async function saveFaseLavorazioneConDati() {
@@ -526,11 +513,8 @@
         }
 
         function adjustWorkerLabels(fase) {
-            const lblFase = document.getElementById('lblFaseLavorazione');
             const lblWorker1 = document.getElementById('lblWorkerContatto');
             const boxWorker2 = document.getElementById('boxWorkerAssegnato');
-
-            if (lblFase) lblFase.innerText = "Fase di Lavorazione";
 
             if (fase === 'PRIMO_CONTATTO') {
                 if (lblWorker1) lblWorker1.innerText = "Contatto preso da: *";
@@ -570,7 +554,7 @@
             currentCommessa.note_cantiere = full; input.value = ""; fetchDiarioTimeline();
         }
 
-        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); currentCommessa[field] = value; }
+        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); if(currentCommessa) currentCommessa[field] = value; }
         async function updateWorker(field, value) { await updateCommessaField(field, value === "" ? null : value); }
 
         function openNewCommessaModal() { document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
