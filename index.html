@@ -215,7 +215,7 @@
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">💰 Gestione Fatturazione Acconto</h3>
                 <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 space-y-3 text-xs">
                     <div class="flex items-center justify-between">
-                        <span class="font-semibold text-slate-700">1. Invio Fattura d'Acconto:</span>
+                        <span class="font-semibold text-purple-700">1. Invio Fattura d'Acconto:</span>
                         <input type="checkbox" id="checkFattInviata" onchange="toggleFatturaAccontoInvio(this.checked)" class="rounded text-purple-600 h-4 w-4">
                     </div>
                     <div id="boxFattInvioDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
@@ -225,7 +225,7 @@
                 </div>
                 <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/50 space-y-3 text-xs">
                     <div class="flex items-center justify-between">
-                        <span class="font-semibold text-slate-700">2. Stato Pagamento Incassato:</span>
+                        <span class="font-semibold text-emerald-700">2. Stato Pagamento Incassato:</span>
                         <input type="checkbox" id="checkFattPagata" onchange="toggleFatturaAccontoPagamento(this.checked)" class="rounded text-emerald-600 h-4 w-4">
                     </div>
                     <div id="boxFattPagamentoDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
@@ -303,49 +303,57 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE CON LABEL CHIARE SUI CONTENITORI -->
+    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE CON VERI E PROPRI TITOLETTI SOPRA I CAMPI -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
-            <h3 class="text-base font-bold text-slate-900 border-b pb-2">Modifica Anagrafica Cliente</h3>
-            <div class="space-y-3 text-xs">
+            <h3 class="text-base font-bold text-slate-900 border-b pb-2">📂 Anagrafica Cliente</h3>
+            
+            <div class="space-y-3.5 text-xs text-slate-700">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Tipo Soggetto</label>
-                    <select id="editTipo" class="w-full p-2 border rounded-lg bg-slate-50"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">💼 TIPO SOGGETTO</label>
+                    <select id="editTipo" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
                 </div>
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Nome / Ragione Sociale *</label>
-                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun dato salvato">
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">👤 NOME / RAGIONE SOCIALE *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Codice Fiscale</label>
-                        <input type="text" id="editCF" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Vuoto" maxlength="16">
+                        <label class="block font-bold text-slate-800 text-[11px] mb-1">🪪 CODICE FISCALE</label>
+                        <input type="text" id="editCF" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500" maxlength="16">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Partita IVA</label>
-                        <input type="text" id="editIVA" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Vuoto" maxlength="11">
+                        <label class="block font-bold text-slate-800 text-[11px] mb-1">🏦 PARTITA IVA</label>
+                        <input type="text" id="editIVA" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500" maxlength="11">
                     </div>
                 </div>
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Recapito Telefono</label>
-                    <input type="tel" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun numero inserito">
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">📞 RECAPITO TELEFONO</label>
+                    <input type="tel" id="editTelefono" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500">
                 </div>
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Indirizzo Email</label>
-                    <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessun indirizzo inserito">
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">✉️ INDIRIZZO EMAIL</label>
+                    <input type="email" id="editEmail" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500">
                 </div>
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Indirizzo di Fatturazione</label>
-                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nessuna sede di fatturazione inserita">
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">📍 INDIRIZZO DI FATTURAZIONE</label>
+                    <input type="text" id="editIndirizzo" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500">
                 </div>
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Note Interne Stabili</label>
-                    <textarea id="editNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Aggiungi appunti fissi sul cliente..."></textarea>
+                    <label class="block font-bold text-slate-800 text-[11px] mb-1">📝 NOTE GENERALI STABILI</label>
+                    <textarea id="editNote" rows="2.5" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
             </div>
-            <div class="flex space-x-3 pt-2">
-                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded text-xs font-semibold">Chiudi</button>
-                <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold">Aggiorna</button>
+            
+            <div class="flex space-x-3 pt-3 border-t">
+                <button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200 transition-colors">Chiudi</button>
+                <button onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-colors shadow">Aggiorna</button>
             </div>
         </div>
     </div>
@@ -636,7 +644,6 @@
             renderClientHub();
         }
 
-        // CORRETTO: ORA ALLINEA GLI INPUT DEL MODALE CON I CAMPI DELLA TABELLA E RENDI VISIBILI LE ETICHETTE SUI CAMPI VUOTI
         function openAnagraficaModal() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
