@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,13 +30,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -67,13 +62,11 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
-        <!-- Box Anagrafica Sintetica -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-start">
                 <div>
@@ -85,7 +78,6 @@
             <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
         </div>
 
-        <!-- Sezione Commesse Collegate -->
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📦 Commesse e Cantieri di lavoro</h3>
@@ -95,13 +87,11 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA (DIARIO & AVANZAMENTO) -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
-        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -119,7 +109,6 @@
             <button id="tabBtnTecnico" onclick="switchTab('tecnico')" class="flex-1 py-2 text-center rounded-lg transition-all">📝 Avanzamento</button>
         </div>
 
-        <!-- TAB CONTENT 1: DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div>
@@ -155,9 +144,7 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: AVANZAMENTO DETTAGLIATO -->
         <div id="tabContentTecnico" class="space-y-4 hidden">
-            <!-- Sotto-Stato Preventivazione -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Iter Gestione Preventivo</h3>
                 <div>
@@ -182,7 +169,6 @@
                 </div>
             </div>
 
-            <!-- Misure e Contratto -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
                 <div>
@@ -210,7 +196,6 @@
                 </div>
             </div>
 
-            <!-- Fattura Acconto -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">💰 Gestione Fatturazione Acconto</h3>
                 <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 space-y-3 text-xs">
@@ -237,7 +222,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 5: SEZIONE PREVENTIVI APERTI -->
     <main id="preventiviScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <div class="space-y-2">
             <h2 class="text-lg font-bold text-slate-900 px-1">📋 Gestione Richieste & Sviluppo</h2>
@@ -249,7 +233,6 @@
         <div id="preventiviList" class="space-y-3"></div>
     </main>
 
-    <!-- SCHERMATA 6: IMPOSTAZIONI PERSONALE -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-xl font-bold text-slate-900">⚙️ Impostazioni Sistema</h2>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -281,7 +264,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -297,9 +279,6 @@
     </nav>
 
 
-    <!-- MODALI DI APERTURA E MODIFICA -->
-    
-    <!-- MODALE NUOVO CLIENTE CON CASSELLE CHIARE E ETICHETTE IN GRASSETTO -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -351,7 +330,6 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -403,7 +381,6 @@
         </div>
     </div>
 
-    <!-- MODALE CON TEXTBOX "TITOLO" COMMESSA AGGIUNTO E STRUTTURATO -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Gestione Commessa di Lavoro</h3>
@@ -551,7 +528,7 @@
 
         function filterClients() { renderClientsList(); }
 
-        // STAMPA COMMESSE CON DATA REALE DI CREAZIONE FILE (created_at)
+        // STAMPA COMMESSE CON ADATTAMENTO "titolo_lavoro" E DATA CREAZIONE
         function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -579,13 +556,12 @@
                 mainInfo.className = "flex-1 pr-4";
                 mainInfo.onclick = () => { openCommessaWorkspace(com.id); };
                 
-                // Formattiamo la data reale di creazione del record
                 const dataCreazione = new Date(com.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                 mainInfo.innerHTML = `
                     <div class="flex items-center space-x-2">
                         <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
-                        <span class="text-xs font-bold text-blue-600">${com.titolo || 'Lavoro Senza Titolo'}</span>
+                        <span class="text-xs font-bold text-blue-600">${com.titolo_lavoro || 'Lavoro Senza Titolo'}</span>
                     </div>
                     <h4 class="font-semibold text-slate-700 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
                     <p class="text-[10px] text-slate-400 mt-0.5">📅 Data Creazione Commessa: ${dataCreazione}</p>
@@ -598,7 +574,7 @@
                     e.stopPropagation();
                     document.getElementById('commessaModalTitle').innerText = "Modifica Dati Commessa";
                     document.getElementById('modalCommessaId').value = com.id;
-                    document.getElementById('modalTitoloInput').value = com.titolo || '';
+                    document.getElementById('modalTitoloInput').value = com.titolo_lavoro || '';
                     document.getElementById('modalCantiereInput').value = com.indirizzo_cantiere;
                     document.getElementById('commessaModal').classList.remove('hidden');
                 };
@@ -616,7 +592,7 @@
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
-            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo || 'Lavoro Senza Titolo';
+            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Lavoro Senza Titolo';
             
             const badge = document.getElementById('commessaBadgeStato');
             badge.innerText = currentCommessa.stato_macro;
@@ -658,13 +634,13 @@
         function openCommessaEditModalCurrent() {
             document.getElementById('commessaModalTitle').innerText = "Modifica Dati Commessa";
             document.getElementById('modalCommessaId').value = currentCommessaId;
-            document.getElementById('modalTitoloInput').value = currentCommessa.titolo || '';
+            document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro || '';
             document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere;
             document.getElementById('commessaModal').classList.remove('hidden');
         }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
 
-        // SALVATAGGIO CON CAMPO "TITOLO" INSERITO CORRETTAMENTE
+        // SALVATAGGIO CON UPDATE DI "titolo_lavoro"
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value;
             const titolo = document.getElementById('modalTitoloInput').value.trim();
@@ -673,23 +649,21 @@
             if (!cantiere || !titolo) { alert("Compila sia il Titolo che l'Indirizzo Cantiere!"); return; }
 
             if (id) {
-                // Aggiornamento
-                await db.from('commesse').update({ titolo: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
+                await db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
                 if(currentCommessa && currentCommessaId === id) {
-                    currentCommessa.titolo = titolo;
+                    currentCommessa.titolo_lavoro = titolo;
                     currentCommessa.indirizzo_cantiere = cantiere;
                 }
             } else {
-                // Nuovo Inserimento
                 const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-                await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Commessa "${titolo}" creata.` }]);
+                await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Commessa "${titolo}" creata.` }]);
             }
 
             closeCommessaModal();
             await fetchClienti();
             if(!document.getElementById('detailScreen').classList.contains('hidden')) {
                 document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere}`;
-                document.getElementById('commessaAppuntiHeader' || 'commessaTitleHeader').innerText = titolo;
+                document.getElementById('commessaTitleHeader').innerText = titolo;
             }
             renderClientHub();
         }
@@ -845,7 +819,7 @@
                             card.innerHTML = `
                                 <div class="flex justify-between font-bold text-slate-900">
                                     <span>👤 ${c.denominazione}</span>
-                                    <span class="text-[10px] text-blue-500">${com.titolo || 'Senza Titolo'}</span>
+                                    <span class="text-[10px] text-blue-500">${com.titolo_lavoro || 'Senza Titolo'}</span>
                                 </div>
                                 <p class="text-slate-500 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</p>
                                 ${com.preventivo_scadenza_promemoria ? `<p class="text-[10px] text-amber-600 font-medium mt-1">⏰ Promemoria: ${new Date(com.preventivo_scadenza_promemoria).toLocaleDateString('it-IT')}</p>` : ''}
