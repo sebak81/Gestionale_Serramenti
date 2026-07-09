@@ -104,7 +104,10 @@
         <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
-                <span id="commessaBadgeStato" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">STATO</span>
+                <div class="flex items-center space-x-2">
+                    <span id="commessaBadgeStato" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">STATO</span>
+                    <span id="commessaTitleHeader" class="text-xs font-bold text-blue-600">Titolo Commessa</span>
+                </div>
                 <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
                 <p id="commessaCantiere" class="text-xs text-slate-500 mt-0.5">📍 Cantiere: non specificato</p>
             </div>
@@ -278,7 +281,7 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO PER NAVIGAZIONE SCHERMATE -->
+    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -296,7 +299,7 @@
 
     <!-- MODALI DI APERTURA E MODIFICA -->
     
-    <!-- MODALE INSERIMENTO NUOVO CLIENTE - GRAFICA COMPLETA AD ALTA VISIBILITÀ -->
+    <!-- MODALE NUOVO CLIENTE CON CASSELLE CHIARE E ETICHETTE IN GRASSETTO -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -348,7 +351,7 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA STABILE CLIENTE -->
+    <!-- MODALE MODIFICA ANAGRAFICA CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -400,20 +403,24 @@
         </div>
     </div>
 
-    <!-- MODALE AGGIUNGI / MODIFICA SINGOLA COMMESSA -->
+    <!-- MODALE CON TEXTBOX "TITOLO" COMMESSA AGGIUNTO E STRUTTURATO -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Nuova Commessa di Lavoro</h3>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
+            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2">Gestione Commessa di Lavoro</h3>
             <input type="hidden" id="modalCommessaId">
             <div class="space-y-3 text-xs">
                 <div>
+                    <label class="block font-bold text-slate-700 mb-1">Titolo / Identificativo Lavoro *</label>
+                    <input type="text" id="modalTitoloInput" placeholder="Es: Sostituzione Finestre P.1, Zanzariere..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
                     <label class="block font-bold text-slate-700 mb-1">Indirizzo di Cantiere / Destinazione Merci *</label>
-                    <input type="text" id="modalCantiereInput" placeholder="Es: Via Roma 12, Milano" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="modalCantiereInput" placeholder="Es: Via Roma 12, Galliera Veneta" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 font-medium focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
             <div class="flex space-x-3 pt-2">
-                <button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 border text-slate-600 rounded text-xs">Annulla</button>
-                <button onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva e Chiudi</button>
+                <button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 border text-slate-600 rounded text-xs font-semibold">Annulla</button>
+                <button onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold shadow">Salva e Chiudi</button>
             </div>
         </div>
     </div>
@@ -544,6 +551,7 @@
 
         function filterClients() { renderClientsList(); }
 
+        // STAMPA COMMESSE CON DATA REALE DI CREAZIONE FILE (created_at)
         function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -570,10 +578,17 @@
                 const mainInfo = document.createElement('div');
                 mainInfo.className = "flex-1 pr-4";
                 mainInfo.onclick = () => { openCommessaWorkspace(com.id); };
+                
+                // Formattiamo la data reale di creazione del record
+                const dataCreazione = new Date(com.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
                 mainInfo.innerHTML = `
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
-                    <h4 class="font-bold text-slate-900 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Aperto il: ${new Date(com.created_at).toLocaleDateString('it-IT')}</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                        <span class="text-xs font-bold text-blue-600">${com.titolo || 'Lavoro Senza Titolo'}</span>
+                    </div>
+                    <h4 class="font-semibold text-slate-700 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">📅 Data Creazione Commessa: ${dataCreazione}</p>
                 `;
                 
                 const btnOpt = document.createElement('button');
@@ -581,8 +596,9 @@
                 btnOpt.innerText = "⚙️";
                 btnOpt.onclick = (e) => {
                     e.stopPropagation();
-                    document.getElementById('commessaModalTitle').innerText = "Modifica Indirizzo Cantiere";
+                    document.getElementById('commessaModalTitle').innerText = "Modifica Dati Commessa";
                     document.getElementById('modalCommessaId').value = com.id;
+                    document.getElementById('modalTitoloInput').value = com.titolo || '';
                     document.getElementById('modalCantiereInput').value = com.indirizzo_cantiere;
                     document.getElementById('commessaModal').classList.remove('hidden');
                 };
@@ -600,6 +616,7 @@
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
+            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo || 'Lavoro Senza Titolo';
             
             const badge = document.getElementById('commessaBadgeStato');
             badge.innerText = currentCommessa.stato_macro;
@@ -634,36 +651,45 @@
         function openNewCommessaModal() {
             document.getElementById('commessaModalTitle').innerText = "Nuova Commessa di Lavoro";
             document.getElementById('modalCommessaId').value = "";
+            document.getElementById('modalTitoloInput').value = "";
             document.getElementById('modalCantiereInput').value = "";
             document.getElementById('commessaModal').classList.remove('hidden');
         }
         function openCommessaEditModalCurrent() {
-            document.getElementById('commessaModalTitle').innerText = "Modifica Indirizzo Cantiere";
+            document.getElementById('commessaModalTitle').innerText = "Modifica Dati Commessa";
             document.getElementById('modalCommessaId').value = currentCommessaId;
+            document.getElementById('modalTitoloInput').value = currentCommessa.titolo || '';
             document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere;
             document.getElementById('commessaModal').classList.remove('hidden');
         }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
 
+        // SALVATAGGIO CON CAMPO "TITOLO" INSERITO CORRETTAMENTE
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value;
+            const titolo = document.getElementById('modalTitoloInput').value.trim();
             const cantiere = document.getElementById('modalCantiereInput').value.trim();
-            if (!cantiere) return;
+            
+            if (!cantiere || !titolo) { alert("Compila sia il Titolo che l'Indirizzo Cantiere!"); return; }
 
             if (id) {
-                await db.from('commesse').update({ indirizzo_cantiere: cantiere }).eq('id', id);
+                // Aggiornamento
+                await db.from('commesse').update({ titolo: titolo, indirizzo_cantiere: cantiere }).eq('id', id);
                 if(currentCommessa && currentCommessaId === id) {
+                    currentCommessa.titolo = titolo;
                     currentCommessa.indirizzo_cantiere = cantiere;
                 }
             } else {
+                // Nuovo Inserimento
                 const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-                await db.from('commesse').insert([{ cliente_id: currentClienteId, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Aperta Nuova Commessa.` }]);
+                await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', note_cantiere: `🏁 [${t}] - Commessa "${titolo}" creata.` }]);
             }
 
             closeCommessaModal();
             await fetchClienti();
             if(!document.getElementById('detailScreen').classList.contains('hidden')) {
                 document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${cantiere}`;
+                document.getElementById('commessaAppuntiHeader' || 'commessaTitleHeader').innerText = titolo;
             }
             renderClientHub();
         }
@@ -774,31 +800,13 @@
             if (listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">Nessun dipendente salvato.</p>`; return; }
             listLavoratori.forEach(w => {
                 const item = document.createElement('div'); item.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border text-xs mt-1 border-slate-200 shadow-sm";
-                
-                const infoDiv = document.createElement('div');
-                infoDiv.innerHTML = `<strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span>`;
-                
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = "flex space-x-1.5";
-                
-                const btnEdit = document.createElement('button');
-                btnEdit.className = "p-1.5 bg-blue-50 text-blue-600 rounded-lg";
-                btnEdit.innerText = "✏️";
-                btnEdit.onclick = () => startEditWorker(w.id);
-                
-                const btnDel = document.createElement('button');
-                btnDel.className = "p-1.5 bg-rose-50 text-rose-600 rounded-lg";
-                btnDel.innerText = "🗑️";
-                btnDel.onclick = () => { if (confirm(`Eliminare permanentemente ${w.nome}?`)) deleteWorker(w.id); };
-
-                actionsDiv.appendChild(btnEdit);
-                actionsDiv.appendChild(btnDel);
-                item.appendChild(infoDiv);
-                item.appendChild(actionsDiv);
-                container.appendChild(item);
+                const infoDiv = document.createElement('div'); infoDiv.innerHTML = `<strong>${w.nome}</strong><span class="block text-[10px] text-slate-500">💼 Ruolo: ${w.ruolo}</span>`;
+                const actionsDiv = document.createElement('div'); actionsDiv.className = "flex space-x-1.5";
+                const btnEdit = document.createElement('button'); btnEdit.className = "p-1.5 bg-blue-50 text-blue-600 rounded-lg"; btnEdit.innerText = "✏️"; btnEdit.onclick = () => startEditWorker(w.id);
+                const btnDel = document.createElement('button'); btnDel.className = "p-1.5 bg-rose-50 text-rose-600 rounded-lg"; btnDel.innerText = "🗑️"; btnDel.onclick = () => { if (confirm(`Eliminare permanentemente ${w.nome}?`)) deleteWorker(w.id); };
+                actionsDiv.appendChild(btnEdit); actionsDiv.appendChild(btnDel); item.appendChild(infoDiv); item.appendChild(actionsDiv); container.appendChild(item);
             });
         }
-        
         function openNewWorkerForm() { document.getElementById('workerEditId').value = ""; document.getElementById('workerNameInput').value = ""; document.getElementById('workerRoleInput').value = "Titolare"; document.getElementById('btnSaveWorker').innerText = "Salva"; document.getElementById('newWorkerForm').classList.remove('hidden'); }
         function closeNewWorkerForm() { document.getElementById('newWorkerForm').classList.add('hidden'); }
         function startEditWorker(id) { const worker = listLavoratori.find(l => l.id === id); if (!worker) return; document.getElementById('workerEditId').value = worker.id; document.getElementById('workerNameInput').value = worker.nome; document.getElementById('workerRoleInput').value = worker.ruolo; document.getElementById('btnSaveWorker').innerText = "Aggiorna"; document.getElementById('newWorkerForm').classList.remove('hidden'); }
@@ -814,8 +822,6 @@
             const { data, error } = await db.from('clienti').insert([{ tipo_cliente: tipo, denominazione, codice_fiscale: cf, partita_iva: iva, telefono, email, indirizzo_fatturazione: indirizzo, note_generali: note }]).select();
             if (!error && data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
-        function openNewClientModal() { document.getElementById('newTipo').value = 'PRIVATO'; document.getElementById('newDenominazione').value = ''; document.getElementById('newCF').value = ''; document.getElementById('newIVA').value = ''; document.getElementById('newTelefono').value = ''; document.getElementById('newEmail').value = ''; document.getElementById('newIndirizzo').value = ''; document.getElementById('newNote').value = ''; document.getElementById('clientModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
         function switchPreventiviSubTab(tab) {
             prevActiveSubTab = tab;
@@ -839,10 +845,10 @@
                             card.innerHTML = `
                                 <div class="flex justify-between font-bold text-slate-900">
                                     <span>👤 ${c.denominazione}</span>
-                                    <span class="text-[10px] text-blue-500">${com.preventivo_stato || 'IN CORSO'}</span>
+                                    <span class="text-[10px] text-blue-500">${com.titolo || 'Senza Titolo'}</span>
                                 </div>
                                 <p class="text-slate-500 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</p>
-                                ${com.preventivo_scadenza_promemoria ? `<p class="text-[10px] text-amber-600 font-medium mt-1">⏰ Scadenza Promemoria: ${new Date(com.preventivo_scadenza_promemoria).toLocaleDateString('it-IT')}</p>` : ''}
+                                ${com.preventivo_scadenza_promemoria ? `<p class="text-[10px] text-amber-600 font-medium mt-1">⏰ Promemoria: ${new Date(com.preventivo_scadenza_promemoria).toLocaleDateString('it-IT')}</p>` : ''}
                             `;
                             container.appendChild(card);
                         }
