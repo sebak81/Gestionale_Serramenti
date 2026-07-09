@@ -95,7 +95,7 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA (DIARIO & AVANZAMENTO) -->
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
@@ -114,7 +114,7 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
-        <!-- NUOVA BARRA DI STATO / TAB OPERATIVI -->
+        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all">📄 Preventivi</button>
@@ -125,8 +125,8 @@
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div>
-                    <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fase di Lavorazione</label>
-                    <select id="commessaMacroSelect" onchange="changeMacroStato()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
+                    <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Fase di Lavorazione</label>
+                    <select id="commessaMacroSelect" onchange="changeMacroStato()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                         <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
                         <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
                         <option value="MISURE_ESECUTIVE">📐 3. MISURE E CONTRATTO</option>
@@ -137,25 +137,35 @@
                     </select>
                 </div>
                 
-                <!-- Gestione Dinamica Incaricati / Operatori -->
+                <!-- Gestione Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
-                        <label id="lblWorkerContatto" class="block font-semibold text-slate-400">Contatto preso da:</label>
-                        <select id="workerContattoSelect" onchange="updateWorkerAndLog('contatto_gestito_da', this.value, 'Contatto preso da')" class="w-full mt-1 p-1.5 border rounded bg-white text-slate-700"></select>
+                        <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da:</label>
+                        <select id="workerContattoSelect" onchange="updateWorkerAndLog('contatto_gestito_da', this.value, 'Incaricato')" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
                     <div id="boxWorkerAssegnato">
-                        <label class="block font-semibold text-slate-400">Assegnato a:</label>
-                        <select id="workerAssegnatoSelect" onchange="updateWorkerAndLog('preventivo_assegnato_a', this.value, 'Assegnato a')" class="w-full mt-1 p-1.5 border rounded bg-white text-slate-700"></select>
+                        <label class="block font-bold text-slate-700">Assegnato a:</label>
+                        <select id="workerAssegnatoSelect" onchange="updateWorkerAndLog('preventivo_assegnato_a', this.value, 'Assegnato a')" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300"></select>
                     </div>
+                </div>
+
+                <!-- CAMPO OBBLIGATORIO ANNOTAZIONI DI CAMBIO FASE -->
+                <div class="border-t pt-2 space-y-1">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                        <label>Annotazioni per il cambio fase</label>
+                        <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
+                    </div>
+                    <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Inserisci il motivo o dettagli del passaggio (es. concordato appuntamento)..." class="w-full p-2 border border-slate-300 rounded-lg bg-slate-50 text-xs focus:ring-2 focus:ring-blue-500">
+                    <p class="text-[9px] text-slate-400 italic font-medium">Nota: Verranno inserite automaticamente nel diario per tracciare l'azione.</p>
                 </div>
             </div>
             
-            <!-- DIARIO GENERALE AUTOMATICO -->
+            <!-- DIARIO GENERALE -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
                     <input type="text" id="newDiarioNote" placeholder="Scrivi una nota manuale nel diario..." class="flex-1 bg-slate-50 border p-2 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 text-xs font-semibold rounded-lg shadow">Invia</button>
+                    <button onclick="addDiarioNote()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-semibold rounded-lg shadow">Invia</button>
                 </div>
                 <div id="diarioTimeline" class="space-y-2"></div>
             </div>
@@ -216,21 +226,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Contenitore temporaneo ereditato per non perdere i campi attuali dell'acconto -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-                <h3 class="text-sm font-bold text-slate-900 border-b pb-1">💰 Gestione Fatturazione Acconto</h3>
-                <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 space-y-3 text-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="font-semibold text-slate-700">1. Invio Fattura d'Acconto:</span>
-                        <input type="checkbox" id="checkFattInviata" onchange="toggleFatturaAccontoInvio(this.checked)" class="rounded text-purple-600 h-4 w-4">
-                    </div>
-                    <div id="boxFattInvioDettagli" class="hidden grid grid-cols-2 gap-2 border-t pt-2">
-                        <input type="date" id="dateFattAcconto" onchange="updateCommessaField('acconto_data_invio', this.value)" class="w-full p-1 border rounded bg-white">
-                        <select id="workerFattInviataSelect" onchange="updateWorker('acconto_inviata_da', this.value)" class="w-full p-1 border rounded bg-white"></select>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -260,7 +255,22 @@
         </div>
     </main>
 
-    <!-- MODALI DI SERVIZIO SINCRETICI -->
+    <!-- NAVBAR IN BASSO -->
+    <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
+                <span class="text-lg">👥</span><span>Clienti</span>
+            </button>
+            <button id="navBtnPreventivi" onclick="navigateTo('preventivi')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">📋</span><span>Sviluppo</span>
+            </button>
+            <button id="navBtnSettings" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">⚙️</span><span>Personale</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODALI DI APERTURA -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-lg font-bold text-slate-900">Aggiungi Nuovo Cliente</h3><button onclick="closeModal()" class="text-slate-400 text-lg">✕</button></div>
@@ -308,6 +318,7 @@
         let currentCommessaId = null;
         let currentCommessa = null;
         
+        let oldMacroStato = ""; // Salva lo stato precedente in caso di annullamento obbligatorio
         let clientActiveSubTab = 'all';
         let prevActiveSubTab = 'PRIMO_CONTATTO';
 
@@ -395,6 +406,7 @@
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
             currentCommessaId = commessaId;
+            oldMacroStato = currentCommessa.stato_macro; // Memorizziamo lo stato iniziale di ingresso
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
@@ -407,15 +419,20 @@
             document.getElementById('workerMisureSelect').value = currentCommessa.tecnico_misure || '';
             document.getElementById('subStatoContratto').value = currentCommessa.contratto_stato || 'REDZIONE';
 
-            // Eseguiamo il riallineamento dinamico dei titoli (Label) degli Incaricati
-            adjustWorkerLabels(currentCommessa.stato_macro);
+            // Pulisce il campo delle annotazioni per un nuovo avvio
+            document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('charCounter').innerText = "0 / 150";
 
+            adjustWorkerLabels(currentCommessa.stato_macro);
             fetchDiarioTimeline();
             navigateTo('detail');
             switchTab('diario');
         }
 
-        // FUNZIONE DI LOG DIARIO CON AGGIORNAMENTO INCASSO LAVORATORI INTERESSATI
+        function updateCharCounter(input) {
+            document.getElementById('charCounter').innerText = `${input.value.length} / 150`;
+        }
+
         async function logAutomaticActivity(testoNota) {
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `⚙️ [${t}] - ${testoNota}` : `⚙️ [${t}] - ${testoNota}`;
@@ -424,55 +441,71 @@
             fetchDiarioTimeline();
         }
 
-        // FUNZIONE PER CAMBIARE IL MACRO STATO CON LOG DIARIO AUTOMATICO DETTAGLIATO
+        // AZIONE CAMBIO STATO: OBBLIGATORIETÀ DELL'INCARICATO E GESTIONE DELLE ANNOTAZIONI DI SOTTO-FASE
         async function changeMacroStato() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
-            adjustWorkerLabels(nuovaFase);
+            const op1Select = document.getElementById('workerContattoSelect');
+            const op2Select = document.getElementById('workerAssegnatoSelect');
             
-            // Tira fuori i nomi degli operatori selezionati per includerli nella nota automatica
-            const op1Text = document.getElementById('workerContattoSelect').options[document.getElementById('workerContattoSelect').selectedIndex]?.text || '--';
-            const op2Text = document.getElementById('workerAssegnatoSelect').options[document.getElementById('workerAssegnatoSelect').selectedIndex]?.text || '--';
+            const op1Value = op1Select.value;
+            const op2Value = op2Select.value;
             
-            let notaLog = `FASE AZIENDALE MODIFICATA: ${nuovaFase}.`;
-            if (nuovaFase === 'PRIMO_CONTATTO') {
-                notaLog += ` [Contatto preso da: ${op1Text} | Assegnato a: ${op2Text}]`;
-            } else {
-                notaLog += ` [Incaricato principale: ${op1Text}]`;
+            const op1Text = op1Select.options[op1Select.selectedIndex]?.text || '';
+            const op2Text = op2Select.options[op2Select.selectedIndex]?.text || '';
+
+            // REGOLA OBBLIGATORIA: Controlla che ci sia una persona incaricata selezionata
+            if (!op1Value) {
+                alert(`ATTENZIONE OBBLIGATORIA:\nImpossibile passare alla fase "${nuovaFase}" senza aver prima selezionato la persona Incaricata!`);
+                document.getElementById('commessaMacroSelect').value = oldMacroStato; // Annulla il movimento e ripristina
+                return;
             }
 
+            // Estrae le annotazioni obbligatorie inserite (se lasciate vuote, mette una dicitura neutra)
+            const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim() || 'Nessun commento aggiuntivo inserito.';
+
+            let notaLog = `FASE AZIENDALE AVANZATA: ${nuovaFase}.`;
+            if (nuovaFase === 'PRIMO_CONTATTO') {
+                notaLog += ` [Contatto gestito da: ${op1Text} | Assegnato a: ${op2Text}]. Appunti fase: "${annotazioniFase}"`;
+            } else {
+                notaLog += ` [Incaricato: ${op1Text}]. Appunti fase: "${annotazioniFase}"`;
+            }
+
+            // Scrittura finale consolidata
             await db.from('commesse').update({ stato_macro: nuovaFase }).eq('id', currentCommessaId);
             currentCommessa.stato_macro = nuovaFase;
-            
+            oldMacroStato = nuovaFase; // Aggiorna lo storico di sicurezza della schermata
+
             const badge = document.getElementById('commessaBadgeStato');
             badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`;
             
+            // Pulisce l'input annotazioni pronto per il prossimo passaggio
+            document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('charCounter').innerText = "0 / 150";
+
+            adjustWorkerLabels(nuovaFase);
             await logAutomaticActivity(notaLog);
         }
 
-        // AGGIORNAMENTO OPERATORI CON DIARIO AUTOMATICO COMPRESO
         async function updateWorkerAndLog(field, value, labelName) {
             await db.from('commesse').update({ [field]: value === "" ? null : value }).eq('id', currentCommessaId);
             currentCommessa[field] = value;
             const opText = document.getElementById(field === 'contatto_gestito_da' ? 'workerContattoSelect' : 'workerAssegnatoSelect').options[document.getElementById(field === 'contatto_gestito_da' ? 'workerContattoSelect' : 'workerAssegnatoSelect').selectedIndex]?.text || 'Nessuno';
-            await logAutomaticActivity(`Operatore modificato -> ${labelName}: ${opText}`);
+            await logAutomaticActivity(`Cambio Operatore -> ${labelName}: ${opText}`);
         }
 
-        // ADATTATORE DINAMICO DELLA GRAFICA SECONDO LA FASE DEL WORKFLOW
         function adjustWorkerLabels(fase) {
             const lblFase = document.getElementById('lblFaseLavorazione');
             const lblWorker1 = document.getElementById('lblWorkerContatto');
             const boxWorker2 = document.getElementById('boxWorkerAssegnato');
 
-            // 1. Rinomina la label principale della scelta macro
             if (lblFase) lblFase.innerText = "Fase di Lavorazione";
 
-            // 2. Modifica la logica degli incaricati a seconda dello stato
             if (fase === 'PRIMO_CONTATTO') {
-                if (lblWorker1) lblWorker1.innerText = "Contatto preso da:";
+                if (lblWorker1) lblWorker1.innerText = "Contatto preso da: *";
                 if (boxWorker2) boxWorker2.classList.remove('hidden');
             } else {
-                if (lblWorker1) lblWorker1.innerText = "Incaricato:";
-                if (boxWorker2) boxWorker2.classList.add('hidden'); // Scompare il secondo se siamo oltre la fase 1
+                if (lblWorker1) lblWorker1.innerText = "Incaricato: *";
+                if (boxWorker2) boxWorker2.classList.add('hidden');
             }
         }
 
@@ -510,7 +543,6 @@
         function toggleFatturaAccontoInvio(checked, save = true) { document.getElementById('boxFattInvioDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_fattura_inviata', checked); }
         function toggleFatturaAccontoPagamento(checked, save = true) { document.getElementById('boxFattPagamentoDettagli').className = checked ? "grid grid-cols-2 gap-2 border-t pt-2" : "hidden"; if(save) updateCommessaField('acconto_pagata', checked); }
 
-        // LOGICHE AUSILIARIE DI BACKEND SULLE FINESTRE MODALI
         function openNewCommessaModal() { document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
         function openCommessaEditModalCurrent() { document.getElementById('commessaModalTitle').innerText = "Modifica Dati"; document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro || ''; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
