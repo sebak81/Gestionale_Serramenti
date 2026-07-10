@@ -1,3 +1,13 @@
+// 🚨 DIAGNOSTICA DI SICUREZZA - Mostra un avviso immediato se qualcosa va in crash
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("🚨 ERRORE APPLICAZIONE:\n" + message + "\n\nFile: " + source + "\nLinea: " + lineno);
+    // Rimuove comunque il blocco di caricamento per farti vedere lo schermo
+    const loader = document.getElementById('loading');
+    if(loader) loader.classList.add('hidden');
+    return false;
+};
+
+// Inizializzazione Supabase e variabili globali
 window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.allClients = [];
 window.listLavoratori = [];
@@ -77,9 +87,11 @@ window.fetchClienti = async function() {
         const { data, error } = await window.db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
         if (error) throw error;
         if (data) window.allClients = data;
-        if (document.getElementById('mainScreen') && !document.getElementById('mainScreen').classList.contains('hidden')) window.renderClientsList();
+        window.renderClientsList();
     } catch (err) {
         console.error("Errore nel recupero clienti:", err.message);
+        const loader = document.getElementById('loading');
+        if(loader) loader.classList.add('hidden');
     }
 }
 
@@ -224,8 +236,7 @@ window.openCommessaWorkspace = function(commessaId) {
     if (cantiereBox) {
         if (window.currentCommessa.indirizzo_cantiere) {
             const encodedAddr = encodeURIComponent(window.currentCommessa.indirizzo_cantiere);
-            // CORRETTO: Sintassi ripulita senza la '1' spuria orfana
-            cantiereBox.innerHTML = `<a href="http://googleusercontent.com/maps.google.com/maps?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
+            cantiereBox.innerHTML = `<a href="https://maps.google.com/?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
         } else { cantiereBox.innerHTML = `<span class="text-slate-400 italic">📍 Cantiere: non specificato</span>`; }
     }
     
@@ -261,75 +272,87 @@ window.openCommessaWorkspace = function(commessaId) {
     window.navigateTo('detail'); window.renderTabPrivileges(window.currentCommessa.stato_macro);
 }
 
+window.renderTabPrivileges = function(fase) {
+    const btnPrev = document.getElementById('tabBtnPreventiviTab'); const btnContratto = document.getElementById('tabBtnContrattoTab');
+    if (fase === 'PRIMO_CONTATTO') {
+        if(btnPrev) btnPrev.classList.add('opacity-40'); if(btnContratto) btnContratto.classList.add('opacity-40'); window.switchTab('diario');
+    } else {
+        if(btnPrev) btnPrev.classList.remove('opacity-40'); if(btnContratto) btnContratto.classList.remove('opacity-40');
+        if (fase === 'PREVENTIVAZIONE') { window.switchTab('preventiviTab'); } else { window.switchTab('diario'); }
+    }
+}
+
 window.currentWorkspaceValue = function(field) { return (window.currentCommessa && window.currentCommessa[field]) ? window.currentCommessa[field] : ''; }
+window.updateCharCounter = function(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
 
-window.adjustWorkerLabels = function(fase) {
-    const lblWorker1 = document.getElementById('lblWorkerContatto'); const boxWorker2 = document.getElementById('boxWorkerAssegnato');
-    if (fase === 'PRIMO_CONTATTO') { if (lblWorker1) lblWorker1.innerText = "Contatto preso da: *"; if (boxWorker2) boxWorker2.classList.remove('hidden'); } 
-    else { if (lblWorker1) lblWorker1.innerText = "Incaricato: *"; if (boxWorker2) boxWorker2.classList.add('hidden'); }
+async function logAutomaticActivity(testoNota) {
+    try {
+        const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+        let full = window.currentCommessa.note_cantiere ? window.currentCommessa.note_cantiere + '\n' + `⚙️ [${t}] - ${testoNota}` : `⚙️ [${t}] - ${testoNota}`;
+        const { error } = await window.db.from('commesse').update({ note_cantiere: full }).eq('id', window.currentCommessaId);
+        if (error) throw error; window.currentCommessa.note_cantiere = full; window.fetchDiarioTimeline();
+    } catch (err) { console.error(err.message); }
 }
 
-window.switchTab = function(tab) {
-    if (window.currentCommessa && window.currentCommessa.stato_macro === 'PRIMO_CONTATTO' && tab !== 'diario') { alert("🔒 SEZIONE BLOCCATA:\nAccessibile dallo stato '2. PREVENTIVAZIONE'."); return; }
-    ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
-        const target = document.getElementById(`tabContent${t === 'diario' ? 'Diario' : (t === 'preventiviTab' ? 'PreventiviTab' : 'ContrattoTab')}`); if(target) target.classList.add('hidden');
-        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`); if(btn) btn.className = "flex-1 py-2 text-center rounded-lg transition-all";
+window.handleFaseChange = function() {
+    const faseAttuale = window.currentCommessa.stato_macro; const nuovaFaseSelezionata = document.getElementById('commessaMacroSelect').value;
+    if (faseAttuale === nuovaFaseSelezionata) return;
+    const indexAttuale = window.workflowOrdinato.indexOf(faseAttuale); const indexNuovo = window.workflowOrdinato.indexOf(nuovaFaseSelezionata);
+    if (indexNuovo < indexAttuale) { alert(`⚠️ AZIONE BLOCCATA!`); document.getElementById('commessaMacroSelect').value = faseAttuale; return; }
+    if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = ""; 
+    if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = ""; 
+    window.adjustWorkerLabels(nuovaFaseSelezionata);
+}
+
+window.saveFaseLavorazioneConDati = async function() {
+    if (!window.currentCommessa) return;
+    const btn = document.getElementById('btnSaveFase'); const txt = document.getElementById('btnSaveFaseText');
+    const nuovaFase = document.getElementById('commessaMacroSelect').value;
+    const op1Select = document.getElementById('workerContattoSelect'); const op2Select = document.getElementById('workerAssegnatoSelect');
+    const op1Value = op1Select ? op1Select.value : ''; const op2Value = op2Select ? op2Select.value : '';
+    const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || 'N/D') : 'N/D';
+    const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || 'N/D') : 'N/D';
+    const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
+
+    let rigaFormattataDettaglio = `Fase: ${nuovaFase}. `;
+    if (nuovaFase === 'PRIMO_CONTATTO') { rigaFormattataDettaglio += `Contatto preso da: ${op1Text} | Assegnato a: ${op2Text} `; } 
+    else { rigaFormattataDettaglio += `Incaricato: ${op1Text} `; }
+    rigaFormattataDettaglio += `#Appunti: ${annotazioniFase || 'Nessuno'}`;
+
+    if (nuovaFase === window.currentCommessa.stato_macro) {
+        try {
+            btn.disabled = true; if(txt) txt.innerText = "Salvataggio...";
+            await window.db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value, preventivo_assegnato_a: op2Value === "" ? null : op2Value }).eq('id', window.currentCommessaId);
+            window.currentCommessa.contatto_gestito_da = op1Value; window.currentCommessa.preventivo_assegnato_a = op2Value;
+            await logAutomaticActivity(rigaFormattataDettaglio); document.getElementById('faseAnnotazioniInput').value = ""; alert("✅ Diario aggiornato!");
+        } catch (err) { alert(err.message); } finally { btn.disabled = false; if(txt) txt.innerText = "Salva Modifiche e Fase"; }
+        return;
+    }
+
+    if (!op1Value || !annotazioniFase) { alert("❌ INCARICATO E ANNOTAZIONE OBBLIGATORI!"); return; }
+
+    try {
+        btn.disabled = true; if(txt) txt.innerText = "Avanzamento...";
+        await window.db.from('commesse').update({ stato_macro: nuovaFase, contatto_gestito_da: op1Value, preventivo_assegnato_a: op2Value === "" ? null : op2Value }).eq('id', window.currentCommessaId);
+        window.currentCommessa.stato_macro = nuovaFase; window.currentCommessa.contatto_gestito_da = op1Value; window.currentCommessa.preventivo_assegnato_a = op2Value;
+        const badge = document.getElementById('commessaBadgeStato'); if(badge) { badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`; }
+        document.getElementById('faseAnnotazioniInput').value = ""; document.getElementById('charCounter').innerText = "0 / 150";
+        await logAutomaticActivity(rigaFormattataDettaglio); alert(`🎉 Commessa avanzata con successo!`); window.renderTabPrivileges(nuovaFase);
+    } catch (err) { alert(err.message); } finally { btn.disabled = false; if(txt) txt.innerText = "Salva Modifiche e Fase"; }
+}
+
+window.renderSettingsScreen = function() {
+    const savedDays = localStorage.getItem('defaultDaysToExpiry'); const inputDays = document.getElementById('settingDefaultDays');
+    if(inputDays) inputDays.value = savedDays ? savedDays : "";
+    window.renderSediSettingsList();
+    const container = document.getElementById('settingsWorkersList'); if (!container) return; container.innerHTML = "";
+    if (window.listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 p-2">Nessun operatore.</p>`; return; }
+    window.listLavoratori.forEach(emp => {
+        const row = document.createElement('div'); row.id = `workerRow-${emp.id}`; row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
+        row.innerHTML = `<div class="flex-1 flex items-center justify-between pr-1"><span>👤 ${emp.nome}</span><span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span></div><button onclick="enableWorkerEdit('${emp.id}', '${emp.nome.replace(/'/g, "\\'")}', '${(emp.ruolo || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-600">✏️</button>`;
+        container.appendChild(row);
     });
-    const contentId = tab === 'diario' ? 'tabContentDiario' : (tab === 'preventiviTab' ? 'tabContentPreventiviTab' : (tab === 'contrattoTab' ? 'tabContentContrattoTab' : 'tabContentDiario'));
-    if(document.getElementById(contentId)) document.getElementById(contentId).classList.remove('hidden');
-    const activeBtn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`); if(activeBtn) activeBtn.className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
 }
-
-window.fetchDiarioTimeline = function() {
-    const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
-    if (!window.currentCommessa || !window.currentCommessa.note_cantiere) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna azione.</p>`; return; }
-    window.currentCommessa.note_cantiere.split('\n').reverse().forEach(l => { if(l.trim()) { const r = document.createElement('div'); r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm"; r.innerText = l; container.appendChild(r); } });
-}
-
-window.addDiarioNote = async function() {
-    const input = document.getElementById('newDiarioNote'); const btn = document.getElementById('btnSendDiario'); const txt = input.value.trim(); if (!txt) return;
-    try {
-        btn.disabled = true; const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-        let full = window.currentCommessa.note_cantiere ? window.currentCommessa.note_cantiere + '\n' + `📝 [${t}] - Nota: ${txt}` : `📝 [${t}] - Nota: ${txt}`;
-        await window.db.from('commesse').update({ note_cantiere: full }).eq('id', window.currentCommessaId); window.currentCommessa.note_cantiere = full; input.value = ""; window.fetchDiarioTimeline();
-    } catch (err) { console.error(err); } finally { btn.disabled = false; }
-}
-
-window.updateCommessaField = async function(field, value) { try { await window.db.from('commesse').update({ [field]: value }).eq('id', window.currentCommessaId); if(window.currentCommessa) window.currentCommessa[field] = value; } catch (err) { console.error(err); } }
-window.updateWorker = async function(field, value) { await window.updateCommessaField(field, value === "" ? null : value); }
-
-window.openNewCommessaModal = function() { document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; window.populateSediSelect(); document.getElementById('commessaModal').classList.remove('hidden'); }
-window.openCommessaEditModalCurrent = function() { document.getElementById('commessaModalTitle').innerText = "Modifica Dati"; document.getElementById('modalCommessaId').value = window.currentCommessaId; document.getElementById('modalTitoloInput').value = window.currentCommessa.titolo_lavoro || ''; document.getElementById('modalCantiereInput').value = window.currentCommessa.indirizzo_cantiere; window.populateSediSelect(); document.getElementById('modalSedeInput').value = window.currentCommessa.sede_assegnazione || ''; document.getElementById('commessaModal').classList.remove('hidden'); }
-window.closeCommessaModal = function() { document.getElementById('commessaModal').classList.add('hidden'); }
-
-window.saveCommessaDati = async function() {
-    const id = document.getElementById('modalCommessaId').value; const btn = document.getElementById('btnSaveCommessa'); const titolo = document.getElementById('modalTitoloInput').value.trim(); const cantiere = document.getElementById('modalCantiereInput').value.trim(); const sedeScelta = document.getElementById('modalSedeInput').value;
-    if (!cantiere || !titolo || !sedeScelta) { alert("Campi obbligatori!"); return; }
-    try {
-        btn.disabled = true;
-        if (id) { 
-            await window.db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere, sede_assegnazione: sedeScelta }).eq('id', id);
-            if(window.currentCommessa) { window.currentCommessa.titolo_lavoro = titolo; window.currentCommessa.indirizzo_cantiere = cantiere; window.currentCommessa.sede_assegnazione = sedeScelta; const sBadge = document.getElementById('commessaBadgeSede'); if(sBadge) sBadge.innerText = `🏢 ${sedeScelta}`; } 
-        } else { await window.db.from('commesse').insert([{ cliente_id: window.currentClienteId, titolo_lavoro: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', sede_assegnazione: sedeScelta }]); }
-        window.closeCommessaModal(); await window.fetchClienti(); window.renderClientHub();
-    } catch (err) { alert(err.message); } finally { btn.disabled = false; }
-}
-
-window.openAnagraficaModal = function() { const c = window.allClients.find(cl => cl.id === window.currentClienteId); if (!c) return; document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || ''; document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || ''; document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || ''; document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden'); }
-window.closeAnagraficaModal = function() { document.getElementById('anagraficaModal').classList.add('hidden'); }
-
-window.updateAnagrafica = async function() {
-    const btn = document.getElementById('btnUpdateAnagrafica'); const d = document.getElementById('editDenominazione').value.trim(); const i = document.getElementById('editIndirizzo').value.trim(); const tel = document.getElementById('editTelefono').value.trim(); const em = document.getElementById('editEmail').value.trim(); const piva = document.getElementById('editPartitaIva').value.trim(); const cf = document.getElementById('editCodiceFiscale').value.trim(); const n = document.getElementById('editNote').value.trim(); if(!d) return;
-    try { btn.disabled = true; await window.db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: i, telefono: tel, email: em, partita_iva: piva, codice_fiscale: cf, note_generali: n }).eq('id', window.currentClienteId); window.closeAnagraficaModal(); await window.fetchClienti(); window.renderClientHub(); } catch (err) { console.error(err); } finally { btn.disabled = false; }
-}
-
-window.saveCliente = async function() {
-    const btn = document.getElementById('btnSaveCliente'); const d = document.getElementById('newDenominazione').value.trim(); const i = document.getElementById('newIndirizzo').value.trim(); const tel = document.getElementById('newTelefono').value.trim(); const em = document.getElementById('newEmail').value.trim(); const piva = document.getElementById('newPartitaIva').value.trim(); const cf = document.getElementById('newCodiceFiscale').value.trim(); const n = document.getElementById('newNote').value.trim(); if (!d) return;
-    try { btn.disabled = true; const { data } = await window.db.from('clienti').insert([{ tipo_cliente: document.getElementById('newTipo').value, denominazione: d, indirizzo_fatturazione: i, telefono: tel, email: em, partita_iva: piva, codice_fiscale: cf, note_generali: n ]).select(); if (data && data.length > 0) { window.closeModal(); await window.fetchClienti(); window.currentClienteId = data[0].id; window.navigateTo('hub'); } } catch (err) { console.error(err); } finally { btn.disabled = false; }
-}
-
-window.openNewClientModal = function() { document.getElementById('newDenominazione').value = ""; document.getElementById('newIndirizzo').value = ""; document.getElementById('newTelefono').value = ""; document.getElementById('newEmail').value = ""; document.getElementById('newPartitaIva').value = ""; document.getElementById('newCodiceFiscale').value = ""; document.getElementById('newNote').value = ""; document.getElementById('clientModal').classList.remove('hidden'); }
-window.closeModal = function() { document.getElementById('clientModal').classList.add('hidden'); }
 
 window.initSediDefaultLocalStorage = function() { if(!localStorage.getItem('sediAziendaliList')) { localStorage.setItem('sediAziendaliList', JSON.stringify(["Sede Principale", "Sede Secondaria"])); } }
 window.getSediFromLocal = function() { const raw = localStorage.getItem('sediAziendaliList'); return raw ? JSON.parse(raw) : []; }
@@ -365,17 +388,67 @@ window.addNewWorker = async function() {
 }
 window.saveDefaultDaysSetting = function() { const input = document.getElementById('settingDefaultDays'); if(!input) return; const value = input.value.trim(); if(value === "") { localStorage.removeItem('defaultDaysToExpiry'); } else { localStorage.setItem('defaultDaysToExpiry', value); } alert("Aggiornato."); }
 
-window.renderSettingsScreen = function() {
-    const savedDays = localStorage.getItem('defaultDaysToExpiry'); const inputDays = document.getElementById('settingDefaultDays');
-    if(inputDays) inputDays.value = savedDays ? savedDays : "";
-    window.renderSediSettingsList();
-    const container = document.getElementById('settingsWorkersList'); if (!container) return; container.innerHTML = "";
-    if (window.listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 p-2">Nessun operatore.</p>`; return; }
-    window.listLavoratori.forEach(emp => {
-        const row = document.createElement('div'); row.id = `workerRow-${emp.id}`; row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
-        row.innerHTML = `<div class="flex-1 flex items-center justify-between pr-1"><span>👤 ${emp.nome}</span><span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span></div><button onclick="enableWorkerEdit('${emp.id}', '${emp.nome.replace(/'/g, "\\'")}', '${(emp.ruolo || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-600">✏️</button>`;
-        container.appendChild(row);
-    });
+window.fetchDiarioTimeline = function() {
+    const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
+    if (!window.currentCommessa || !window.currentCommessa.note_cantiere) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna azione.</p>`; return; }
+    window.currentCommessa.note_cantiere.split('\n').reverse().forEach(l => { if(l.trim()) { const r = document.createElement('div'); r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm"; r.innerText = l; container.appendChild(r); } });
 }
 
-window.onload = async () => { await window.initLists(); await window.fetchClienti(); };
+window.addDiarioNote = async function() {
+    const input = document.getElementById('newDiarioNote'); const btn = document.getElementById('btnSendDiario'); const txt = input.value.trim(); if (!txt) return;
+    try {
+        btn.disabled = true; const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+        let full = window.currentCommessa.note_cantiere ? window.currentCommessa.note_cantiere + '\n' + `📝 [${t}] - Nota: ${txt}` : `📝 [${t}] - Nota: ${txt}`;
+        await window.db.from('commesse').update({ note_cantiere: full }).eq('id', window.currentCommessaId); window.currentCommessa.note_cantiere = full; input.value = ""; window.fetchDiarioTimeline();
+    } catch (err) { console.error(err); } finally { btn.disabled = false; }
+}
+
+window.updateCommessaField = async function(field, value) { try { await window.db.from('commesse').update({ [field]: value }).eq('id', window.currentCommessaId); if(window.currentCommessa) window.currentCommessa[field] = value; } catch (err) { console.error(err); } }
+window.updateWorker = async function(field, value) { await window.updateCommessaField(field, value === "" ? null : value); }
+window.openNewCommessaModal = function() { document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; window.populateSediSelect(); document.getElementById('commessaModal').classList.remove('hidden'); }
+window.openCommessaEditModalCurrent = function() { document.getElementById('commessaModalTitle').innerText = "Modifica Dati"; document.getElementById('modalCommessaId').value = window.currentCommessaId; document.getElementById('modalTitoloInput').value = window.currentCommessa.titolo_lavoro || ''; document.getElementById('modalCantiereInput').value = window.currentCommessa.indirizzo_cantiere; window.populateSediSelect(); document.getElementById('modalSedeInput').value = window.currentCommessa.sede_assegnazione || ''; document.getElementById('commessaModal').classList.remove('hidden'); }
+window.closeCommessaModal = function() { document.getElementById('commessaModal').classList.add('hidden'); }
+
+window.saveCommessaDati = async function() {
+    const id = document.getElementById('modalCommessaId').value; const btn = document.getElementById('btnSaveCommessa'); const titolo = document.getElementById('modalTitoloInput').value.trim(); const cantiere = document.getElementById('modalCantiereInput').value.trim(); const sedeScelta = document.getElementById('modalSedeInput').value;
+    if (!cantiere || !titolo || !sedeScelta) { alert("Campi obbligatori!"); return; }
+    try {
+        btn.disabled = true;
+        if (id) { 
+            await window.db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere, sede_assegnazione: sedeScelta }).eq('id', id);
+            if(window.currentCommessa) { window.currentCommessa.titolo_lavoro = titolo; window.currentCommessa.indirizzo_cantiere = cantiere; window.currentCommessa.sede_assegnazione = sedeScelta; const sBadge = document.getElementById('commessaBadgeSede'); if(sBadge) sBadge.innerText = `🏢 ${sedeScelta}`; } 
+        } else { await window.db.from('commesse').insert([{ cliente_id: window.currentClienteId, titolo_lavoro: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO', sede_assegnazione: sedeScelta }]); }
+        window.closeCommessaModal(); await window.fetchClienti(); window.renderClientHub();
+    } catch (err) { alert(err.message); } finally { btn.disabled = false; }
+}
+
+window.openAnagraficaModal = function() { const c = window.allClients.find(cl => cl.id === window.currentClienteId); if (!c) return; document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || ''; document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || ''; document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || ''; document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden'); }
+window.closeAnagraficaModal = function() { document.getElementById('anagraficaModal').classList.add('hidden'); }
+
+window.updateAnagrafica = async function() {
+    const btn = document.getElementById('btnUpdateAnagrafica'); const d = document.getElementById('editDenominazione').value.trim(); const i = document.getElementById('editIndirizzo').value.trim(); const tel = document.getElementById('editTelefono').value.trim(); const em = document.getElementById('editEmail').value.trim(); const piva = document.getElementById('editPartitaIva').value.trim(); const cf = document.getElementById('editCodiceFiscale').value.trim(); const n = document.getElementById('editNote').value.trim(); if(!d) return;
+    try { btn.disabled = true; await window.db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: i, telefono: tel, email: em, partita_iva: piva, codice_fiscale: cf, note_generali: n }).eq('id', window.currentClienteId); window.closeAnagraficaModal(); await window.fetchClienti(); window.renderClientHub(); } catch (err) { console.error(err); } finally { btn.disabled = false; }
+}
+
+window.saveCliente = async function() {
+    const btn = document.getElementById('btnSaveCliente'); const d = document.getElementById('newDenominazione').value.trim(); const i = document.getElementById('newIndirizzo').value.trim(); const tel = document.getElementById('newTelefono').value.trim(); const em = document.getElementById('newEmail').value.trim(); const piva = document.getElementById('newPartitaIva').value.trim(); const cf = document.getElementById('newCodiceFiscale').value.trim(); const n = document.getElementById('newNote').value.trim(); if (!d) return;
+    try { btn.disabled = true; const { data } = await window.db.from('clienti').insert([{ tipo_cliente: document.getElementById('newTipo').value, denominazione: d, indirizzo_fatturazione: i, telefono: tel, email: em, partita_iva: piva, codice_fiscale: cf, note_generali: n ]).select(); if (data && data.length > 0) { window.closeModal(); await window.fetchClienti(); window.currentClienteId = data[0].id; window.navigateTo('hub'); } } catch (err) { console.error(err); } finally { btn.disabled = false; }
+}
+
+window.openNewClientModal = function() { document.getElementById('newDenominazione').value = ""; document.getElementById('newIndirizzo').value = ""; document.getElementById('newTelefono').value = ""; document.getElementById('newEmail').value = ""; document.getElementById('newPartitaIva').value = ""; document.getElementById('newCodiceFiscale').value = ""; document.getElementById('newNote').value = ""; document.getElementById('clientModal').classList.remove('hidden'); }
+window.closeModal = function() { document.getElementById('clientModal').classList.add('hidden'); }
+
+// Avvio applicazione con garanzia di sblocco
+window.onload = async () => { 
+    try {
+        await window.initLists(); 
+        await window.fetchClienti(); 
+    } catch(e) {
+        console.error(e);
+    } finally {
+        const loader = document.getElementById('loading');
+        if(loader) loader.classList.add('hidden');
+        const list = document.getElementById('clientList');
+        if(list) list.classList.remove('hidden');
+    }
+};
