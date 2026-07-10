@@ -1,6 +1,6 @@
-// GESTIONE SEPARATA DEL FLUSSO PREVENTIVAZIONE SU COLONNA NATIVA
-async function saveStatoPreventivoDettagli() {
-    if (!currentCommessa) return;
+// AGGANCIATO ALLA FINESTRA GLOBALE PER EVITARE CRASH
+window.saveStatoPreventivoDettagli = async function() {
+    if (!window.currentCommessa) return;
 
     const btn = document.getElementById('btnSaveSubPreventivo');
     const selectStato = document.getElementById('subStatoPreventivo');
@@ -31,32 +31,29 @@ async function saveStatoPreventivoDettagli() {
     }
 
     const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-    
     let nuovaAttivitaPrev = `Stato: ${testoStato} | Incaricato: ${opPrevText} | Note: ${annotazioni}`;
     if (dataInizio) nuovaAttivitaPrev += ` | Inizio: ${dataInizio}`;
     if (inputGiorni) nuovaAttivitaPrev += ` | Scadenza: ${inputGiorni} gg`;
 
     try {
         btn.disabled = true;
-        
-        // Salviamo sulla colonna reale creata su Supabase
-        let storicoAggiornato = currentCommessa.preventivo_attivita_storico ? currentCommessa.preventivo_attivita_storico + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
+        let storicoAggiornato = window.currentCommessa.preventivo_attivita_storico ? window.currentCommessa.preventivo_attivita_storico + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
 
-        const { error } = await db.from('commesse').update({
+        const { error } = await window.db.from('commesse').update({
             preventivo_stato: nuovoSubStato,
             preventivo_data_invio: dataInizio === "" ? null : dataInizio,
             preventivo_scadenza_promemoria: dataScadenzaCalcolataString,
             preventivo_attivita_storico: storicoAggiornato
-        }).eq('id', currentCommessaId);
+        }).eq('id', window.currentCommessaId);
 
         if (error) throw error;
 
-        currentCommessa.preventivo_stato = nuovoSubStato;
-        currentCommessa.preventivo_data_invio = dataInizio;
-        currentCommessa.preventivo_scadenza_promemoria = dataScadenzaCalcolataString;
-        currentCommessa.preventivo_attivita_storico = storicoAggiornato;
+        window.currentCommessa.preventivo_stato = nuovoSubStato;
+        window.currentCommessa.preventivo_data_invio = dataInizio;
+        window.currentCommessa.preventivo_scadenza_promemoria = dataScadenzaCalcolataString;
+        window.currentCommessa.preventivo_attivita_storico = storicoAggiornato;
 
-        fetchPreventivoTimeline();
+        window.fetchPreventivoTimeline();
         document.getElementById('annotazioniPreventivoInput').value = "";
         if(opPrevSelect) opPrevSelect.value = "";
         
@@ -68,16 +65,16 @@ async function saveStatoPreventivoDettagli() {
     }
 }
 
-function fetchPreventivoTimeline() {
+window.fetchPreventivoTimeline = function() {
     const container = document.getElementById('preventivoTimeline');
     if(!container) return;
     container.innerHTML = "";
-    if (!currentCommessa || !currentCommessa.preventivo_attivita_storico) {
+    if (!window.currentCommessa || !window.currentCommessa.preventivo_attivita_storico) {
         container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
         return;
     }
     
-    let righeLine = currentCommessa.preventivo_attivita_storico.split('\n').reverse();
+    let righeLine = window.currentCommessa.preventivo_attivita_storico.split('\n').reverse();
     righeLine.forEach(l => {
         if(l.trim()) {
             const r = document.createElement('div');
