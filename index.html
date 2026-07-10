@@ -98,6 +98,7 @@
                 <div class="flex items-center space-x-2">
                     <span id="commessaBadgeStato" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">STATO</span>
                     <span id="commessaTitleHeader" class="text-xs font-bold text-blue-600">Titolo Commessa</span>
+                    <span id="commessaBadgeSede" class="text-[9px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded uppercase">Sede</span>
                 </div>
                 <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
                 <div id="commessaCantiereBox" class="mt-0.5 text-xs"></div>
@@ -122,7 +123,7 @@
                         <option value="FATTURA_ACCONTO">💰 4. FATTURA DI ACCONTO</option>
                         <option value="ORDINI_FORNITORI">📦 5. ORDINI AI FORNITORI</option>
                         <option value="INSTALLAZIONE">🔧 6. INSTALLAZIONE / POSA</option>
-                        <option value="SALDO_CONCLUSO">✅ 7. SALDO E CONCLUSO</option>
+                        <option value="SALDO_CONCLUSO">✅ 7. SALDO E CONCLUSE</option>
                     </select>
                 </div>
                 
@@ -252,8 +253,27 @@
                     <input type="number" id="settingDefaultDays" min="0" placeholder="Es. 15" class="w-full p-2 border bg-slate-50 rounded-lg text-sm font-medium">
                     <button onclick="saveDefaultDaysSetting()" class="bg-blue-600 text-white px-4 py-2 text-xs font-bold rounded-lg shadow shrink-0">Salva</button>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">Questo valore verrà precompilato automaticamente nei nuovi dettagli preventivo.</p>
             </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-center border-b pb-1">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">🏢 Elenco Sedi Lavorative</h3>
+                <button onclick="toggleAddSedeForm()" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded shadow">＋ Nuova Sede</button>
+            </div>
+            
+            <div id="addSedeForm" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 hidden text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-0.5">Nome Sede / Stabilimento *</label>
+                    <input type="text" id="newSedeName" placeholder="Es. Sede Padova, Sede Treviso" class="w-full p-2 border rounded-lg bg-white">
+                </div>
+                <div class="flex space-x-2 pt-1">
+                    <button onclick="toggleAddSedeForm()" class="flex-1 py-1.5 bg-slate-200 text-slate-700 font-bold rounded">Annulla</button>
+                    <button onclick="addNewSedeLocal()" class="flex-1 py-1.5 bg-green-600 text-white font-bold rounded shadow">Salva</button>
+                </div>
+            </div>
+
+            <div id="settingsSediList" class="space-y-1.5"></div>
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
@@ -403,6 +423,10 @@
                     <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Indirizzo Cantiere *</label>
                     <input type="text" id="modalCantiereInput" placeholder="Via del Cantiere 5, Padova" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50">
                 </div>
+                <div>
+                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Sede di Assegnazione *</label>
+                    <select id="modalSedeInput" class="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 font-medium"></select>
+                </div>
             </div>
             <div class="flex space-x-3 pt-2">
                 <button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 font-bold rounded text-xs">Annulla</button>
@@ -462,6 +486,7 @@
                 if (error) throw error;
                 listLavoratori = w || [];
                 populateSelects();
+                initSediDefaultLocalStorage();
             } catch (err) {
                 console.error("Errore inizializzazione lavoratori:", err.message);
             }
@@ -475,6 +500,17 @@
             });
         }
 
+        function populateSediSelect() {
+            const el = document.getElementById('modalSedeInput');
+            if (!el) return;
+            const sedi = getSediFromLocal();
+            if(sedi.length === 0) {
+                el.innerHTML = `<option value="">--⚠️ Nessuna sede! Configurala in Impostazioni --</option>`;
+            } else {
+                el.innerHTML = sedi.map(s => `<option value="${s}">${s}</option>`).join('');
+            }
+        }
+
         async function fetchClienti() {
             try {
                 const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
@@ -483,7 +519,6 @@
                 if (document.getElementById('mainScreen') && !document.getElementById('mainScreen').classList.contains('hidden')) renderClientsList();
             } catch (err) {
                 console.error("Errore nel recupero clienti:", err.message);
-                alert("Impossibile scaricare l'elenco dei clienti. Verifica la connessione.");
             }
         }
 
@@ -520,8 +555,7 @@
                     telBtn.innerText = "📞";
                     telBtn.onclick = (e) => {
                         e.stopPropagation();
-                        const callPrompt = confirm(`Vuoi far partire una chiamata verso questo numero?\n📞 Tel: ${cliente.telefono}`);
-                        if(callPrompt) {
+                        if(confirm(`Vuoi chiamare il numero?\n📞 Tel: ${cliente.telefono}`)) {
                             window.location.href = `tel:${cliente.telefono}`;
                         }
                     };
@@ -547,7 +581,7 @@
 
         function filterClients() { renderClientsList(); }
 
-        renderClientHub = function() {
+        function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
             document.getElementById('hubClientName').innerText = cliente.denominazione;
@@ -574,10 +608,12 @@
                 mainInfo.onclick = () => { openCommessaWorkspace(com.id); };
                 const dataCreazione = new Date(com.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+                // MODIFICATO: Utilizza la colonna nativa 'sede_assegnazione'
                 mainInfo.innerHTML = `
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
                         <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
-                        <span class="text-xs font-bold text-blue-600">${com.titolo_lavoro || 'Lavoro Senza Titolo'}</span>
+                        <span class="text-[9px] font-bold bg-slate-100 border text-slate-600 px-1.5 py-0.5 rounded uppercase">🏢 ${com.sede_assegnazione || 'Sede N/D'}</span>
+                        <span class="text-xs font-bold text-blue-600 ml-1 flex-1">${com.titolo_lavoro || 'Lavoro Senza Titolo'}</span>
                     </div>
                     <h4 class="font-semibold text-slate-700 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
                     <p class="text-[10px] text-slate-400 mt-0.5">📅 Data Creazione: ${dataCreazione}</p>
@@ -592,6 +628,8 @@
                     document.getElementById('modalCommessaId').value = com.id;
                     document.getElementById('modalTitoloInput').value = com.titolo_lavoro || '';
                     document.getElementById('modalCantiereInput').value = com.indirizzo_cantiere;
+                    populateSediSelect();
+                    document.getElementById('modalSedeInput').value = com.sede_assegnazione || '';
                     document.getElementById('commessaModal').classList.remove('hidden');
                 };
 
@@ -611,6 +649,10 @@
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
+            // MODIFICATO: Utilizza la colonna nativa 'sede_assegnazione'
+            const sBadge = document.getElementById('commessaBadgeSede');
+            if(sBadge) sBadge.innerText = currentCommessa.sede_assegnazione ? `🏢 ${currentCommessa.sede_assegnazione}` : '🏢 Sede non assegnata';
+
             const cantiereBox = document.getElementById('commessaCantiereBox');
             if (cantiereBox) {
                 if (currentCommessa.indirizzo_cantiere) {
@@ -649,7 +691,6 @@
             
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
-            
             if(document.getElementById('workerPreventivoSelect')) document.getElementById('workerPreventivoSelect').value = "";
 
             document.getElementById('faseAnnotazioniInput').value = "";
@@ -660,7 +701,6 @@
             fetchDiarioTimeline();
             fetchPreventivoTimeline();
             navigateTo('detail');
-            
             renderTabPrivileges(currentCommessa.stato_macro);
         }
 
@@ -714,23 +754,13 @@
             const indexNuovo = workflowOrdinato.indexOf(nuovaFaseSelezionata);
 
             if (indexNuovo < indexAttuale) {
-                alert(`⚠️ AZIONE BLOCCATA:\nNon è consentito retrocedere di fase aziendale. La commessa si trova nello stato "${faseAttuale}" e non può tornare a "${nuovaFaseSelezionata}".`);
+                alert(`⚠️ AZIONE BLOCCATA:\nNon è consentito retrocedere di fase aziendale.`);
                 document.getElementById('commessaMacroSelect').value = faseAttuale;
                 return;
             }
 
-            const saltoFasi = indexNuovo - indexAttuale;
-            if (saltoFasi > 2) {
-                const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFaseSelezionata}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
-                if (!confermaSalto) {
-                    document.getElementById('commessaMacroSelect').value = faseAttuale;
-                    return;
-                }
-            }
-
             if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = ""; 
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = ""; 
-            
             adjustWorkerLabels(nuovaFaseSelezionata);
         }
 
@@ -782,13 +812,8 @@
                 return;
             }
 
-            if (!op1Value) {
-                alert("❌ COLLABORATORE MANCANTE:\nSeleziona obbligatoriamente il personale responsabile della fase prima di procedere al salvataggio!");
-                return;
-            }
-
-            if (!annotazioniFase) {
-                alert("❌ ANNOTAZIONE OBBLIGATORIA:\nInserisci una nota esplicativa del passaggio nella casella 'Annotazioni' prima di salvare!");
+            if (!op1Value || !annotazioniFase) {
+                alert("❌ COLLABORATORE E ANNOTAZIONE OBBLIGATORI!");
                 return;
             }
 
@@ -815,8 +840,7 @@
                 document.getElementById('charCounter').innerText = "0 / 150";
 
                 await logAutomaticActivity(rigaFormattataDettaglio);
-                alert(`🎉 Commessa avanzata con successo allo stato: ${nuovaFase}!`);
-                
+                alert(`🎉 Commessa avanzata con successo!`);
                 renderTabPrivileges(nuovaFase);
             } catch (err) {
                 alert("Errore avanzamento fase: " + err.message);
@@ -841,13 +865,8 @@
             const inputGiorni = document.getElementById('dateReminderPrev').value.trim();
             const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
 
-            if (!opPrevValue) {
-                alert("❌ INCARICATO MANCANTE:\nSeleziona obbligatoriamente l'Incaricato Preventivo responsabile di questa attività!");
-                return;
-            }
-
-            if (!annotazioni) {
-                alert("❌ ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota nei dettagli del preventivo prima di salvare lo stato!");
+            if (!opPrevValue || !annotazioni) {
+                alert("❌ INCARICATO E ANNOTAZIONE OBBLIGATORI!");
                 return;
             }
 
@@ -861,20 +880,21 @@
                 }
             }
 
-            let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Incaricato: ${opPrevText} | Note: ${annotazioni}`;
+            let nuovaAttivitaPrev = `Stato: ${testoStato} | Incaricato: ${opPrevText} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Inizio: ${dataInizio}`;
             if (inputGiorni) nuovaAttivitaPrev += ` | Scadenza: ${inputGiorni} gg`;
 
             try {
                 btn.disabled = true;
                 
-                let storicoAggiornato = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
+                // MODIFICATO: Salva sulla nuova colonna nativa 'preventivo_attivita_storico'
+                let storicoAggiornato = currentCommessa.preventivo_attivita_storico ? currentCommessa.preventivo_attivita_storico + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
 
                 const { error } = await db.from('commesse').update({
                     preventivo_stato: nuovoSubStato,
                     preventivo_data_invio: dataInizio === "" ? null : dataInizio,
                     preventivo_scadenza_promemoria: dataScadenzaCalcolataString,
-                    note_cantiere: storicoAggiornato
+                    preventivo_attivita_storico: storicoAggiornato
                 }).eq('id', currentCommessaId);
 
                 if (error) throw error;
@@ -882,16 +902,13 @@
                 currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.preventivo_data_invio = dataInizio;
                 currentCommessa.preventivo_scadenza_promemoria = dataScadenzaCalcolataString;
-                currentCommessa.note_cantiere = storicoAggiornato;
+                currentCommessa.preventivo_attivita_storico = storicoAggiornato;
 
                 fetchPreventivoTimeline();
-                fetchDiarioTimeline();
-
                 document.getElementById('annotazioniPreventivoInput').value = "";
                 if(opPrevSelect) opPrevSelect.value = "";
                 
-                alert("✅ Stato, Incaricato e attività del preventivo registrati con successo!");
-
+                alert("✅ Storico preventivo aggiornato su colonna nativa!");
             } catch (err) {
                 alert("Errore salvataggio dettagli preventivo: " + err.message);
             } finally {
@@ -899,38 +916,33 @@
             }
         }
 
+        // MODIFICATO: Legge lo storico dalla nuova colonna dedicata
         function fetchPreventivoTimeline() {
             const container = document.getElementById('preventivoTimeline');
             if(!container) return;
             container.innerHTML = "";
-            if (!currentCommessa || !currentCommessa.note_cantiere) {
+            if (!currentCommessa || !currentCommessa.preventivo_attivita_storico) {
                 container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
                 return;
             }
             
-            let righeLine = currentCommessa.note_cantiere.split('\n').reverse();
-            let contatorePrev = 0;
-
+            let righeLine = currentCommessa.preventivo_attivita_storico.split('\n').reverse();
             righeLine.forEach(l => {
-                if(l.trim() && l.includes('[PREV]')) {
-                    contatorePrev++;
+                if(l.trim()) {
                     const r = document.createElement('div');
                     r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 shadow-sm font-medium border-slate-100 text-slate-700";
-                    r.innerText = l.replace('📄 [PREV] - ', ''); 
+                    r.innerText = l; 
                     container.appendChild(r);
                 }
             });
-
-            if(contatorePrev === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
-            }
         }
 
-        // MODIFICATO: Renderizza la lista del personale con la possibilità di Modifica in linea
         function renderSettingsScreen() {
             const savedDays = localStorage.getItem('defaultDaysToExpiry');
             const inputDays = document.getElementById('settingDefaultDays');
             if(inputDays) inputDays.value = savedDays ? savedDays : "";
+
+            renderSediSettingsList();
 
             const container = document.getElementById('settingsWorkersList');
             if (!container) return;
@@ -945,8 +957,6 @@
                 const row = document.createElement('div');
                 row.id = `workerRow-${emp.id}`;
                 row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
-                
-                // Visualizzazione Standard della riga
                 row.innerHTML = `
                     <div class="flex-1 flex items-center justify-between pr-1">
                         <span id="wViewName-${emp.id}">👤 ${emp.nome}</span> 
@@ -958,7 +968,68 @@
             });
         }
 
-        // MODIFICATO: Attiva i campi di input al posto del testo fisso per modificare il dipendente
+        function initSediDefaultLocalStorage() {
+            if(!localStorage.getItem('sediAziendaliList')) {
+                const defaultSedi = ["Sede Principale", "Sede Secondaria"];
+                localStorage.setItem('sediAziendaliList', JSON.stringify(defaultSedi));
+            }
+        }
+
+        function getSediFromLocal() {
+            const raw = localStorage.getItem('sediAziendaliList');
+            return raw ? JSON.parse(raw) : [];
+        }
+
+        function renderSediSettingsList() {
+            const container = document.getElementById('settingsSediList');
+            if(!container) return;
+            container.innerHTML = "";
+            const sedi = getSediFromLocal();
+
+            if(sedi.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 p-2">Nessuna sede configurata.</p>`;
+                return;
+            }
+
+            sedi.forEach((sede, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center shadow-sm";
+                div.innerHTML = `
+                    <span>🏢 ${sede}</span>
+                    <button onclick="deleteSedeLocal(${index})" class="text-red-500 font-bold px-1 hover:text-red-700 text-xs">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleAddSedeForm() {
+            const form = document.getElementById('addSedeForm');
+            if(form) form.classList.toggle('hidden');
+            document.getElementById('newSedeName').value = "";
+        }
+
+        function addNewSedeLocal() {
+            const nomeSede = document.getElementById('newSedeName').value.trim();
+            if(!nomeSede) return;
+            
+            let sedi = getSediFromLocal();
+            if(sedi.includes(nomeSede)) return;
+            
+            sedi.push(nomeSede);
+            localStorage.setItem('sediAziendaliList', JSON.stringify(sedi));
+            toggleAddSedeForm();
+            renderSediSettingsList();
+        }
+
+        function deleteSedeLocal(index) {
+            if(confirm("Eliminare questa sede lavorativa?")) {
+                let sedi = getSediFromLocal();
+                sedi.splice(index, 1);
+                localStorage.setItem('sediAziendaliList', JSON.stringify(sedi));
+                renderSediSettingsList();
+            }
+        }
+
         function enableWorkerEdit(id, nomeAttuale, ruoloAttuale) {
             const row = document.getElementById(`workerRow-${id}`);
             if(!row) return;
@@ -975,15 +1046,11 @@
             `;
         }
 
-        // MODIFICATO: Salva su Supabase i dati modificati del dipendente
         async function saveWorkerEdit(id) {
             const nomeNuovo = document.getElementById(`wEditName-${id}`).value.trim();
             const ruoloNuovo = document.getElementById(`wEditRole-${id}`).value.trim();
 
-            if(!nomeNuovo) {
-                alert("Il nome del lavoratore non può essere vuoto.");
-                return;
-            }
+            if(!nomeNuovo) return;
 
             try {
                 const { error } = await db.from('lavoratori').update({
@@ -993,19 +1060,16 @@
 
                 if (error) throw error;
 
-                // Aggiorna l'array locale in memoria
                 const dip = listLavoratori.find(l => l.id == id);
                 if(dip) { dip.nome = nomeNuovo; dip.ruolo = ruoloNuovo; }
 
                 populateSelects();
                 renderSettingsScreen();
-                alert("✅ Collaboratore aggiornato con successo!");
             } catch(err) {
-                alert("Errore nell'aggiornamento: " + err.message);
+                console.error(err);
             }
         }
 
-        // MODIFICATO: Mostra/Nasconde il form di aggiunta personale
         function toggleAddWorkerForm() {
             const form = document.getElementById('addWorkerForm');
             if(!form) return;
@@ -1014,15 +1078,11 @@
             document.getElementById('newWorkerRole').value = "";
         }
 
-        // MODIFICATO: Inserisce un nuovo dipendente/personale nel Database Supabase
         async function addNewWorker() {
             const nome = document.getElementById('newWorkerName').value.trim();
             const ruolo = document.getElementById('newWorkerRole').value.trim();
 
-            if(!nome) {
-                alert("Inserisci obbligatoriamente il Nome del collaboratore!");
-                return;
-            }
+            if(!nome) return;
 
             try {
                 const { data, error } = await db.from('lavoratori').insert([{
@@ -1035,14 +1095,12 @@
                 if (data && data.length > 0) {
                     listLavoratori.push(data[0]);
                     listLavoratori.sort((a,b) => a.nome.localeCompare(b.nome));
-                    
                     populateSelects();
                     toggleAddWorkerForm();
                     renderSettingsScreen();
-                    alert(`👤 ${nome} aggiunto correttamente all'organico personale!`);
                 }
             } catch(err) {
-                alert("Errore inserimento collaboratore: " + err.message);
+                console.error(err);
             }
         }
 
@@ -1052,11 +1110,10 @@
             const value = input.value.trim();
             if(value === "") {
                 localStorage.removeItem('defaultDaysToExpiry');
-                alert("Default rimosso. La casella tornerà vuota di base.");
             } else {
                 localStorage.setItem('defaultDaysToExpiry', value);
-                alert(`✅ Valore di default salvato: ${value} giorni!`);
             }
+            alert("Impostazione aggiornata.");
         }
 
         function adjustWorkerLabels(fase) {
@@ -1074,7 +1131,7 @@
 
         function switchTab(tab) {
             if (currentCommessa && currentCommessa.stato_macro === 'PRIMO_CONTATTO' && tab !== 'diario') {
-                alert("🔒 FUNZIONE BLOCCATA:\nQuesta sezione sarà accessibile solo quando la commessa avanzerà allo stato '2. PREVENTIVAZIONE'.");
+                alert("🔒 SEZIONE BLOCCATA:\nAccessibile dallo stato '2. PREVENTIVAZIONE'.");
                 return;
             }
 
@@ -1122,7 +1179,7 @@
                 input.value = ""; 
                 fetchDiarioTimeline();
             } catch (err) {
-                alert("Impossibile salvare la nota nel diario: " + err.message);
+                console.error(err);
             } finally {
                 btn.disabled = false;
             }
@@ -1134,42 +1191,78 @@
                 if (error) throw error;
                 if(currentCommessa) currentCommessa[field] = value; 
             } catch (err) {
-                console.error(`Errore aggiornamento campo ${field}:`, err.message);
+                console.error(err);
             }
         }
         
         async function updateWorker(field, value) { await updateCommessaField(field, value === "" ? null : value); }
 
-        function openNewCommessaModal() { document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
-        function openCommessaEditModalCurrent() { document.getElementById('commessaModalTitle').innerText = "Modifica Dati"; document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro || ''; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function openNewCommessaModal() { 
+            document.getElementById('commessaModalTitle').innerText = "Nuova Commessa"; 
+            document.getElementById('modalCommessaId').value = ""; 
+            document.getElementById('modalTitoloInput').value = ""; 
+            document.getElementById('modalCantiereInput').value = ""; 
+            populateSediSelect();
+            document.getElementById('commessaModal').classList.remove('hidden'); 
+        }
+        
+        function openCommessaEditModalCurrent() { 
+            document.getElementById('commessaModalTitle').innerText = "Modifica Dati"; 
+            document.getElementById('modalCommessaId').value = currentCommessaId; 
+            document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro || ''; 
+            document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; 
+            populateSediSelect();
+            document.getElementById('modalSedeInput').value = currentCommessa.sede_assegnazione || '';
+            document.getElementById('commessaModal').classList.remove('hidden'); 
+        }
+        
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
         
+        // MODIFICATO: Salva direttamente sulla colonna reale 'sede_assegnazione'
         async function saveCommessaDati() {
             const id = document.getElementById('modalCommessaId').value; 
             const btn = document.getElementById('btnSaveCommessa');
             const titolo = document.getElementById('modalTitoloInput').value.trim(); 
             const cantiere = document.getElementById('modalCantiereInput').value.trim(); 
+            const sedeScelta = document.getElementById('modalSedeInput').value;
             
-            if (!cantiere || !titolo) {
-                alert("I campi 'Titolo Lavoro' e 'Indirizzo Cantiere' sono obbligatori.");
+            if (!cantiere || !titolo || !sedeScelta) {
+                alert("Tutti i campi contrassegnati con (*) sono obbligatori.");
                 return;
             }
             
             try {
                 btn.disabled = true;
                 if (id) { 
-                    const { error } = await db.from('commesse').update({ titolo_lavoro: titolo, indirizzo_cantiere: cantiere }).eq('id', id); 
+                    const { error } = await db.from('commesse').update({ 
+                        titolo_lavoro: titolo, 
+                        indirizzo_cantiere: cantiere,
+                        sede_assegnazione: sedeScelta 
+                    }).eq('id', id); 
                     if (error) throw error;
-                    if(currentCommessa) { currentCommessa.titolo_lavoro = titolo; currentCommessa.indirizzo_cantiere = cantiere; } 
+                    if(currentCommessa) { 
+                        currentCommessa.titolo_lavoro = titolo; 
+                        currentCommessa.indirizzo_cantiere = cantiere; 
+                        currentCommessa.sede_assegnazione = sedeScelta;
+                        
+                        const sBadge = document.getElementById('commessaBadgeSede');
+                        if(sBadge) sBadge.innerText = `🏢 ${sedeScelta}`;
+                    } 
                 } else { 
-                    const { error } = await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: titolo, indirizzo_cantiere: cantiere, stato_macro: 'PRIMO_CONTATTO' }]); 
+                    const { error } = await db.from('commesse').insert([{ 
+                        cliente_id: currentClienteId, 
+                        titolo_lavoro: titolo, 
+                        indirizzo_cantiere: cantiere, 
+                        stato_macro: 'PRIMO_CONTATTO',
+                        sede_assegnazione: sedeScelta
+                    }]); 
                     if (error) throw error;
                 }
                 closeCommessaModal(); 
                 await fetchClienti(); 
                 renderClientHub();
             } catch (err) {
-                alert("Errore salvataggio commessa: " + err.message);
+                alert("Errore: " + err.message);
             } finally {
                 btn.disabled = false;
             }
@@ -1200,7 +1293,7 @@
             const cf = document.getElementById('editCodiceFiscale').value.trim();
             const n = document.getElementById('editNote').value.trim(); 
             
-            if(!d) { alert("Il Nome / Ragione Sociale è obbligatorio."); return; }
+            if(!d) return;
             
             try {
                 btn.disabled = true;
@@ -1219,7 +1312,7 @@
                 await fetchClienti(); 
                 renderClientHub();
             } catch (err) {
-                alert("Errore aggiornamento anagrafica: " + err.message);
+                console.error(err);
             } finally {
                 btn.disabled = false;
             }
@@ -1235,7 +1328,7 @@
             const cf = document.getElementById('newCodiceFiscale').value.trim();
             const n = document.getElementById('newNote').value.trim(); 
             
-            if (!d) { alert("Il Nome / Ragione Sociale è obbligatorio."); return; }
+            if (!d) return;
             
             try {
                 btn.disabled = true;
@@ -1259,7 +1352,7 @@
                     navigateTo('hub'); 
                 }
             } catch (err) {
-                alert("Errore salvataggio nuovo cliente: " + err.message);
+                console.error(err);
             } finally {
                 btn.disabled = false;
             }
@@ -1277,6 +1370,7 @@
         }
 
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
+        function switchClientSubTab(tab) {}
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
