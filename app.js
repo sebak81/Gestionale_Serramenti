@@ -147,7 +147,6 @@ window.renderClientsList = function() {
 
 window.filterClients = function() { window.renderClientsList(); }
 
-// CORRETTO: Corretto l'ID con la 'C' maiuscola e inserita una protezione se l'elemento manca
 window.switchClientSubTab = function(tab) {
     window.currentFilterSubTab = tab;
     const tabIds = { all: 'All', incorso: 'InCorso', conclusi: 'Conclusi' };
@@ -208,6 +207,59 @@ window.renderClientHub = function() {
         };
         div.appendChild(mainInfo); div.appendChild(btnOpt); listContainer.appendChild(div);
     });
+}
+
+window.openCommessaWorkspace = function(commessaId) {
+    const cliente = window.allClients.find(c => c.id === window.currentClienteId);
+    if(!cliente) return;
+    window.currentCommessa = cliente.commesse.find(com => com.id === commessaId); window.currentCommessaId = commessaId;
+    if(!window.currentCommessa) return;
+
+    document.getElementById('commessaClientName').innerText = cliente.denominazione;
+    document.getElementById('commessaTitleHeader').innerText = window.currentCommessa.titolo_lavoro || 'Senza Titolo';
+    
+    const sBadge = document.getElementById('commessaBadgeSede');
+    if(sBadge) sBadge.innerText = window.currentCommessa.sede_assegnazione ? `🏢 ${window.currentCommessa.sede_assegnazione}` : '🏢 Sede non assegnata';
+
+    const cantiereBox = document.getElementById('commessaCantiereBox');
+    if (cantiereBox) {
+        if (window.currentCommessa.indirizzo_cantiere) {
+            const encodedAddr = encodeURIComponent(window.currentCommessa.indirizzo_cantiere);
+            // CORRETTO: Ripristinata la corretta interpolazione della variabile senza refusi di parentesi quadre
+            cantiereBox.innerHTML = `<a href="https://maps.google.com/?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
+        } else { cantiereBox.innerHTML = `<span class="text-slate-400 italic">📍 Cantiere: non specificato</span>`; }
+    }
+    
+    document.getElementById('commessaMacroSelect').value = window.currentCommessa.stato_macro;
+    if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = window.currentCommessa.contatto_gestito_da || '';
+    if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = window.currentCommessa.preventivo_assegnato_a || '';
+    if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = window.currentCommessa.preventivo_stato || 'IN_CORSO';
+    if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = window.currentWorkspaceValue('preventivo_data_invio');
+    
+    if(document.getElementById('dateReminderPrev')) {
+        const dataScadenzaMappata = window.currentWorkspaceValue('preventivo_scadenza_promemoria');
+        if(dataScadenzaMappata) {
+            const scadenzaDate = new Date(dataScadenzaMappata); const oggiDate = new Date();
+            oggiDate.setHours(0,0,0,0); scadenzaDate.setHours(0,0,0,0);
+            const diffTempo = scadenzaDate.getTime() - oggiDate.getTime();
+            const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            document.getElementById('dateReminderPrev').value = diffGiorni > 0 ? diffGiorni : 0;
+        } else {
+            const savedDefault = localStorage.getItem('defaultDaysToExpiry');
+            document.getElementById('dateReminderPrev').value = savedDefault ? savedDefault : "";
+        }
+    }
+    
+    if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = window.currentWorkspaceValue('tecnico_misure');
+    if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = window.currentCommessa.contract_stato || 'REDZIONE';
+    if(document.getElementById('workerPreventivoSelect')) document.getElementById('workerPreventivoSelect').value = "";
+
+    document.getElementById('faseAnnotazioniInput').value = ""; document.getElementById('annotazioniPreventivoInput').value = "";
+    document.getElementById('charCounter').innerText = "0 / 150";
+
+    window.adjustWorkerLabels(window.currentCommessa.stato_macro); window.fetchDiarioTimeline(); 
+    if (typeof window.fetchPreventivoTimeline === 'function') window.fetchPreventivoTimeline(); 
+    window.navigateTo('detail'); window.renderTabPrivileges(window.currentCommessa.stato_macro);
 }
 
 window.currentWorkspaceValue = function(field) { return (window.currentCommessa && window.currentCommessa[field]) ? window.currentCommessa[field] : ''; }
