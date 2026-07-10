@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,13 +30,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -64,7 +59,6 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -91,13 +85,11 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
-        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -110,14 +102,12 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
-        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">📄 Preventivi</button>
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
-        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -133,7 +123,6 @@
                     </select>
                 </div>
                 
-                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
@@ -145,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                         <label>Annotazioni *</label>
@@ -154,7 +142,6 @@
                     <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi i dettagli del passaggio qui prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
 
-                <!-- PULSANTE SALVA CONSOLIDATO -->
                 <div class="pt-2 border-t">
                     <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
                         <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -162,7 +149,6 @@
                 </div>
             </div>
             
-            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Lavorazione Global</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -173,7 +159,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -212,14 +197,12 @@
                 </div>
             </div>
 
-            <!-- CRONOLOGIA INTERNA PREVENTIVAZIONE -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">⏳ Attività e Storico Preventivazione</h3>
                 <div id="preventivoTimeline" class="space-y-2"></div>
             </div>
         </div>
 
-        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -250,41 +233,52 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 4: IMPOSTAZIONI COMPLETA CON CASSELLA TESTO LIBERA PER MANSIONE -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         
-        <!-- SEZIONE ALERT GIORNI DEFAULT -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
-            <div class="text-xs text-slate-500">Imposta il numero di giorni predefinito che verrà caricato automaticamente per l'avviso di un nuovo preventivo.</div>
             <div class="flex items-center space-x-2">
                 <input type="number" id="cfgDefaultDays" min="0" placeholder="Es. 7" class="w-24 p-2 border rounded-lg bg-slate-50 text-xs font-bold text-center">
                 <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
             </div>
         </div>
 
-        <!-- SEZIONE ELENCO PERSONALE AVANZATO -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
             
-            <!-- Form Inserimento/Modifica -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                 <div id="workerFormTitle" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Nuovo Collaboratore</div>
                 <input type="hidden" id="editingWorkerId" value="">
                 
                 <div class="space-y-2 text-xs">
                     <div>
-                        <label class="block font-bold text-slate-700 uppercase mb-0.5 text-[9px]">Nome Operatore *</label>
                         <input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
                     </div>
-                    
                     <div>
-                        <label class="block font-bold text-slate-700 uppercase mb-0.5 text-[9px]">Tag Mansione / Ruolo</label>
-                        <input type="text" id="newWorkerMansione" placeholder="Es. Posatore Esterno, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300">
+                        <input type="text" id="newWorkerMansione" placeholder="Es. Posatore, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300">
                     </div>
+                    <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Collaboratore</button>
+                    <button id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="w-full text-center text-[11px] text-slate-500 underline hidden">Annulla Modifica</button>
+                </div>
+            </div>
+            <div id="settingsWorkerList" class="space-y-2 pt-1 max-h-64 overflow-y-auto"></div>
+        </div>
+    </main>
 
-                    <div class="pt-1 flex space-x-2">
-                        <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
-                            <span>💾</span> <span>Salva Collaboratore</span>
-           
+    <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
+                <span class="text-lg">👥</span><span>Clienti</span>
+            </button>
+            <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">⚙️</span><span>Impostazioni</span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
+            <div class="space-y-3 text-xs">
+                <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option valu
