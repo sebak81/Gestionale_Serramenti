@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,13 +30,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -64,7 +59,6 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -91,13 +85,11 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
-        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -110,14 +102,12 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
-        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">📄 Preventivi</button>
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
-        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -133,7 +123,6 @@
                     </select>
                 </div>
                 
-                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
@@ -145,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                         <label>Annotazioni *</label>
@@ -154,7 +142,6 @@
                     <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi i dettagli del passaggio qui prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
 
-                <!-- PULSANTE SALVA CONSOLIDATO -->
                 <div class="pt-2 border-t">
                     <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
                         <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -162,7 +149,6 @@
                 </div>
             </div>
             
-            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Lavorazione Global</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -173,7 +159,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -212,14 +197,12 @@
                 </div>
             </div>
 
-            <!-- CRONOLOGIA INTERNA PREVENTIVAZIONE -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">⏳ Attività e Storico Preventivazione</h3>
                 <div id="preventivoTimeline" class="space-y-2"></div>
             </div>
         </div>
 
-        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -250,7 +233,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -259,7 +241,6 @@
         </div>
     </nav>
 
-    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -311,7 +292,6 @@
         </div>
     </div>
 
-    <!-- MODALE: MODIFICA ANAGRAFICA CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -359,7 +339,6 @@
         </div>
     </div>
 
-    <!-- MODALE: MODIFICA / AGGIUNGI COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -508,7 +487,7 @@
 
         function filterClients() { renderClientsList(); }
 
-        function renderClientHub() {
+        renderClientHub = function() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
             document.getElementById('hubClientName').innerText = cliente.denominazione;
@@ -592,11 +571,9 @@
             fetchPreventivoTimeline();
             navigateTo('detail');
             
-            // Applica stili visivi e sblocchi in base allo stato attuale della commessa
             renderTabPrivileges(currentCommessa.stato_macro);
         }
 
-        // LOGICA DI CONTROLLO PRIVILEGI DEI TAB (BLINDATURA VISIVA)
         function renderTabPrivileges(fase) {
             const btnPrev = document.getElementById('tabBtnPreventiviTab');
             const btnContratto = document.getElementById('tabBtnContrattoTab');
@@ -667,7 +644,6 @@
             adjustWorkerLabels(nuovaFaseSelezionata);
         }
 
-        // SALVATAGGIO DEI DATI OPERATIVI CON FORMATTAZIONE SPECIFICA RICHIESTA
         async function saveFaseLavorazioneConDati() {
             if (!currentCommessa) return;
 
@@ -685,7 +661,6 @@
             const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || 'Non specificato') : 'Non specificato';
             const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
 
-            // Costruiamo la stringa con la formattazione richiesta: <Fase>. <Contatto preso da: xx> <Incaricato: xx> #<Appunti: xx>
             let rigaFormattataDettaglio = `Fase: ${nuovaFase}. `;
             if (nuovaFase === 'PRIMO_CONTATTO') {
                 rigaFormattataDettaglio += `Contatto preso da: ${op1Text} | Assegnato a: ${op2Text} `;
@@ -760,6 +735,7 @@
             }
         }
 
+        // CORRETTO: Adesso salviamo lo storico attività preventivo dentro note_cantiere filtrandole visivamente
         async function saveStatoPreventivoDettagli() {
             if (!currentCommessa) return;
 
@@ -779,20 +755,22 @@
 
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
-            let nuovaAttivitaPrev = `[${t}] - Stato: ${testoStato} | Note: ${annotazioni}`;
+            // Generiamo la stringa con tag riconoscibile [PREV] per separarla graficamente
+            let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
             if (giorniScadenza) nuovaAttivitaPrev += ` | Scadenza: ${giorniScadenza} gg`;
-
-            let storicoAggiornato = currentCommessa.descrizione_lavoro ? currentCommessa.descrizione_lavoro + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
 
             try {
                 btn.disabled = true;
                 
+                // Accumuliamo tutto nella colonna provata note_cantiere che esiste al 100%
+                let storicoAggiornato = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
+
                 const { error } = await db.from('commesse').update({
                     preventivo_stato: nuovoSubStato,
                     preventivo_data_invio: dataInizio === "" ? null : dataInizio,
                     preventivo_scadenza_promemoria: giorniScadenza === "" ? null : giorniScadenza,
-                    descrizione_lavoro: storicoAggiornato
+                    note_cantiere: storicoAggiornato
                 }).eq('id', currentCommessaId);
 
                 if (error) throw error;
@@ -800,15 +778,14 @@
                 currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.preventivo_data_invio = dataInizio;
                 currentCommessa.preventivo_scadenza_promemoria = giorniScadenza;
-                currentCommessa.descrizione_lavoro = storicoAggiornato;
+                currentCommessa.note_cantiere = storicoAggiornato;
 
+                // Aggiorniamo entrambe le timeline grafiche a schermo
                 fetchPreventivoTimeline();
-
-                let notaPerDiarioGlobal = `📄 [ATTIVITÀ PREVENTIVO] - ${testoStato}. Nota: "${annotazioni}"`;
-                await logAutomaticActivity(notaPerDiarioGlobal);
+                fetchDiarioTimeline();
 
                 document.getElementById('annotazioniPreventivoInput').value = "";
-                alert("✅ Stato e attività del preventivo registrati con successo!");
+                alert("✅ Stato e attività del preventivo registrati con successo nel Diario!");
 
             } catch (err) {
                 alert("Errore salvataggio dettagli preventivo: " + err.message);
@@ -817,22 +794,32 @@
             }
         }
 
+        // Mostra solo le attività che contengono il tag speciale [PREV]
         function fetchPreventivoTimeline() {
             const container = document.getElementById('preventivoTimeline');
             if(!container) return;
             container.innerHTML = "";
-            if (!currentCommessa || !currentCommessa.descrizione_lavoro) {
+            if (!currentCommessa || !currentCommessa.note_cantiere) {
                 container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
                 return;
             }
-            currentCommessa.descrizione_lavoro.split('\n').reverse().forEach(l => {
-                if(l.trim()) {
+            
+            let righeLine = currentCommessa.note_cantiere.split('\n').reverse();
+            let contatorePrev = 0;
+
+            righeLine.forEach(l => {
+                if(l.trim() && l.includes('[PREV]')) {
+                    contatorePrev++;
                     const r = document.createElement('div');
                     r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 shadow-sm font-medium border-slate-100 text-slate-700";
-                    r.innerText = l;
+                    r.innerText = l.replace('📄 [PREV] - ', ''); // Puliamo il tag visivo interno
                     container.appendChild(r);
                 }
             });
+
+            if(contatorePrev === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nessuna attività registrata per questo preventivo.</p>`;
+            }
         }
 
         function adjustWorkerLabels(fase) {
@@ -849,7 +836,6 @@
         }
 
         function switchTab(tab) {
-            // Se la commessa è in PRIMO CONTATTO, blocca i click sui tab protetti
             if (currentCommessa && currentCommessa.stato_macro === 'PRIMO_CONTATTO' && tab !== 'diario') {
                 alert("🔒 FUNZIONE BLOCCATA:\nQuesta sezione sarà accessibile solo quando la commessa avanzerà allo stato '2. PREVENTIVAZIONE'.");
                 return;
@@ -1054,7 +1040,6 @@
         }
 
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-        function switchClientSubTab(tab) {}
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
