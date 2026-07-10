@@ -5,7 +5,7 @@ window.listLavoratori = [];
 window.currentClienteId = null;
 window.currentCommessaId = null;
 window.currentCommessa = null;
-window.currentFilterSubTab = 'all'; // Ripristinato lo stato del filtro
+window.currentFilterSubTab = 'all'; 
 
 window.workflowOrdinato = [
     "PRIMO_CONTATTO",
@@ -23,11 +23,11 @@ window.navigateTo = function(screen) {
     if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
     if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
     
-    document.getElementById('navBtnClienti').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
-    document.getElementById('navBtnSettings').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
+    if(document.getElementById('navBtnClienti')) document.getElementById('navBtnClienti').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
+    if(document.getElementById('navBtnSettings')) document.getElementById('navBtnSettings').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
 
     if (screen === 'main') {
-        document.getElementById('navBtnClienti').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+        if(document.getElementById('navBtnClienti')) document.getElementById('navBtnClienti').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
         if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
         window.fetchClienti();
     } else if (screen === 'hub') {
@@ -36,7 +36,7 @@ window.navigateTo = function(screen) {
     } else if (screen === 'detail') {
         if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
     } else if (screen === 'settings') {
-        document.getElementById('navBtnSettings').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+        if(document.getElementById('navBtnSettings')) document.getElementById('navBtnSettings').className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
         if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
         window.renderSettingsScreen();
     }
@@ -81,7 +81,6 @@ window.fetchClienti = async function() {
         if (document.getElementById('mainScreen') && !document.getElementById('mainScreen').classList.contains('hidden')) window.renderClientsList();
     } catch (err) {
         console.error("Errore nel recupero clienti:", err.message);
-        alert("Impossibile scaricare l'elenco dei clienti.");
     }
 }
 
@@ -91,16 +90,17 @@ window.renderClientsList = function() {
     container.innerHTML = "";
     if(document.getElementById('loading')) document.getElementById('loading').classList.add('hidden'); 
     container.classList.remove('hidden');
-    const term = document.getElementById('searchClient').value.toLowerCase().trim();
+    
+    const searchEl = document.getElementById('searchClient');
+    const term = searchEl ? searchEl.value.toLowerCase().trim() : "";
 
-    // Filtro avanzato in corso / completati basato sulle commesse dello stato macro
     let listFiltrata = window.allClients.filter(c => {
         const matchesSearch = c.denominazione.toLowerCase().includes(term);
         if (!matchesSearch) return false;
 
         if (window.currentFilterSubTab === 'all') return true;
         
-        const haCommesseAttive = c.commesse && c.commesse.some(com => com.stato_macro !== 'SALDO_CONCLUSE' && com.stato_macro !== 'SALDO_CONCLUSO');
+        const haCommesseAttive = c.commesse && c.commesse.some(com => com.stato_macro !== 'SALDO_CONCLUSO');
         if (window.currentFilterSubTab === 'incorso') return haCommesseAttive;
         if (window.currentFilterSubTab === 'conclusi') return (c.commesse && c.commesse.length > 0 && !haCommesseAttive);
         return true;
@@ -147,14 +147,17 @@ window.renderClientsList = function() {
 
 window.filterClients = function() { window.renderClientsList(); }
 
-// Ripristinata la funzione per lo switch dei sotto tab della home
+// CORRETTO: Corretto l'ID con la 'C' maiuscola e inserita una protezione se l'elemento manca
 window.switchClientSubTab = function(tab) {
     window.currentFilterSubTab = tab;
+    const tabIds = { all: 'All', incorso: 'InCorso', conclusi: 'Conclusi' };
+    
     ['all', 'incorso', 'conclusi'].forEach(t => {
-        const btn = document.getElementById(`subTabClienti${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const btn = document.getElementById(`subTabClienti${tabIds[t]}`);
         if(btn) btn.className = "flex-1 py-1.5 text-center rounded-lg transition-all";
     });
-    const activeBtn = document.getElementById(`subTabClienti${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    
+    const activeBtn = document.getElementById(`subTabClienti${tabIds[tab]}`);
     if(activeBtn) activeBtn.className = "flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
     window.renderClientsList();
 }
@@ -205,58 +208,6 @@ window.renderClientHub = function() {
         };
         div.appendChild(mainInfo); div.appendChild(btnOpt); listContainer.appendChild(div);
     });
-}
-
-window.openCommessaWorkspace = function(commessaId) {
-    const cliente = window.allClients.find(c => c.id === window.currentClienteId);
-    if(!cliente) return;
-    window.currentCommessa = cliente.commesse.find(com => com.id === commessaId); window.currentCommessaId = commessaId;
-    if(!window.currentCommessa) return;
-
-    document.getElementById('commessaClientName').innerText = cliente.denominazione;
-    document.getElementById('commessaTitleHeader').innerText = window.currentCommessa.titolo_lavoro || 'Senza Titolo';
-    
-    const sBadge = document.getElementById('commessaBadgeSede');
-    if(sBadge) sBadge.innerText = window.currentCommessa.sede_assegnazione ? `🏢 ${window.currentCommessa.sede_assegnazione}` : '🏢 Sede non assegnata';
-
-    const cantiereBox = document.getElementById('commessaCantiereBox');
-    if (cantiereBox) {
-        if (window.currentCommessa.indirizzo_cantiere) {
-            const encodedAddr = encodeURIComponent(window.currentCommessa.indirizzo_cantiere);
-            cantiereBox.innerHTML = `<a href="http://googleusercontent.com/maps.google.com/maps?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
-        } else { cantiereBox.innerHTML = `<span class="text-slate-400 italic">📍 Cantiere: non specificato</span>`; }
-    }
-    
-    document.getElementById('commessaMacroSelect').value = window.currentCommessa.stato_macro;
-    if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = window.currentCommessa.contatto_gestito_da || '';
-    if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = window.currentCommessa.preventivo_assegnato_a || '';
-    if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = window.currentCommessa.preventivo_stato || 'IN_CORSO';
-    if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = window.currentWorkspaceValue('preventivo_data_invio');
-    
-    if(document.getElementById('dateReminderPrev')) {
-        const dataScadenzaMappata = window.currentWorkspaceValue('preventivo_scadenza_promemoria');
-        if(dataScadenzaMappata) {
-            const scadenzaDate = new Date(dataScadenzaMappata); const oggiDate = new Date();
-            oggiDate.setHours(0,0,0,0); scadenzaDate.setHours(0,0,0,0);
-            const diffTempo = scadenzaDate.getTime() - oggiDate.getTime();
-            const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-            document.getElementById('dateReminderPrev').value = diffGiorni > 0 ? diffGiorni : 0;
-        } else {
-            const savedDefault = localStorage.getItem('defaultDaysToExpiry');
-            document.getElementById('dateReminderPrev').value = savedDefault ? savedDefault : "";
-        }
-    }
-    
-    if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = window.currentWorkspaceValue('tecnico_misure');
-    if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = window.currentCommessa.contract_stato || 'REDZIONE';
-    if(document.getElementById('workerPreventivoSelect')) document.getElementById('workerPreventivoSelect').value = "";
-
-    document.getElementById('faseAnnotazioniInput').value = ""; document.getElementById('annotazioniPreventivoInput').value = "";
-    document.getElementById('charCounter').innerText = "0 / 150";
-
-    window.adjustWorkerLabels(window.currentCommessa.stato_macro); window.fetchDiarioTimeline(); 
-    if (typeof window.fetchPreventivoTimeline === 'function') window.fetchPreventivoTimeline(); 
-    window.navigateTo('detail'); window.renderTabPrivileges(window.currentCommessa.stato_macro);
 }
 
 window.currentWorkspaceValue = function(field) { return (window.currentCommessa && window.currentCommessa[field]) ? window.currentCommessa[field] : ''; }
@@ -375,6 +326,5 @@ window.renderSettingsScreen = function() {
         container.appendChild(row);
     });
 }
-window.switchClientSubTab = function(tab) {}
 
 window.onload = async () => { await window.initLists(); await window.fetchClienti(); };
