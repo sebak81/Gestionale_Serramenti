@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,13 +30,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -64,7 +59,6 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -91,7 +85,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
@@ -115,7 +108,6 @@
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
-        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -167,7 +159,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -212,7 +203,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -243,7 +233,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 4: IMPOSTAZIONI -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         
@@ -277,7 +266,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -289,19 +277,27 @@
         </div>
     </nav>
 
-    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
                 <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
-                <input type="text" id="newDenominazione" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nome *">
+                
+                <div>
+                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold" placeholder="Nome / Ragione Sociale *">
+                    
+                    <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
+                        <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
+                        <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                    </div>
+                </div>
+
                 <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo Fatturazione">
                 <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono">
                 <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email">
                 <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Partita IVA">
                 <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Codice Fiscale">
-                <textarea id="newNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Note..."></textarea>
+                <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50" placeholder="Note..."></textarea>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs">Salva</button></div>
         </div>
@@ -344,6 +340,7 @@
         let currentClienteId = null;
         let currentCommessaId = null;
         let currentCommessa = null;
+        let omonimiaTimeout = null;
         
         const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
 
@@ -656,7 +653,11 @@
             const { data } = await db.from('clienti').insert([{ tipo_cliente: document.getElementById('newTipo').value, denominazione: d, indirizzo_fatturazione: document.getElementById('newIndirizzo').value, telefono: document.getElementById('newTelefono').value, email: document.getElementById('newEmail').value, partita_iva: document.getElementById('newPartitaIva').value, codice_fiscale: document.getElementById('newCodiceFiscale').value, note_generali: document.getElementById('newNote').value }]).select();
             if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
-        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function openNewClientModal() { 
+            document.getElementById('omonimiaSuggestBox').classList.add('hidden');
+            document.getElementById('omonimiaListContainer').innerHTML = "";
+            document.getElementById('clientModal').classList.remove('hidden'); 
+        }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
         function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
@@ -673,13 +674,9 @@
         function startEditWorker(id, n, m) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('newWorkerMansione').value = m; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
         function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('newWorkerMansione').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
         
-        // CORRETTA LA COLONNA 'MANSIONE' PER EVITARE ERRORE DI CRASH QUERY
         async function saveWorkerToDatabase() {
-            const id = document.getElementById('editingWorkerId').value; 
-            const n = document.getElementById('newWorkerName').value.trim(); 
-            const m = document.getElementById('newWorkerMansione').value.trim();
+            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim(); const m = document.getElementById('newWorkerMansione').value.trim();
             if(!n) return;
-            
             const btn = document.getElementById('btnSaveWorkerDb');
             try {
                 btn.disabled = true;
@@ -692,18 +689,63 @@
                     if(error) throw error;
                     alert("✅ Collaboratore aggiunto con successo!");
                 }
-                resetWorkerForm(); 
-                await initLists(); 
-                renderSettingsWorkersList();
-            } catch (err) {
-                alert("Errore nel salvataggio del lavoratore: " + err.message);
-            } finally {
-                btn.disabled = false;
-            }
+                resetWorkerForm(); await initLists(); renderSettingsWorkersList();
+            } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
         }
-        
         async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
-        function escapeHtml(s) { return s ? s.replace(/"/g, "&quot;") : ''; }
+        function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
+
+        // --- LOGICA SPECIALE: CONTROLLO OMONIMIA IN TEMPO REALE SUL COGNOME/NOME O INVERSIONE ---
+        function checkOmonimiaDoppioni(valoreDigitato) {
+            clearTimeout(omonimiaTimeout);
+            const box = document.getElementById('omonimiaSuggestBox');
+            const listContainer = document.getElementById('omonimiaListContainer');
+            
+            const termine = valoreDigitato.toLowerCase().trim();
+            if (termine.length < 3) {
+                box.classList.add('hidden');
+                listContainer.innerHTML = "";
+                return;
+            }
+
+            // Ritardo di 350ms (Debounce) per non tempestare di query Supabase ad ogni lettera
+            omonimiaTimeout = setTimeout(() => {
+                // Scomponiamo le singole parole (es. ["mario", "rossi"])
+                const parole = termine.split(/\s+/);
+                
+                // Filtriamo l'array locale allClients per verificare incroci Nome/Cognome invertiti
+                let duplicatiTrovati = allClients.filter(c => {
+                    const denominazioneLocale = c.denominazione.toLowerCase();
+                    // Il record deve contenere TUTTE le parole digitate, in qualsiasi ordine si trovino
+                    return parole.every(p => denominazioneLocale.includes(p));
+                });
+
+                if (duplicatiTrovati.length === 0) {
+                    box.classList.add('hidden');
+                    listContainer.innerHTML = "";
+                    return;
+                }
+
+                // Generiamo la lista dei suggerimenti con l'indirizzo
+                listContainer.innerHTML = "";
+                duplicatiTrovati.forEach(dup => {
+                    const d = document.createElement('div');
+                    d.className = "p-1.5 bg-white hover:bg-slate-100 rounded-lg border text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors flex flex-col";
+                    d.innerHTML = `<span>👤 ${dup.denominazione}</span>
+                                   <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
+                    
+                    // Al click sul suggerimento: Annulla inserimento corrente e naviga sul cliente esistente
+                    d.onclick = () => {
+                        closeModal(); // Chiude il modale inserimento
+                        currentClienteId = dup.id;
+                        navigateTo('hub'); // Va all'hub del cliente esistente
+                    };
+                    listContainer.appendChild(d);
+                });
+
+                box.classList.remove('hidden');
+            }, 350);
+        }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
