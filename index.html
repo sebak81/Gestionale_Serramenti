@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -59,6 +64,7 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE (ELENCO COMMESSE DEL SINGOLO) -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -85,11 +91,13 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
         </button>
 
+        <!-- Intestazione Lavoro Specifico -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <div class="flex items-center space-x-2">
@@ -102,12 +110,14 @@
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
 
+        <!-- BARRA DI STATO / TAB OPERATIVI -->
         <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
             <button id="tabBtnDiario" onclick="switchTab('diario')" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">📌 Fase di Lavorazione</button>
             <button id="tabBtnPreventiviTab" onclick="switchTab('preventiviTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">📄 Preventivi</button>
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
+        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -123,6 +133,7 @@
                     </select>
                 </div>
                 
+                <!-- Incaricati / Operatori -->
                 <div class="grid grid-cols-2 gap-2 text-xs border-t pt-2">
                     <div id="boxWorkerContatto">
                         <label id="lblWorkerContatto" class="block font-bold text-slate-700">Contatto preso da: *</label>
@@ -134,6 +145,7 @@
                     </div>
                 </div>
 
+                <!-- CASSELLA DI TESTO ANNOTAZIONI -->
                 <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                         <label>Annotazioni *</label>
@@ -142,6 +154,7 @@
                     <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi i dettagli del passaggio qui prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800">
                 </div>
 
+                <!-- PULSANTE SALVA CONSOLIDATO -->
                 <div class="pt-2 border-t">
                     <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
                         <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -149,6 +162,7 @@
                 </div>
             </div>
             
+            <!-- DIARIO -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">📝 Diario Lavorazione Global</h3>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 flex space-x-2 shadow-sm">
@@ -159,6 +173,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -197,12 +212,14 @@
                 </div>
             </div>
 
+            <!-- CRONOLOGIA INTERNA PREVENTIVAZIONE -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">⏳ Attività e Storico Preventivazione</h3>
                 <div id="preventivoTimeline" class="space-y-2"></div>
             </div>
         </div>
 
+        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -233,14 +250,49 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 4: IMPOSTAZIONI SBLOCCATA -->
+    <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
+        
+        <!-- SEZIONE ALERT GIORNI DEFAULT -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
+            <div class="text-xs text-slate-500">Imposta il numero di giorni predefinito che verrà caricato automaticamente per l'avviso di un nuovo preventivo.</div>
+            <div class="flex items-center space-x-2">
+                <input type="number" id="cfgDefaultDays" min="0" placeholder="Es. 7" class="w-24 p-2 border rounded-lg bg-slate-50 text-xs font-bold text-center">
+                <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
+            </div>
+        </div>
+
+        <!-- SEZIONE ELENCO PERSONALE -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
+            
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div class="text-[10px] font-bold text-slate-600 uppercase">Aggiungi Collaboratore</div>
+                <div class="flex space-x-2">
+                    <input type="text" id="newWorkerName" placeholder="Nome Lavoratore..." class="flex-1 bg-white border p-2 rounded-lg text-xs font-semibold">
+                    <button onclick="addNewWorkerDatabase()" class="bg-green-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Aggiungi</button>
+                </div>
+            </div>
+
+            <div id="settingsWorkerList" class="space-y-2 pt-1 max-h-48 overflow-y-auto"></div>
+        </div>
+    </main>
+
+    <!-- NAVBAR IN BASSO (CON TASTO IMPOSTAZIONI RIPRISTINATO) -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
                 <span class="text-lg">👥</span><span>Clienti</span>
             </button>
+            <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">⚙️</span><span>Impostazioni</span>
+            </button>
         </div>
     </nav>
 
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -292,6 +344,7 @@
         </div>
     </div>
 
+    <!-- MODALE: MODIFICA ANAGRAFICA CLIENTE -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2">
@@ -339,6 +392,7 @@
         </div>
     </div>
 
+    <!-- MODALE: MODIFICA / AGGIUNGI COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -384,15 +438,29 @@
             if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
             if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
+            if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
+            // Gestione icone navbar attive
+            const btnClienti = document.getElementById('navBtnClienti');
+            const btnSettings = document.getElementById('navBtnImpostazioni');
+            if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
+            if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
+
             if (screen === 'main') {
                 if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
                 fetchClienti();
             } else if (screen === 'hub') {
                 if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
                 renderClientHub();
             } else if (screen === 'detail') {
                 if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+            } else if (screen === 'settings') {
+                if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
+                if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderSettingsPanel();
             }
         }
 
@@ -516,7 +584,7 @@
 
                 mainInfo.innerHTML = `
                     <div class="flex items-center space-x-2">
-                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded text-[9px] font-bold uppercase macro-${com.stato_macro}">${com.stato_macro}</span>
                         <span class="text-xs font-bold text-blue-600">${com.titolo_lavoro || 'Lavoro Senza Titolo'}</span>
                     </div>
                     <h4 class="font-semibold text-slate-700 mt-1">📍 Cantiere: ${com.indirizzo_cantiere}</h4>
@@ -557,8 +625,14 @@
             if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
+            
+            // Logica Giorni di default se vuoti
             if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = currentWorkspaceValue('preventivo_data_invio');
-            if(document.getElementById('dateReminderPrev')) document.getElementById('dateReminderPrev').value = currentWorkspaceValue('preventivo_scadenza_promemoria');
+            if(document.getElementById('dateReminderPrev')) {
+                const savedDays = currentWorkspaceValue('preventivo_scadenza_promemoria');
+                document.getElementById('dateReminderPrev').value = savedDays !== "" ? savedDays : (localStorage.getItem('cfg_days_default') || "");
+            }
+
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
 
@@ -631,7 +705,7 @@
 
             const saltoFasi = indexNuovo - indexAttuale;
             if (saltoFasi > 2) {
-                const confermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFaseSelezionata}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
+                constconfermaSalto = confirm(`⚠️ AVVISO AVANZAMENTO ECCESSIVO:\nStai compiendo un salto di ben ${saltoFasi} lavorazioni in avanti (da "${faseAttuale}" a "${nuovaFaseSelezionata}").\n\nConfermi l'azione? Clicca su OK per procedere.`);
                 if (!confermaSalto) {
                     document.getElementById('commessaMacroSelect').value = faseAttuale;
                     return;
@@ -1029,6 +1103,68 @@
 
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
         function switchClientSubTab(tab) {}
+
+        // --- INTERFACCIA E METODI SCHEMA IMPOSTAZIONI ---
+        function renderSettingsPanel() {
+            const daysInput = document.getElementById('cfgDefaultDays');
+            if(daysInput) daysInput.value = localStorage.getItem('cfg_days_default') || "";
+            renderSettingsWorkersList();
+        }
+
+        function saveDefaultDaysConfig() {
+            const val = document.getElementById('cfgDefaultDays').value.trim();
+            localStorage.setItem('cfg_days_default', val);
+            alert("✅ Giorni promemoria predefiniti salvati localmente!");
+        }
+
+        function renderSettingsWorkersList() {
+            const container = document.getElementById('settingsWorkerList');
+            if(!container) return;
+            container.innerHTML = "";
+
+            if(listLavoratori.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Nessun personale registrato.</p>`;
+                return;
+            }
+
+            listLavoratori.forEach(w => {
+                const row = document.createElement('div');
+                row.className = "flex justify-between items-center bg-slate-100 p-2 rounded-lg text-xs font-semibold border";
+                row.innerHTML = `
+                    <span>👤 ${w.nome}</span>
+                    <button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Elimina</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        async function addNewWorkerDatabase() {
+            const input = document.getElementById('newWorkerName');
+            const name = input.value.trim();
+            if(!name) return;
+
+            try {
+                const { error } = await db.from('lavoratori').insert([{ nome: name }]);
+                if(error) throw error;
+                input.value = "";
+                await initLists();
+                renderSettingsWorkersList();
+            } catch(err) {
+                alert("Errore inserimento lavoratore: " + err.message);
+            }
+        }
+
+        async function deleteWorkerDatabase(id) {
+            if(!confirm("Sicuro di voler eliminare questo collaboratore dalle impostazioni?")) return;
+            try {
+                const { error } = await db.from('lavoratori').delete().eq('id', id);
+                if(error) throw error;
+                await initLists();
+                renderSettingsWorkersList();
+            } catch(err) {
+                alert("Errore cancellazione: " + err.message);
+            }
+        }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
