@@ -1,13 +1,18 @@
-// 🚨 DIAGNOSTICA DI SICUREZZA - Mostra un avviso immediato se qualcosa va in crash
-window.onerror = function(message, source, lineno, colno, error) {
-    alert("🚨 ERRORE APPLICAZIONE:\n" + message + "\n\nFile: " + source + "\nLinea: " + lineno);
-    // Rimuove comunque il blocco di caricamento per farti vedere lo schermo
+// SBLOCCO GRAFICO IMMEDIATO - Impedisce alla pagina di rimanere congelata
+(function() {
     const loader = document.getElementById('loading');
     if(loader) loader.classList.add('hidden');
+    const list = document.getElementById('clientList');
+    if(list) list.classList.remove('hidden');
+})();
+
+// Intercettatore di errori globale di backup
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("🚨 ERRORE LOGICO:\n" + message + "\n\nFile: " + source + "\nLinea: " + lineno);
     return false;
 };
 
-// Inizializzazione Supabase e variabili globali
+// Inizializzazione Supabase e variabili sul contesto globale della finestra (Window)
 window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.allClients = [];
 window.listLavoratori = [];
@@ -90,8 +95,6 @@ window.fetchClienti = async function() {
         window.renderClientsList();
     } catch (err) {
         console.error("Errore nel recupero clienti:", err.message);
-        const loader = document.getElementById('loading');
-        if(loader) loader.classList.add('hidden');
     }
 }
 
@@ -99,8 +102,6 @@ window.renderClientsList = function() {
     const container = document.getElementById('clientList'); 
     if (!container) return;
     container.innerHTML = "";
-    if(document.getElementById('loading')) document.getElementById('loading').classList.add('hidden'); 
-    container.classList.remove('hidden');
     
     const searchEl = document.getElementById('searchClient');
     const term = searchEl ? searchEl.value.toLowerCase().trim() : "";
@@ -282,111 +283,16 @@ window.renderTabPrivileges = function(fase) {
     }
 }
 
-window.currentWorkspaceValue = function(field) { return (window.currentCommessa && window.currentCommessa[field]) ? window.currentCommessa[field] : ''; }
-window.updateCharCounter = function(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
-
-async function logAutomaticActivity(testoNota) {
-    try {
-        const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-        let full = window.currentCommessa.note_cantiere ? window.currentCommessa.note_cantiere + '\n' + `⚙️ [${t}] - ${testoNota}` : `⚙️ [${t}] - ${testoNota}`;
-        const { error } = await window.db.from('commesse').update({ note_cantiere: full }).eq('id', window.currentCommessaId);
-        if (error) throw error; window.currentCommessa.note_cantiere = full; window.fetchDiarioTimeline();
-    } catch (err) { console.error(err.message); }
-}
-
-window.handleFaseChange = function() {
-    const faseAttuale = window.currentCommessa.stato_macro; const nuovaFaseSelezionata = document.getElementById('commessaMacroSelect').value;
-    if (faseAttuale === nuovaFaseSelezionata) return;
-    const indexAttuale = window.workflowOrdinato.indexOf(faseAttuale); const indexNuovo = window.workflowOrdinato.indexOf(nuovaFaseSelezionata);
-    if (indexNuovo < indexAttuale) { alert(`⚠️ AZIONE BLOCCATA!`); document.getElementById('commessaMacroSelect').value = faseAttuale; return; }
-    if(document.getElementById('workerContattoSelect')) document.getElementById('workerContattoSelect').value = ""; 
-    if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = ""; 
-    window.adjustWorkerLabels(nuovaFaseSelezionata);
-}
-
-window.saveFaseLavorazioneConDati = async function() {
-    if (!window.currentCommessa) return;
-    const btn = document.getElementById('btnSaveFase'); const txt = document.getElementById('btnSaveFaseText');
-    const nuovaFase = document.getElementById('commessaMacroSelect').value;
-    const op1Select = document.getElementById('workerContattoSelect'); const op2Select = document.getElementById('workerAssegnatoSelect');
-    const op1Value = op1Select ? op1Select.value : ''; const op2Value = op2Select ? op2Select.value : '';
-    const op1Text = op1Select ? (op1Select.options[op1Select.selectedIndex]?.text || 'N/D') : 'N/D';
-    const op2Text = op2Select ? (op2Select.options[op2Select.selectedIndex]?.text || 'N/D') : 'N/D';
-    const annotazioniFase = document.getElementById('faseAnnotazioniInput').value.trim();
-
-    let rigaFormattataDettaglio = `Fase: ${nuovaFase}. `;
-    if (nuovaFase === 'PRIMO_CONTATTO') { rigaFormattataDettaglio += `Contatto preso da: ${op1Text} | Assegnato a: ${op2Text} `; } 
-    else { rigaFormattataDettaglio += `Incaricato: ${op1Text} `; }
-    rigaFormattataDettaglio += `#Appunti: ${annotazioniFase || 'Nessuno'}`;
-
-    if (nuovaFase === window.currentCommessa.stato_macro) {
-        try {
-            btn.disabled = true; if(txt) txt.innerText = "Salvataggio...";
-            await window.db.from('commesse').update({ contatto_gestito_da: op1Value === "" ? null : op1Value, preventivo_assegnato_a: op2Value === "" ? null : op2Value }).eq('id', window.currentCommessaId);
-            window.currentCommessa.contatto_gestito_da = op1Value; window.currentCommessa.preventivo_assegnato_a = op2Value;
-            await logAutomaticActivity(rigaFormattataDettaglio); document.getElementById('faseAnnotazioniInput').value = ""; alert("✅ Diario aggiornato!");
-        } catch (err) { alert(err.message); } finally { btn.disabled = false; if(txt) txt.innerText = "Salva Modifiche e Fase"; }
-        return;
-    }
-
-    if (!op1Value || !annotazioniFase) { alert("❌ INCARICATO E ANNOTAZIONE OBBLIGATORI!"); return; }
-
-    try {
-        btn.disabled = true; if(txt) txt.innerText = "Avanzamento...";
-        await window.db.from('commesse').update({ stato_macro: nuovaFase, contatto_gestito_da: op1Value, preventivo_assegnato_a: op2Value === "" ? null : op2Value }).eq('id', window.currentCommessaId);
-        window.currentCommessa.stato_macro = nuovaFase; window.currentCommessa.contatto_gestito_da = op1Value; window.currentCommessa.preventivo_assegnato_a = op2Value;
-        const badge = document.getElementById('commessaBadgeStato'); if(badge) { badge.innerText = nuovaFase; badge.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${nuovaFase}`; }
-        document.getElementById('faseAnnotazioniInput').value = ""; document.getElementById('charCounter').innerText = "0 / 150";
-        await logAutomaticActivity(rigaFormattataDettaglio); alert(`🎉 Commessa avanzata con successo!`); window.renderTabPrivileges(nuovaFase);
-    } catch (err) { alert(err.message); } finally { btn.disabled = false; if(txt) txt.innerText = "Salva Modifiche e Fase"; }
-}
-
-window.renderSettingsScreen = function() {
-    const savedDays = localStorage.getItem('defaultDaysToExpiry'); const inputDays = document.getElementById('settingDefaultDays');
-    if(inputDays) inputDays.value = savedDays ? savedDays : "";
-    window.renderSediSettingsList();
-    const container = document.getElementById('settingsWorkersList'); if (!container) return; container.innerHTML = "";
-    if (window.listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 p-2">Nessun operatore.</p>`; return; }
-    window.listLavoratori.forEach(emp => {
-        const row = document.createElement('div'); row.id = `workerRow-${emp.id}`; row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
-        row.innerHTML = `<div class="flex-1 flex items-center justify-between pr-1"><span>👤 ${emp.nome}</span><span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span></div><button onclick="enableWorkerEdit('${emp.id}', '${emp.nome.replace(/'/g, "\\'")}', '${(emp.ruolo || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-600">✏️</button>`;
-        container.appendChild(row);
+window.switchTab = function(tab) {
+    if (window.currentCommessa && window.currentCommessa.stato_macro === 'PRIMO_CONTATTO' && tab !== 'diario') { alert("🔒 SEZIONE BLOCCATA:\nAccessibile dallo stato '2. PREVENTIVAZIONE'."); return; }
+    ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
+        const target = document.getElementById(`tabContent${t === 'diario' ? 'Diario' : (t === 'preventiviTab' ? 'PreventiviTab' : 'ContrattoTab')}`); if(target) target.classList.add('hidden');
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`); if(btn) btn.className = "flex-1 py-2 text-center rounded-lg transition-all";
     });
+    const contentId = tab === 'diario' ? 'tabContentDiario' : (tab === 'preventiviTab' ? 'tabContentPreventiviTab' : (tab === 'contrattoTab' ? 'tabContentContrattoTab' : 'tabContentDiario'));
+    if(document.getElementById(contentId)) document.getElementById(contentId).classList.remove('hidden');
+    const activeBtn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`); if(activeBtn) activeBtn.className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
 }
-
-window.initSediDefaultLocalStorage = function() { if(!localStorage.getItem('sediAziendaliList')) { localStorage.setItem('sediAziendaliList', JSON.stringify(["Sede Principale", "Sede Secondaria"])); } }
-window.getSediFromLocal = function() { const raw = localStorage.getItem('sediAziendaliList'); return raw ? JSON.parse(raw) : []; }
-window.renderSediSettingsList = function() {
-    const container = document.getElementById('settingsSediList'); if(!container) return; container.innerHTML = "";
-    window.getSediFromLocal().forEach((sede, index) => {
-        const div = document.createElement('div'); div.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center shadow-sm";
-        div.innerHTML = `<span>🏢 ${sede}</span><button onclick="deleteSedeLocal(${index})" class="text-red-500 font-bold px-1">✕</button>`; container.appendChild(div);
-    });
-}
-window.toggleAddSedeForm = function() { const form = document.getElementById('addSedeForm'); if(form) form.classList.toggle('hidden'); document.getElementById('newSedeName').value = ""; }
-window.addNewSedeLocal = function() { const nomeSede = document.getElementById('newSedeName').value.trim(); if(!nomeSede) return; let sedi = window.getSediFromLocal(); if(sedi.includes(nomeSede)) return; sedi.push(nomeSede); localStorage.setItem('sediAziendaliList', JSON.stringify(sedi)); window.toggleAddSedeForm(); window.renderSediSettingsList(); }
-window.deleteSedeLocal = function(index) { if(confirm("Eliminare questa sede?")) { let sedi = window.getSediFromLocal(); sedi.splice(index, 1); localStorage.setItem('sediAziendaliList', JSON.stringify(sedi)); window.renderSediSettingsList(); } }
-
-window.enableWorkerEdit = function(id, nomeAttuale, ruoloAttuale) {
-    const row = document.getElementById(`workerRow-${id}`); if(!row) return;
-    row.innerHTML = `<div class="flex-1 grid grid-cols-2 gap-1"><input type="text" id="wEditName-${id}" value="${nomeAttuale}" class="p-1 border rounded text-xs font-bold text-slate-800"><input type="text" id="wEditRole-${id}" value="${ruoloAttuale}" class="p-1 border rounded text-[11px]"></div><div class="flex items-center space-x-1"><button onclick="saveWorkerEdit('${id}')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] font-bold">Salva</button><button onclick="renderSettingsScreen()" class="bg-slate-200 px-1.5 py-1 rounded text-[10px]">✕</button></div>`;
-}
-window.saveWorkerEdit = async function(id) {
-    const nomeNuovo = document.getElementById(`wEditName-${id}`).value.trim(); const ruoloNuovo = document.getElementById(`wEditRole-${id}`).value.trim(); if(!nomeNuovo) return;
-    try {
-        await window.db.from('lavoratori').update({ nome: nomeNuovo, ruolo: ruoloNuovo === "" ? null : ruoloNuovo }).eq('id', id);
-        const dip = window.listLavoratori.find(l => l.id == id); if(dip) { dip.nome = nomeNuovo; dip.ruolo = ruoloNuovo; } window.populateSelects(); window.renderSettingsScreen();
-    } catch(err) { console.error(err); }
-}
-window.toggleAddWorkerForm = function() { const form = document.getElementById('addWorkerForm'); if(!form) return; form.classList.toggle('hidden'); }
-window.addNewWorker = async function() {
-    const nome = document.getElementById('newWorkerName').value.trim(); const ruolo = document.getElementById('newWorkerRole').value.trim(); if(!nome) return;
-    try {
-        const { data } = await window.db.from('lavoratori').insert([{ nome: nome, ruolo: ruolo === "" ? null : ruolo }]).select();
-        if (data) { window.listLavoratori.push(data[0]); window.listLavoratori.sort((a,b) => a.nome.localeCompare(b.nome)); window.populateSelects(); window.toggleAddWorkerForm(); window.renderSettingsScreen(); }
-    } catch(err) { console.error(err); }
-}
-window.saveDefaultDaysSetting = function() { const input = document.getElementById('settingDefaultDays'); if(!input) return; const value = input.value.trim(); if(value === "") { localStorage.removeItem('defaultDaysToExpiry'); } else { localStorage.setItem('defaultDaysToExpiry', value); } alert("Aggiornato."); }
 
 window.fetchDiarioTimeline = function() {
     const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
@@ -438,17 +344,59 @@ window.saveCliente = async function() {
 window.openNewClientModal = function() { document.getElementById('newDenominazione').value = ""; document.getElementById('newIndirizzo').value = ""; document.getElementById('newTelefono').value = ""; document.getElementById('newEmail').value = ""; document.getElementById('newPartitaIva').value = ""; document.getElementById('newCodiceFiscale').value = ""; document.getElementById('newNote').value = ""; document.getElementById('clientModal').classList.remove('hidden'); }
 window.closeModal = function() { document.getElementById('clientModal').classList.add('hidden'); }
 
-// Avvio applicazione con garanzia di sblocco
-window.onload = async () => { 
+window.initSediDefaultLocalStorage = function() { if(!localStorage.getItem('sediAziendaliList')) { localStorage.setItem('sediAziendaliList', JSON.stringify(["Sede Principale", "Sede Secondaria"])); } }
+window.getSediFromLocal = function() { const raw = localStorage.getItem('sediAziendaliList'); return raw ? JSON.parse(raw) : []; }
+window.renderSediSettingsList = function() {
+    const container = document.getElementById('settingsSediList'); if(!container) return; container.innerHTML = "";
+    window.getSediFromLocal().forEach((sede, index) => {
+        const div = document.createElement('div'); div.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center shadow-sm";
+        div.innerHTML = `<span>🏢 ${sede}</span><button onclick="deleteSedeLocal(${index})" class="text-red-500 font-bold px-1">✕</button>`; container.appendChild(div);
+    });
+}
+window.toggleAddSedeForm = function() { const form = document.getElementById('addSedeForm'); if(form) form.classList.toggle('hidden'); document.getElementById('newSedeName').value = ""; }
+window.addNewSedeLocal = function() { const nomeSede = document.getElementById('newSedeName').value.trim(); if(!nomeSede) return; let sedi = window.getSediFromLocal(); if(sedi.includes(nomeSede)) return; sedi.push(nomeSede); localStorage.setItem('sediAziendaliList', JSON.stringify(sedi)); window.toggleAddSedeForm(); window.renderSediSettingsList(); }
+window.deleteSedeLocal = function(index) { if(confirm("Eliminare questa sede?")) { let sedi = window.getSediFromLocal(); sedi.splice(index, 1); localStorage.setItem('sediAziendaliList', JSON.stringify(sedi)); window.renderSediSettingsList(); } }
+
+window.enableWorkerEdit = function(id, nomeAttuale, ruoloAttuale) {
+    const row = document.getElementById(`workerRow-${id}`); if(!row) return;
+    row.innerHTML = `<div class="flex-1 grid grid-cols-2 gap-1"><input type="text" id="wEditName-${id}" value="${nomeAttuale}" class="p-1 border rounded text-xs font-bold text-slate-800"><input type="text" id="wEditRole-${id}" value="${ruoloAttuale}" class="p-1 border rounded text-[11px]"></div><div class="flex items-center space-x-1"><button onclick="saveWorkerEdit('${id}')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] font-bold">Salva</button><button onclick="renderSettingsScreen()" class="bg-slate-200 px-1.5 py-1 rounded text-[10px]">✕</button></div>`;
+}
+window.saveWorkerEdit = async function(id) {
+    const nomeNuovo = document.getElementById(`wEditName-${id}`).value.trim(); const ruoloNuovo = document.getElementById(`wEditRole-${id}`).value.trim(); if(!nomeNuovo) return;
+    try {
+        await window.db.from('lavoratori').update({ nome: nomeNuovo, ruolo: ruoloNuovo === "" ? null : ruoloNuovo }).eq('id', id);
+        const dip = window.listLavoratori.find(l => l.id == id); if(dip) { dip.nome = nomeNuovo; dip.ruolo = ruoloNuovo; } window.populateSelects(); window.renderSettingsScreen();
+    } catch(err) { console.error(err); }
+}
+window.toggleAddWorkerForm = function() { const form = document.getElementById('addWorkerForm'); if(!form) return; form.classList.toggle('hidden'); }
+window.addNewWorker = async function() {
+    const nome = document.getElementById('newWorkerName').value.trim(); const ruolo = document.getElementById('newWorkerRole').value.trim(); if(!nome) return;
+    try {
+        const { data } = await window.db.from('lavoratori').insert([{ nome: nome, ruolo: ruolo === "" ? null : ruolo }]).select();
+        if (data) { window.listLavoratori.push(data[0]); window.listLavoratori.sort((a,b) => a.nome.localeCompare(b.nome)); window.populateSelects(); window.toggleAddWorkerForm(); window.renderSettingsScreen(); }
+    } catch(err) { console.error(err); }
+}
+window.saveDefaultDaysSetting = function() { const input = document.getElementById('settingDefaultDays'); if(!input) return; const value = input.value.trim(); if(value === "") { localStorage.removeItem('defaultDaysToExpiry'); } else { localStorage.setItem('defaultDaysToExpiry', value); } alert("Aggiornato."); }
+
+window.renderSettingsScreen = function() {
+    const savedDays = localStorage.getItem('defaultDaysToExpiry'); const inputDays = document.getElementById('settingDefaultDays');
+    if(inputDays) inputDays.value = savedDays ? savedDays : "";
+    window.renderSediSettingsList();
+    const container = document.getElementById('settingsWorkersList'); if (!container) return; container.innerHTML = "";
+    if (window.listLavoratori.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 p-2">Nessun operatore.</p>`; return; }
+    window.listLavoratori.forEach(emp => {
+        const row = document.createElement('div'); row.id = `workerRow-${emp.id}`; row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
+        row.innerHTML = `<div class="flex-1 flex items-center justify-between pr-1"><span>👤 ${emp.nome}</span><span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span></div><button onclick="enableWorkerEdit('${emp.id}', '${emp.nome.replace(/'/g, "\\'")}', '${(emp.ruolo || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-600">✏️</button>`;
+        container.appendChild(row);
+    });
+}
+
+// Chiamata immediata dei dati all'avvio
+(async () => {
     try {
         await window.initLists(); 
         await window.fetchClienti(); 
     } catch(e) {
-        console.error(e);
-    } finally {
-        const loader = document.getElementById('loading');
-        if(loader) loader.classList.add('hidden');
-        const list = document.getElementById('clientList');
-        if(list) list.classList.remove('hidden');
+        console.error("Errore di inizializzazione asincrona:", e);
     }
-};
+})();
