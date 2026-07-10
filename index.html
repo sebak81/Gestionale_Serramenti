@@ -104,7 +104,6 @@
                     <span id="commessaTitleHeader" class="text-xs font-bold text-blue-600">Titolo Commessa</span>
                 </div>
                 <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
-                <!-- Link rapidi in cantiere con icona mappa -->
                 <p id="commessaCantiere" class="text-xs text-blue-600 hover:underline mt-0.5 font-medium cursor-pointer"></p>
             </div>
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
@@ -446,8 +445,6 @@
             
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm";
-                
-                // Integrazione link Maps dinamico per il cantiere nell'Hub
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 div.innerHTML = `
@@ -470,8 +467,6 @@
             currentCommessaId = commessaId;
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
-            
-            // Creazione dinamica del link cliccabile a Maps nello Workspace operativo
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             
@@ -592,9 +587,8 @@
             else { if(lbl) lbl.innerText = "Incaricato: *"; if(box2) box2.classList.add('hidden'); }
         }
 
-        // CORRETTA LA STRUTTURA LOGICA SUL CAMBIO TAB PER EVITARE INTERFERENZE COI COMPORTAMENTI AUTOMATICI
         function switchTab(tab) {
-            if(currentCommessa && currentCommessa.stato_macro==='PRIMO_CONTATTO' && tab!=='diario') { alert("🔒 Tab bloccata in questa fase!"); return; }
+            if(currentCommessa && currentCommessa.stato_macro==='PRIMO_CONTATTO' && tab!=='diario') { alert("🔒 Tab bloccata in questa phase!"); return; }
             ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
                 if(document.getElementById(`tabContent${t}`)) document.getElementById(`tabContent${t}`).classList.add('hidden');
                 if(document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`)) {
@@ -678,13 +672,36 @@
         }
         function startEditWorker(id, n, m) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('newWorkerMansione').value = m; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
         function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('newWorkerMansione').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
+        
+        // CORRETTA LA COLONNA 'MANSIONE' PER EVITARE ERRORE DI CRASH QUERY
         async function saveWorkerToDatabase() {
-            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim(); const m = document.getElementById('newWorkerMansione').value.trim();
+            const id = document.getElementById('editingWorkerId').value; 
+            const n = document.getElementById('newWorkerName').value.trim(); 
+            const m = document.getElementById('newWorkerMansione').value.trim();
             if(!n) return;
-            if(id) await db.from('lavoratori').update({ nome: n, mansione: m===""?null:m }).eq('id', id);
-            else await db.from('lavoratori').insert([{ nome: n, mansione: m===""?null:m }]);
-            resetWorkerForm(); await initLists(); renderSettingsWorkersList();
+            
+            const btn = document.getElementById('btnSaveWorkerDb');
+            try {
+                btn.disabled = true;
+                if(id) {
+                    const { error } = await db.from('lavoratori').update({ nome: n, mansione: m===""?null:m }).eq('id', id);
+                    if(error) throw error;
+                    alert("✅ Collaboratore aggiornato con successo!");
+                } else {
+                    const { error } = await db.from('lavoratori').insert([{ nome: n, mansione: m===""?null:m }]);
+                    if(error) throw error;
+                    alert("✅ Collaboratore aggiunto con successo!");
+                }
+                resetWorkerForm(); 
+                await initLists(); 
+                renderSettingsWorkersList();
+            } catch (err) {
+                alert("Errore nel salvataggio del lavoratore: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
         }
+        
         async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "&quot;") : ''; }
 
