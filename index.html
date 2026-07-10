@@ -176,6 +176,11 @@
                         <option value="CONFERMATO">🎉 CONFERMATO / ACCETTATO</option>
                     </select>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Incaricato Preventivo *</label>
+                    <select id="workerPreventivoSelect" class="w-full p-2 border rounded-lg bg-white text-xs font-medium text-slate-700 border-slate-300"></select>
+                </div>
                 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div>
@@ -413,7 +418,6 @@
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
             if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
-            // Reset stili bottoni navbar
             document.getElementById('navBtnClienti').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
             document.getElementById('navBtnSettings').className = "flex flex-col items-center text-slate-400 font-medium flex-1";
 
@@ -444,8 +448,9 @@
             }
         }
 
+        // MODIFICATO: Aggiunto anche il popolarmento del selettore specifico del preventivo
         function populateSelects() {
-            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect'];
+            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect', 'workerPreventivoSelect'];
             sels.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
@@ -608,7 +613,6 @@
             if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
             if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = currentWorkspaceValue('preventivo_data_invio');
             
-            // CONVERTITORE DATE -> NUMERO GIORNI + VALORE DI DEFAULT DA LOCALSTORAGE
             if(document.getElementById('dateReminderPrev')) {
                 const dataScadenzaMappata = currentWorkspaceValue('preventivo_scadenza_promemoria');
                 if(dataScadenzaMappata) {
@@ -620,7 +624,6 @@
                     const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
                     document.getElementById('dateReminderPrev').value = diffGiorni > 0 ? diffGiorni : 0;
                 } else {
-                    // Precompila col valore di default salvato (se presente)
                     const savedDefault = localStorage.getItem('defaultDaysToExpiry');
                     document.getElementById('dateReminderPrev').value = savedDefault ? savedDefault : "";
                 }
@@ -628,6 +631,9 @@
             
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
+            
+            // Forza il reset del selettore operatore specifico preventivo ad ogni apertura
+            if(document.getElementById('workerPreventivoSelect')) document.getElementById('workerPreventivoSelect').value = "";
 
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('annotazioniPreventivoInput').value = "";
@@ -802,17 +808,27 @@
             }
         }
 
+        // MODIFICATO: Logica di salvataggio preventivo con obbligo e tracciamento dell'Incaricato Preventivo
         async function saveStatoPreventivoDettagli() {
             if (!currentCommessa) return;
 
             const btn = document.getElementById('btnSaveSubPreventivo');
             const selectStato = document.getElementById('subStatoPreventivo');
+            const opPrevSelect = document.getElementById('workerPreventivoSelect');
+            
             const nuovoSubStato = selectStato.value;
             const testoStato = selectStato.options[selectStato.selectedIndex].text;
+            const opPrevValue = opPrevSelect ? opPrevSelect.value : '';
+            const opPrevText = opPrevSelect ? (opPrevSelect.options[opPrevSelect.selectedIndex]?.text || 'Nessuno') : 'Nessuno';
             
             const dataInizio = document.getElementById('dateInvioPrev').value;
             const inputGiorni = document.getElementById('dateReminderPrev').value.trim();
             const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
+
+            if (!opPrevValue) {
+                alert("❌ INCARICATO MANCANTE:\nSeleziona obbligatoriamente l'Incaricato Preventivo responsabile di questa attività!");
+                return;
+            }
 
             if (!annotazioni) {
                 alert("❌ ANNOTAZIONE RICHIESTA:\nInserisci obbligatoriamente una nota nei dettagli del preventivo prima di salvare lo stato!");
@@ -831,8 +847,9 @@
 
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
-            let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Note: ${annotazioni}`;
-            if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
+            // MODIFICATO: Stringa di log strutturata includendo l'Incaricato Preventivo scelto
+            let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Incaricato: ${opPrevText} | Note: ${annotazioni}`;
+            if (dataInizio) nuovaAttivitaPrev += ` | Inizio: ${dataInizio}`;
             if (inputGiorni) nuovaAttivitaPrev += ` | Scadenza: ${inputGiorni} gg`;
 
             try {
@@ -857,8 +874,11 @@
                 fetchPreventivoTimeline();
                 fetchDiarioTimeline();
 
+                // Pulisce l'input e l'operatore scelto per il prossimo ciclo
                 document.getElementById('annotazioniPreventivoInput').value = "";
-                alert("✅ Stato e attività del preventivo registrati con successo nel Diario!");
+                if(opPrevSelect) opPrevSelect.value = "";
+                
+                alert("✅ Stato, Incaricato e attività del preventivo registrati con successo!");
 
             } catch (err) {
                 alert("Errore salvataggio dettagli preventivo: " + err.message);
@@ -895,7 +915,6 @@
         }
 
         function renderSettingsScreen() {
-            // Preleva e mostra il valore corrente di default per la scadenza
             const savedDays = localStorage.getItem('defaultDaysToExpiry');
             const inputDays = document.getElementById('settingDefaultDays');
             if(inputDays) inputDays.value = savedDays ? savedDays : "";
