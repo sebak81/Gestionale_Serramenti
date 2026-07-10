@@ -1,4 +1,3 @@
-// Forza l'esportazione delle variabili sul contesto globale della finestra (Window)
 window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.allClients = [];
 window.listLavoratori = [];
@@ -225,8 +224,8 @@ window.openCommessaWorkspace = function(commessaId) {
     if (cantiereBox) {
         if (window.currentCommessa.indirizzo_cantiere) {
             const encodedAddr = encodeURIComponent(window.currentCommessa.indirizzo_cantiere);
-            // CORRETTO: Ripristinata la corretta interpolazione della variabile senza refusi di parentesi quadre
-            cantiereBox.innerHTML = `<a href="https://maps.google.com/?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
+            // CORRETTO: Sintassi ripulita senza la '1' spuria orfana
+            cantiereBox.innerHTML = `<a href="http://googleusercontent.com/maps.google.com/maps?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline">📍 Cantiere: ${window.currentCommessa.indirizzo_cantiere} 🗺️</a>`;
         } else { cantiereBox.innerHTML = `<span class="text-slate-400 italic">📍 Cantiere: non specificato</span>`; }
     }
     
