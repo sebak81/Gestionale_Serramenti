@@ -1,0 +1,11 @@
+body { -webkit-tap-highlight-color: transparent; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+/* Colori dei Macro Stati Lavorativi */
+.macro-PRIMO_CONTATTO { background-color: #f1f5f9; color: #475569; }
+.macro-PREVENTIVAZIONE { background-color: #e0f2fe; color: #0369a1; }
+.macro-MISURE_ESECUTIVE { background-color: #fef3c7; color: #b45309; }
+.macro-FATTURA_ACCONTO { background-color: #fae8ff; color: #a21caf; }
+.macro-ORDINI_FORNITORI { background-color: #e0e7ff; color: #4338ca; }
+.macro-INSTALLAZIONE { background-color: #fee2e2; color: #b91c1c; }
+.macro-SALDO_CONCLUSO { background-color: #dcfce7; color: #15803d; }
