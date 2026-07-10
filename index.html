@@ -32,7 +32,10 @@
 
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
-        <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
+        <a href="mailto:sebak.brn@gmail.com?subject=Gestione%20Commesse%20-%20Segnalazione%20Sviluppo" 
+           class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer font-medium">
+            Dev: Sebak ✉️
+        </a>
     </header>
 
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
@@ -97,7 +100,7 @@
                     <span id="commessaTitleHeader" class="text-xs font-bold text-blue-600">Titolo Commessa</span>
                 </div>
                 <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
-                <p id="commessaCantiere" class="text-xs text-slate-500 mt-0.5">📍 Cantiere: non specificato</p>
+                <div id="commessaCantiereBox" class="mt-0.5 text-xs"></div>
             </div>
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
@@ -549,8 +552,21 @@
             if(!currentCommessa) return;
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
-            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
+            
+            // MODIFICATO: Generazione del link cliccabile per la mappa / navigatore
+            const cantiereBox = document.getElementById('commessaCantiereBox');
+            if (cantiereBox) {
+                if (currentCommessa.indirizzo_cantiere) {
+                    const encodedAddr = encodeURIComponent(currentCommessa.indirizzo_cantiere);
+                    cantiereBox.innerHTML = `
+                        <a href="https://maps.google.com/?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline flex items-center space-x-1">
+                            <span>📍 Cantiere:</span> <span class="break-all">${currentCommessa.indirizzo_cantiere} 🗺️</span>
+                        </a>`;
+                } else {
+                    cantiereBox.innerHTML = `<span class="text-slate-400 italic">📍 Cantiere: non specificato</span>`;
+                }
+            }
             
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
@@ -735,7 +751,6 @@
             }
         }
 
-        // CORRETTO: Adesso salviamo lo storico attività preventivo dentro note_cantiere filtrandole visivamente
         async function saveStatoPreventivoDettagli() {
             if (!currentCommessa) return;
 
@@ -755,7 +770,6 @@
 
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
-            // Generiamo la stringa con tag riconoscibile [PREV] per separarla graficamente
             let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
             if (giorniScadenza) nuovaAttivitaPrev += ` | Scadenza: ${giorniScadenza} gg`;
@@ -763,7 +777,6 @@
             try {
                 btn.disabled = true;
                 
-                // Accumuliamo tutto nella colonna provata note_cantiere che esiste al 100%
                 let storicoAggiornato = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + nuovaAttivitaPrev : nuovaAttivitaPrev;
 
                 const { error } = await db.from('commesse').update({
@@ -780,7 +793,6 @@
                 currentCommessa.preventivo_scadenza_promemoria = giorniScadenza;
                 currentCommessa.note_cantiere = storicoAggiornato;
 
-                // Aggiorniamo entrambe le timeline grafiche a schermo
                 fetchPreventivoTimeline();
                 fetchDiarioTimeline();
 
@@ -794,7 +806,6 @@
             }
         }
 
-        // Mostra solo le attività che contengono il tag speciale [PREV]
         function fetchPreventivoTimeline() {
             const container = document.getElementById('preventivoTimeline');
             if(!container) return;
@@ -812,7 +823,7 @@
                     contatorePrev++;
                     const r = document.createElement('div');
                     r.className = "bg-white p-2.5 rounded-xl border text-xs mt-1 shadow-sm font-medium border-slate-100 text-slate-700";
-                    r.innerText = l.replace('📄 [PREV] - ', ''); // Puliamo il tag visivo interno
+                    r.innerText = l.replace('📄 [PREV] - ', ''); 
                     container.appendChild(r);
                 }
             });
