@@ -554,13 +554,12 @@
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
-            // MODIFICATO: Generazione del link cliccabile per la mappa / navigatore
             const cantiereBox = document.getElementById('commessaCantiereBox');
             if (cantiereBox) {
                 if (currentCommessa.indirizzo_cantiere) {
                     const encodedAddr = encodeURIComponent(currentCommessa.indirizzo_cantiere);
                     cantiereBox.innerHTML = `
-                        <a href="https://maps.google.com/?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline flex items-center space-x-1">
+                        <a href="http://googleusercontent.com/maps.google.com/maps?q=${encodedAddr}" target="_blank" class="text-blue-600 font-medium hover:underline flex items-center space-x-1">
                             <span>📍 Cantiere:</span> <span class="break-all">${currentCommessa.indirizzo_cantiere} 🗺️</span>
                         </a>`;
                 } else {
@@ -574,7 +573,23 @@
             if(document.getElementById('workerAssegnatoSelect')) document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             if(document.getElementById('subStatoPreventivo')) document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
             if(document.getElementById('dateInvioPrev')) document.getElementById('dateInvioPrev').value = currentWorkspaceValue('preventivo_data_invio');
-            if(document.getElementById('dateReminderPrev')) document.getElementById('dateReminderPrev').value = currentWorkspaceValue('preventivo_scadenza_promemoria');
+            
+            // CONVERTITORE DATE -> NUMERO GIORNI PER IL DISPLAY COMODO SUL TELEFONO
+            if(document.getElementById('dateReminderPrev')) {
+                const dataScadenzaMappata = currentWorkspaceValue('preventivo_scadenza_promemoria');
+                if(dataScadenzaMappata) {
+                    const scadenzaDate = new Date(dataScadenzaMappata);
+                    const oggiDate = new Date();
+                    oggiDate.setHours(0,0,0,0);
+                    scadenzaDate.setHours(0,0,0,0);
+                    const diffTempo = scadenzaDate.getTime() - oggiDate.getTime();
+                    const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+                    document.getElementById('dateReminderPrev').value = diffGiorni > 0 ? diffGiorni : 0;
+                } else {
+                    document.getElementById('dateReminderPrev').value = "";
+                }
+            }
+            
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
 
@@ -751,6 +766,7 @@
             }
         }
 
+        // CALCOLATORE GIORNI ➔ DATE COMPATIBILE CON IL TIPO DATE DI SUPABASE
         async function saveStatoPreventivoDettagli() {
             if (!currentCommessa) return;
 
@@ -760,7 +776,7 @@
             const testoStato = selectStato.options[selectStato.selectedIndex].text;
             
             const dataInizio = document.getElementById('dateInvioPrev').value;
-            const giorniScadenza = document.getElementById('dateReminderPrev').value.trim();
+            const inputGiorni = document.getElementById('dateReminderPrev').value.trim();
             const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
 
             if (!annotazioni) {
@@ -768,11 +784,23 @@
                 return;
             }
 
+            // TRADUZIONE MATEMATICA GIORNI ➔ DATA (Es: oggi + 10 giorni)
+            let dataScadenzaCalcolataString = null;
+            if(inputGiorni !== "") {
+                const giorniInteri = parseInt(inputGiorni, 10);
+                if(!isNaN(giorniInteri)) {
+                    const dataScadenzaOggetto = new Date();
+                    dataScadenzaOggetto.setDate(dataScadenzaOggetto.getDate() + giorniInteri);
+                    // Formattiamo in YYYY-MM-DD per renderlo gradito a Supabase
+                    dataScadenzaCalcolataString = dataScadenzaOggetto.toISOString().split('T')[0];
+                }
+            }
+
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
             let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Data Inizio: ${dataInizio}`;
-            if (giorniScadenza) nuovaAttivitaPrev += ` | Scadenza: ${giorniScadenza} gg`;
+            if (inputGiorni) nuovaAttivitaPrev += ` | Scadenza: ${inputGiorni} gg`;
 
             try {
                 btn.disabled = true;
@@ -782,7 +810,7 @@
                 const { error } = await db.from('commesse').update({
                     preventivo_stato: nuovoSubStato,
                     preventivo_data_invio: dataInizio === "" ? null : dataInizio,
-                    preventivo_scadenza_promemoria: giorniScadenza === "" ? null : giorniScadenza,
+                    preventivo_scadenza_promemoria: dataScadenzaCalcolataString, // Spediamo la stringa data valida!
                     note_cantiere: storicoAggiornato
                 }).eq('id', currentCommessaId);
 
@@ -790,7 +818,7 @@
 
                 currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.preventivo_data_invio = dataInizio;
-                currentCommessa.preventivo_scadenza_promemoria = giorniScadenza;
+                currentCommessa.preventivo_scadenza_promemoria = dataScadenzaCalcolataString;
                 currentCommessa.note_cantiere = storicoAggiornato;
 
                 fetchPreventivoTimeline();
