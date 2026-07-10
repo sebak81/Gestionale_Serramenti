@@ -257,8 +257,27 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-1">👥 Elenco Personale</h3>
-            <div id="settingsWorkersList" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+            <div class="flex justify-between items-center border-b pb-1">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">👥 Elenco Personale</h3>
+                <button onclick="toggleAddWorkerForm()" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded shadow">＋ Aggiungi</button>
+            </div>
+            
+            <div id="addWorkerForm" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 hidden text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-0.5">Nome Completo *</label>
+                    <input type="text" id="newWorkerName" placeholder="Es. Marco Bianchi" class="w-full p-2 border rounded-lg bg-white">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-0.5">Mansione / Ruolo</label>
+                    <input type="text" id="newWorkerRole" placeholder="Es. Tecnico Installatore" class="w-full p-2 border rounded-lg bg-white">
+                </div>
+                <div class="flex space-x-2 pt-1">
+                    <button onclick="toggleAddWorkerForm()" class="flex-1 py-1.5 bg-slate-200 text-slate-700 font-bold rounded">Annulla</button>
+                    <button onclick="addNewWorker()" class="flex-1 py-1.5 bg-green-600 text-white font-bold rounded shadow">Salva</button>
+                </div>
+            </div>
+
+            <div id="settingsWorkersList" class="space-y-2 max-h-72 overflow-y-auto"></div>
         </div>
     </main>
 
@@ -448,7 +467,6 @@
             }
         }
 
-        // MODIFICATO: Aggiunto anche il popolarmento del selettore specifico del preventivo
         function populateSelects() {
             const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect', 'workerPreventivoSelect'];
             sels.forEach(id => {
@@ -632,7 +650,6 @@
             if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
             if(document.getElementById('subStatoContratto')) document.getElementById('subStatoContratto').value = currentCommessa.contract_stato || 'REDZIONE';
             
-            // Forza il reset del selettore operatore specifico preventivo ad ogni apertura
             if(document.getElementById('workerPreventivoSelect')) document.getElementById('workerPreventivoSelect').value = "";
 
             document.getElementById('faseAnnotazioniInput').value = "";
@@ -808,7 +825,6 @@
             }
         }
 
-        // MODIFICATO: Logica di salvataggio preventivo con obbligo e tracciamento dell'Incaricato Preventivo
         async function saveStatoPreventivoDettagli() {
             if (!currentCommessa) return;
 
@@ -845,9 +861,6 @@
                 }
             }
 
-            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-            
-            // MODIFICATO: Stringa di log strutturata includendo l'Incaricato Preventivo scelto
             let nuovaAttivitaPrev = `📄 [PREV] - Stato: ${testoStato} | Incaricato: ${opPrevText} | Note: ${annotazioni}`;
             if (dataInizio) nuovaAttivitaPrev += ` | Inizio: ${dataInizio}`;
             if (inputGiorni) nuovaAttivitaPrev += ` | Scadenza: ${inputGiorni} gg`;
@@ -874,7 +887,6 @@
                 fetchPreventivoTimeline();
                 fetchDiarioTimeline();
 
-                // Pulisce l'input e l'operatore scelto per il prossimo ciclo
                 document.getElementById('annotazioniPreventivoInput').value = "";
                 if(opPrevSelect) opPrevSelect.value = "";
                 
@@ -914,6 +926,7 @@
             }
         }
 
+        // MODIFICATO: Renderizza la lista del personale con la possibilità di Modifica in linea
         function renderSettingsScreen() {
             const savedDays = localStorage.getItem('defaultDaysToExpiry');
             const inputDays = document.getElementById('settingDefaultDays');
@@ -930,10 +943,107 @@
 
             listLavoratori.forEach(emp => {
                 const row = document.createElement('div');
-                row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center";
-                row.innerHTML = `<span>👤 ${emp.nome}</span> <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span>`;
+                row.id = `workerRow-${emp.id}`;
+                row.className = "bg-slate-50 p-2 rounded-lg text-xs font-semibold text-slate-700 border flex justify-between items-center space-x-2";
+                
+                // Visualizzazione Standard della riga
+                row.innerHTML = `
+                    <div class="flex-1 flex items-center justify-between pr-1">
+                        <span id="wViewName-${emp.id}">👤 ${emp.nome}</span> 
+                        <span id="wViewRole-${emp.id}" class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono">${emp.ruolo || 'Operatore'}</span>
+                    </div>
+                    <button onclick="enableWorkerEdit('${emp.id}', '${emp.nome.replace(/'/g, "\\'")}', '${(emp.ruolo || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-blue-600 font-bold p-1 text-xs shrink-0">✏️</button>
+                `;
                 container.appendChild(row);
             });
+        }
+
+        // MODIFICATO: Attiva i campi di input al posto del testo fisso per modificare il dipendente
+        function enableWorkerEdit(id, nomeAttuale, ruoloAttuale) {
+            const row = document.getElementById(`workerRow-${id}`);
+            if(!row) return;
+
+            row.innerHTML = `
+                <div class="flex-1 grid grid-cols-2 gap-1">
+                    <input type="text" id="wEditName-${id}" value="${nomeAttuale}" class="p-1 border rounded bg-white text-xs font-bold text-slate-800">
+                    <input type="text" id="wEditRole-${id}" value="${ruoloAttuale}" placeholder="Mansione" class="p-1 border rounded bg-white text-[11px]">
+                </div>
+                <div class="flex items-center space-x-1 shrink-0">
+                    <button onclick="saveWorkerEdit('${id}')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] font-bold">Salva</button>
+                    <button onclick="renderSettingsScreen()" class="bg-slate-200 text-slate-600 px-1.5 py-1 rounded text-[10px]">✕</button>
+                </div>
+            `;
+        }
+
+        // MODIFICATO: Salva su Supabase i dati modificati del dipendente
+        async function saveWorkerEdit(id) {
+            const nomeNuovo = document.getElementById(`wEditName-${id}`).value.trim();
+            const ruoloNuovo = document.getElementById(`wEditRole-${id}`).value.trim();
+
+            if(!nomeNuovo) {
+                alert("Il nome del lavoratore non può essere vuoto.");
+                return;
+            }
+
+            try {
+                const { error } = await db.from('lavoratori').update({
+                    nome: nomeNuovo,
+                    ruolo: ruoloNuovo === "" ? null : ruoloNuovo
+                }).eq('id', id);
+
+                if (error) throw error;
+
+                // Aggiorna l'array locale in memoria
+                const dip = listLavoratori.find(l => l.id == id);
+                if(dip) { dip.nome = nomeNuovo; dip.ruolo = ruoloNuovo; }
+
+                populateSelects();
+                renderSettingsScreen();
+                alert("✅ Collaboratore aggiornato con successo!");
+            } catch(err) {
+                alert("Errore nell'aggiornamento: " + err.message);
+            }
+        }
+
+        // MODIFICATO: Mostra/Nasconde il form di aggiunta personale
+        function toggleAddWorkerForm() {
+            const form = document.getElementById('addWorkerForm');
+            if(!form) return;
+            form.classList.toggle('hidden');
+            document.getElementById('newWorkerName').value = "";
+            document.getElementById('newWorkerRole').value = "";
+        }
+
+        // MODIFICATO: Inserisce un nuovo dipendente/personale nel Database Supabase
+        async function addNewWorker() {
+            const nome = document.getElementById('newWorkerName').value.trim();
+            const ruolo = document.getElementById('newWorkerRole').value.trim();
+
+            if(!nome) {
+                alert("Inserisci obbligatoriamente il Nome del collaboratore!");
+                return;
+            }
+
+            try {
+                const { data, error } = await db.from('lavoratori').insert([{
+                    nome: nome,
+                    ruolo: ruolo === "" ? null : ruolo
+                }]).select();
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    listLavoratori.push(data[0]);
+                    listLavoratori.sort((a,b) => a.nome.localeCompare(b.nome));
+                    
+                    populateSelects();
+                    toggleAddWorkerForm();
+                    renderSettingsScreen();
+                    alert(`👤 ${nome} aggiunto correttamente all'organico personale!`);
+                }
+            } catch(err) {
+                alert("Errore inserimento collaboratore: " + err.message);
+            }
         }
 
         function saveDefaultDaysSetting() {
