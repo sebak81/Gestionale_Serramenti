@@ -281,4 +281,376 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
-                <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option valu
+                <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                <input type="text" id="newDenominazione" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Nome *">
+                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo Fatturazione">
+                <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono">
+                <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email">
+                <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Partita IVA">
+                <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Codice Fiscale">
+                <textarea id="newNote" rows="2" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Note..."></textarea>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs">Salva</button></div>
+        </div>
+    </div>
+
+    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <h3 class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Modifica Anagrafica</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50">
+                <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                <input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
+                <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
+                <input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
+                <input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
+                <textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold">Aggiorna</button></div>
+        </div>
+    </div>
+
+    <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
+            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
+            <input type="hidden" id="modalCommessaId">
+            <div class="space-y-3 text-xs">
+                <input type="text" id="modalTitoloInput" placeholder="Titolo Lavoro *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCommessa" onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva</button></div>
+        </div>
+    </div>
+
+    <script>
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let allClients = [];
+        let listLavoratori = [];
+        
+        let currentClienteId = null;
+        let currentCommessaId = null;
+        let currentCommessa = null;
+        
+        const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
+
+        function navigateTo(screen) {
+            if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
+            if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
+            if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
+            if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
+            
+            const btnClienti = document.getElementById('navBtnClienti');
+            const btnSettings = document.getElementById('navBtnImpostazioni');
+            if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
+            if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
+
+            if (screen === 'main') {
+                if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                fetchClienti();
+            } else if (screen === 'hub') {
+                if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderClientHub();
+            } else if (screen === 'detail') {
+                if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+            } else if (screen === 'settings') {
+                if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
+                if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderSettingsPanel();
+            }
+        }
+
+        async function initLists() {
+            try {
+                let { data: w, error } = await db.from('lavoratori').select('*').order('nome', { ascending: true });
+                if (error) throw error;
+                listLavoratori = w || [];
+                populateSelects();
+            } catch (err) { console.error(err); }
+        }
+
+        function populateSelects() {
+            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'workerMisureSelect'];
+            sels.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome} [${l.mansione || 'Generico'}]</option>`).join('');
+            });
+        }
+
+        async function fetchClienti() {
+            try {
+                const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
+                if (error) throw error;
+                allClients = data || [];
+                renderClientsList();
+            } catch (err) { console.error(err); }
+        }
+
+        function renderClientsList() {
+            const container = document.getElementById('clientList'); 
+            if (!container) return; container.innerHTML = "";
+            if(document.getElementById('loading')) document.getElementById('loading').classList.add('hidden'); 
+            container.classList.remove('hidden');
+
+            const term = document.getElementById('searchClient').value.toLowerCase().trim();
+            let listFiltrata = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
+
+            listFiltrata.forEach(cliente => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer text-sm font-semibold flex justify-between items-center";
+                
+                const mainClickable = document.createElement('div');
+                mainClickable.className = "flex-1";
+                mainClickable.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
+                mainClickable.innerHTML = `👤 ${cliente.denominazione}<p class="text-xs font-normal text-slate-400 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Non indicato'}</p>`;
+                
+                const act = document.createElement('div');
+                act.className = "flex items-center space-x-2";
+                if(cliente.telefono) {
+                    const b = document.createElement('button'); b.className = "p-2 bg-slate-50 border rounded-xl text-xs"; b.innerText = "📞";
+                    b.onclick = (e) => { e.stopPropagation(); if(confirm(`Chiamare ${cliente.telefono}?`)) window.location.href=`tel:${cliente.telefono}`; };
+                    act.appendChild(b);
+                }
+                card.appendChild(mainClickable); card.appendChild(act); container.appendChild(card);
+            });
+        }
+
+        function filterClients() { renderClientsList(); }
+
+        function renderClientHub() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
+            document.getElementById('hubClientName').innerText = cliente.denominazione;
+            document.getElementById('hubClientInfo').innerText = `📞 ${cliente.telefono || 'N/D'} | ✉️ ${cliente.email || 'N/D'}`;
+            document.getElementById('hubClientFiscale').innerText = `P.IVA: ${cliente.partita_iva || 'N/D'} | C.F.: ${cliente.codice_fiscale || 'N/D'}`;
+
+            const listContainer = document.getElementById('hubCommesseList'); listContainer.innerHTML = "";
+            if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa.</p>`; return; }
+            
+            cliente.commesse.forEach(com => {
+                const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm";
+                div.innerHTML = `<div class="flex-1" onclick="openCommessaWorkspace('${com.id}')">
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                    <h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Senza Titolo'}</h4>
+                    <p class="text-slate-500">📍 Cantiere: ${com.indirizzo_cantiere}</p>
+                </div>`;
+                listContainer.appendChild(div);
+            });
+        }
+
+        function openCommessaWorkspace(commessaId) {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            currentCommessa = cliente.commesse.find(com => com.id === commessaId);
+            currentCommessaId = commessaId;
+
+            document.getElementById('commessaClientName').innerText = cliente.denominazione;
+            document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
+            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
+            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
+            
+            document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
+            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
+            document.getElementById('subStatoPreventivo').value = currentCommessa.preventivo_stato || 'IN_CORSO';
+            document.getElementById('dateInvioPrev').value = currentWorkspaceValue('preventivo_data_invio');
+            
+            const savedDays = currentWorkspaceValue('preventivo_scadenza_promemoria');
+            document.getElementById('dateReminderPrev').value = savedDays !== "" ? savedDays : (localStorage.getItem('cfg_days_default') || "");
+
+            if(document.getElementById('workerMisureSelect')) document.getElementById('workerMisureSelect').value = currentWorkspaceValue('tecnico_misure');
+            
+            document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('annotazioniPreventivoInput').value = "";
+            document.getElementById('charCounter').innerText = "0 / 150";
+
+            adjustWorkerLabels(currentCommessa.stato_macro);
+            fetchDiarioTimeline(); fetchPreventivoTimeline();
+            navigateTo('detail'); renderTabPrivileges(currentCommessa.stato_macro);
+        }
+
+        function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
+        function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
+
+        function handleFaseChange() {
+            const faseAttuale = currentCommessa.stato_macro;
+            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            if (faseAttuale === nuovaFase) return;
+
+            const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
+            const indexNuovo = workflowOrdinato.indexOf(nuovaFase);
+
+            if (indexNuovo < indexAttuale) {
+                alert(`⚠️ Azione Bloccata: Non puoi retrocedere.`);
+                document.getElementById('commessaMacroSelect').value = faseAttuale; return;
+            }
+
+            if ((indexNuovo - indexAttuale) > 2) {
+                if (!confirm("Salto di fase elevato. Confermi?")) { document.getElementById('commessaMacroSelect').value = faseAttuale; return; }
+            }
+            document.getElementById('workerContattoSelect').value = "";
+            document.getElementById('workerAssegnatoSelect').value = "";
+            adjustWorkerLabels(nuovaFase);
+        }
+
+        async function saveFaseLavorazioneConDati() {
+            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            const op1Select = document.getElementById('workerContattoSelect');
+            const op2Select = document.getElementById('workerAssegnatoSelect');
+            const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
+
+            const op1Value = op1Select.value; const op2Value = op2Select.value;
+            const op1Text = op1Select.options[op1Select.selectedIndex]?.text || 'Nessuno';
+            const op2Text = op2Select.options[op2Select.selectedIndex]?.text || 'Nessuno';
+
+            let rigaLog = `Fase: ${nuovaFase}. `;
+            if(nuovaFase==='PRIMO_CONTATTO') rigaLog += `Contatto da: ${op1Text} | Assegnato: ${op2Text} `;
+            else rigaLog += `Incaricato: ${op1Text} `;
+            rigaLog += `#Appunti: ${annotazioni || 'Nessuno'}`;
+
+            if(nuovaFase === currentCommessa.stato_macro) {
+                await db.from('commesse').update({ contatto_gestito_da: op1Value===""?null:op1Value, preventivo_assegnato_a: op2Value===""?null:op2Value }).eq('id', currentCommessaId);
+                currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
+                await logAutomaticActivity(rigaLog); alert("✅ Diario Aggiornato!"); return;
+            }
+
+            if(!op1Value || !annotazioni) { alert("Incaricato e Annotazioni obbligatori!"); return; }
+
+            await db.from('commesse').update({ stato_macro: nuovaFase, contatto_gestito_da: op1Value, preventivo_assegnato_a: op2Value===""?null:op2Value }).eq('id', currentCommessaId);
+            currentCommessa.stato_macro = nuovaFase; currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
+            
+            document.getElementById('faseAnnotazioniInput').value = "";
+            await logAutomaticActivity(rigaLog); alert("🎉 Fase Salvata!"); openCommessaWorkspace(currentCommessaId);
+        }
+
+        async function saveStatoPreventivoDettagli() {
+            const selectStato = document.getElementById('subStatoPreventivo');
+            const nuovoSub = selectStato.value; const testoSub = selectStato.options[selectStato.selectedIndex].text;
+            const dataInizio = document.getElementById('dateInvioPrev').value;
+            const ggScadenza = document.getElementById('dateReminderPrev').value.trim();
+            const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
+
+            if(!annotazioni) { alert("Inserisci una nota!"); return; }
+            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+            
+            let attivitaStr = `[${t}] - Stato: ${testoSub} | Note: ${annotazioni}`;
+            if(dataInizio) attivitaStr += ` | Inizio: ${dataInizio}`;
+            if(ggScadenza) attivitaStr += ` | Scadenza: ${ggScadenza} gg`;
+
+            let storico = currentCommessa.descrizione_lavoro ? currentCommessa.descrizione_lavoro + '\n' + attivitaStr : attivitaStr;
+
+            await db.from('commesse').update({ preventivo_stato: nuovoSub, preventivo_data_invio: dataInizio===""?null:dataInizio, preventivo_scadenza_promemoria: ggScadenza===""?null:ggScadenza, descrizione_lavoro: storico }).eq('id', currentCommessaId);
+            currentCommessa.preventivo_stato = nuovoSub; currentCommessa.preventivo_data_invio = dataInizio; currentCommessa.preventivo_scadenza_promemoria = ggScadenza; currentCommessa.descrizione_lavoro = storico;
+
+            fetchPreventivoTimeline();
+            await logAutomaticActivity(`📄 [ATTIVITÀ PREVENTIVO] - ${testoSub}. Note: "${annotazioni}"`);
+            document.getElementById('annotazioniPreventivoInput').value = ""; alert("✅ Preventivo Aggiornato!");
+        }
+
+        function fetchPreventivoTimeline() {
+            const container = document.getElementById('preventivoTimeline'); if(!container) return; container.innerHTML = "";
+            if(!currentCommessa || !currentCommessa.descrizione_lavoro) return;
+            currentCommessa.descrizione_lavoro.split('\n').reverse().forEach(l => {
+                if(l.trim()) {
+                    const r = document.createElement('div'); r.className = "bg-white p-2.5 rounded-lg border text-xs mt-1 text-slate-700";
+                    r.innerText = l; container.appendChild(r);
+                }
+            });
+        }
+
+        function adjustWorkerLabels(fase) {
+            const lbl = document.getElementById('lblWorkerContatto'); const box2 = document.getElementById('boxWorkerAssegnato');
+            if(fase==='PRIMO_CONTATTO') { if(lbl) lbl.innerText = "Contatto preso da: *"; if(box2) box2.classList.remove('hidden'); }
+            else { if(lbl) lbl.innerText = "Incaricato: *"; if(box2) box2.classList.add('hidden'); }
+        }
+
+        function switchTab(tab) {
+            if(currentCommessa && currentCommessa.stato_macro==='PRIMO_CONTATTO' && tab!=='diario') { alert("🔒 Tab bloccata in questa fase!"); return; }
+            ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
+                if(document.getElementById(`tabContent${t}`)) document.getElementById(`tabContent${t}`).classList.add('hidden');
+            });
+            if(document.getElementById(`tabContent${tab}`)) document.getElementById(`tabContent${tab}`).classList.remove('hidden');
+        }
+
+        function fetchDiarioTimeline() {
+            const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
+            if(!currentCommessa || !currentCommessa.note_cantiere) return;
+            currentCommessa.note_cantiere.split('\n').reverse().forEach(l => {
+                if(l.trim()) {
+                    const r = document.createElement('div'); r.className = "bg-white p-2.5 rounded-lg border text-xs mt-1 text-slate-700";
+                    r.innerText = l; container.appendChild(r);
+                }
+            });
+        }
+
+        async function addDiarioNote() {
+            const input = document.getElementById('newDiarioNote'); const text = input.value.trim(); if(!text) return;
+            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+            let full = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + `📝 [${t}] - Nota Manuale: ${text}` : `📝 [${t}] - Nota Manuale: ${text}`;
+            await db.from('commesse').update({ note_cantiere: full }).eq('id', currentCommessaId);
+            currentCommessa.note_cantiere = full; input.value = ""; fetchDiarioTimeline();
+        }
+
+        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
+        async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
+
+        function openNewCommessaModal() { document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function openCommessaEditModalCurrent() { document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
+        async function saveCommessaDati() {
+            const id = document.getElementById('modalCommessaId').value; const t = document.getElementById('modalTitoloInput').value.trim(); const c = document.getElementById('modalCantiereInput').value.trim();
+            if(!t || !c) return;
+            if(id) await db.from('commesse').update({ titolo_lavoro: t, indirizzo_cantiere: c }).eq('id', id);
+            else await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
+            closeCommessaModal(); await fetchClienti(); renderClientHub();
+        }
+
+        function openAnagraficaModal() {
+            const c = allClients.find(cl => cl.id === currentClienteId); if(!c) return;
+            document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || '';
+            document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || '';
+            document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || '';
+            document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden');
+        }
+        function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
+        async function updateAnagrafica() {
+            const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
+            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
+            closeAnagraficaModal(); await fetchClienti(); renderClientHub();
+        }
+        async function saveCliente() {
+            const d = document.getElementById('newDenominazione').value.trim(); if(!d) return;
+            const { data } = await db.from('clienti').insert([{ tipo_cliente: document.getElementById('newTipo').value, denominazione: d, indirizzo_fatturazione: document.getElementById('newIndirizzo').value, telefono: document.getElementById('newTelefono').value, email: document.getElementById('newEmail').value, partita_iva: document.getElementById('newPartitaIva').value, codice_fiscale: document.getElementById('newCodiceFiscale').value, note_generali: document.getElementById('newNote').value }]).select();
+            if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
+        }
+        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
+
+        function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
+        function saveDefaultDaysConfig() { localStorage.setItem('cfg_days_default', document.getElementById('cfgDefaultDays').value.trim()); alert("Valore salvato!"); }
+        
+        function renderSettingsWorkersList() {
+            const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
+            listLavoratori.forEach(w => {
+                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1";
+                r.innerHTML = `<div>👤 ${w.nome} ${w.mansione?`[${w.mansione}]`:''}</div><div><button onclick="startEditWorker('${w.id}','${escapeHtml(w.nome)}','${escapeHtml(w.mansione||'')}')" class="text-blue-600 mr-2">✏️</button><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button></div>`;
+                container.appendChild(r);
+            });
+        }
+        function startEditWorker(id, n, m) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('newWorkerMansione').value = m; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
+        function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('newWorkerMansione').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
+        async function saveWorkerToDatabase() {
+            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim(); const m = document.getElementById('newWorkerMansione').value.trim();
+            if(!n) return;
+            if(id) await db.from('lavoratori').update({ nome: n, mansione: m===""?null:m }).eq('id', id);
+            else await db.from('lavoratori').insert([{ nome: n, mansione: m===""?null:m }]);
+            resetWorkerForm(); await initLists(); renderSettingsWorkersList();
+        }
+        async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
+        function escapeHtml(s) { return s ? s.replace(/"/g, "&quot;") : ''; }
+
+        window.onload = async () => { await initLists(); await fetchClienti(); };
+    </script>
+</body>
+</html>
