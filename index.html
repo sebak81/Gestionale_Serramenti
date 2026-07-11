@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Sebak</div>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -59,6 +64,7 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -85,6 +91,7 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
@@ -108,6 +115,7 @@
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
+        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -159,6 +167,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -203,6 +212,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -233,6 +243,7 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 4: IMPOSTAZIONI -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         
@@ -266,6 +277,7 @@
         </div>
     </main>
 
+    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -277,45 +289,107 @@
         </div>
     </nav>
 
+    <!-- MODALE AGGIUNGI CLIENTE CON LABEL IN GRASSETTO NERO SOPRA I CAMPI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
-                <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Tipo Cliente</label>
+                    <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                </div>
                 
                 <div>
-                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold" placeholder="Nome / Ragione Sociale *">
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
+                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
                     
+                    <!-- BOX SUGGERIMENTI SE ESISTONO POTENZIALI DOPPIONI -->
                     <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
                         <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
                         <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
                     </div>
                 </div>
 
-                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo Fatturazione *">
-                <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono (Almeno un contatto obbligatorio)">
-                <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email (Almeno un contatto obbligatorio)">
-                <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Partita IVA">
-                <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Codice Fiscale">
-                <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50" placeholder="Note..."></textarea>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione *</label>
+                    <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
+                        <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
+                        <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
+                        <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
+                    <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                </div>
+                <div class="text-[10px] text-slate-400 italic font-medium">* Almeno un contatto tra Telefono ed Email deve essere compilato.</div>
             </div>
-            <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs">Salva</button></div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
         </div>
     </div>
 
+    <!-- MODALE MODIFICA ANAGRAFICA CON LABEL IN GRASSETTO NERO SOPRA I CAMPI -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
-            <h3 class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Modifica Anagrafica</h3>
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
-                <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50">
-                <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
-                <input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
-                <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
-                <input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
-                <input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
-                <textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label>
+                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
+                        <input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
+                        <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
+                        <input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
+                    <textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                </div>
             </div>
-            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold">Aggiorna</button></div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
         </div>
     </div>
 
@@ -486,7 +560,7 @@
 
             adjustWorkerLabels(currentCommessa.stato_macro);
             fetchDiarioTimeline(); fetchPreventivoTimeline();
-            navigateTo('detail');
+            navigateTo('detail'); renderTabPrivileges(currentCommessa.stato_macro);
         }
 
         function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
@@ -550,7 +624,7 @@
             const ggScadenza = document.getElementById('dateReminderPrev').value.trim();
             const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
 
-            if(!annotannotations) { alert("Inserisci una nota!"); return; }
+            if(!annotazioni) { alert("Inserisci una nota!"); return; }
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
             let attivitaStr = `[${t}] - Stato: ${testoSub} | Note: ${annotazioni}`;
@@ -648,8 +722,6 @@
             await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
             closeAnagraficaModal(); await fetchClienti(); renderClientHub();
         }
-        
-        // --- LOGICA AGGIORNATA: VERIFICA CAMPI OBBLIGATORI (INDIRIZZO + ALMENO UN CONTATTO) ---
         async function saveCliente() {
             const d = document.getElementById('newDenominazione').value.trim();
             const ind = document.getElementById('newIndirizzo').value.trim();
@@ -674,7 +746,6 @@
             if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
 
-        // --- SVUOTAMENTO COMPLETO DEI CAMPI ALLA RIAPERTURA DEL MODULO ---
         function openNewClientModal() { 
             document.getElementById('newTipo').value = "PRIVATO";
             document.getElementById('newDenominazione').value = "";
