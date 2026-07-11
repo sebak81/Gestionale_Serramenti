@@ -33,10 +33,10 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global con nome dev Sebak e collegamento Mail -->
+    <!-- Header Global con nome dev Sebak e collegamento Mail + Oggetto Precompilato -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
-        <a href="mailto:sebak.brn@gmail.com" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:text-blue-400 transition-colors">
+        <a href="mailto:sebak.brn@gmail.com?subject=Richiesta%20assistenza%20PWA%20Gestione%20Commesse" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:text-blue-400 transition-colors">
             Dev: Sebak
         </a>
     </header>
@@ -339,7 +339,7 @@
                         <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
                         <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
                     </div>
                 </div>
@@ -412,7 +412,7 @@
         </div>
     </div>
 
-    <!-- MODALE PASSWORD CON MASCHERAMENTO (TYPE="PASSWORD") -->
+    <!-- MODALE PASSWORD CON MASCHERAMENTO -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
             <div class="text-red-600 text-2xl">🔒</div>
@@ -555,7 +555,6 @@
             });
         }
 
-        // MESSAGGI GENERI SENZA RIFERIMENTI PERSONALI
         function triggerClientDeletionFlow() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
