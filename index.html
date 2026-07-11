@@ -167,7 +167,7 @@
                     <label class="block text-xs font-medium text-slate-500 mb-1">Stato Avanzamento Preventivo</label>
                     <select id="subStatoPreventivo" class="w-full p-2 border rounded-lg bg-slate-50 text-xs font-semibold">
                         <option value="IN_CORSO">⏳ In Corso (Richieste prezzi o sviluppo)</option>
-                        <option value="PRONTO_DA_SPEDIRE">📦 Pronto da Spedire / Consegnare</option>
+                        <option value="PRONTO_DA_SPEDIRE">📦 Pronto da Spedire / Deliverare</option>
                         <option value="INVIATO_CONSEGNATO">📬 Inviato / Consegnato al cliente</option>
                         <option value="RIFIUTATO">❌ Rifiutato / Non accettato</option>
                         <option value="CONFERMATO">🎉 CONFERMATO / ACCETTATO</option>
@@ -292,9 +292,9 @@
                     </div>
                 </div>
 
-                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo Fatturazione">
-                <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono">
-                <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email">
+                <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Indirizzo Fatturazione *">
+                <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Telefono (Almeno un contatto obbligatorio)">
+                <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Email (Almeno un contatto obbligatorio)">
                 <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Partita IVA">
                 <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50" placeholder="Codice Fiscale">
                 <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50" placeholder="Note..."></textarea>
@@ -486,7 +486,7 @@
 
             adjustWorkerLabels(currentCommessa.stato_macro);
             fetchDiarioTimeline(); fetchPreventivoTimeline();
-            navigateTo('detail'); renderTabPrivileges(currentCommessa.stato_macro);
+            navigateTo('detail');
         }
 
         function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
@@ -550,7 +550,7 @@
             const ggScadenza = document.getElementById('dateReminderPrev').value.trim();
             const annotazioni = document.getElementById('annotazioniPreventivoInput').value.trim();
 
-            if(!annotazioni) { alert("Inserisci una nota!"); return; }
+            if(!annotannotations) { alert("Inserisci una nota!"); return; }
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
             
             let attivitaStr = `[${t}] - Stato: ${testoSub} | Note: ${annotazioni}`;
@@ -585,7 +585,7 @@
         }
 
         function switchTab(tab) {
-            if(currentCommessa && currentCommessa.stato_macro==='PRIMO_CONTATTO' && tab!=='diario') { alert("🔒 Tab bloccata in questa phase!"); return; }
+            if(currentCommessa && currentCommessa.stato_macro==='PRIMO_CONTATTO' && tab!=='diario') { alert("🔒 Tab bloccata in questa fase!"); return; }
             ['diario', 'preventiviTab', 'contrattoTab'].forEach(t => {
                 if(document.getElementById(`tabContent${t}`)) document.getElementById(`tabContent${t}`).classList.add('hidden');
                 if(document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`)) {
@@ -648,12 +648,43 @@
             await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
             closeAnagraficaModal(); await fetchClienti(); renderClientHub();
         }
+        
+        // --- LOGICA AGGIORNATA: VERIFICA CAMPI OBBLIGATORI (INDIRIZZO + ALMENO UN CONTATTO) ---
         async function saveCliente() {
-            const d = document.getElementById('newDenominazione').value.trim(); if(!d) return;
-            const { data } = await db.from('clienti').insert([{ tipo_cliente: document.getElementById('newTipo').value, denominazione: d, indirizzo_fatturazione: document.getElementById('newIndirizzo').value, telefono: document.getElementById('newTelefono').value, email: document.getElementById('newEmail').value, partita_iva: document.getElementById('newPartitaIva').value, codice_fiscale: document.getElementById('newCodiceFiscale').value, note_generali: document.getElementById('newNote').value }]).select();
+            const d = document.getElementById('newDenominazione').value.trim();
+            const ind = document.getElementById('newIndirizzo').value.trim();
+            const tel = document.getElementById('newTelefono').value.trim();
+            const em = document.getElementById('newEmail').value.trim();
+            
+            if(!d) { alert("Il campo Nome / Ragione Sociale è obbligatorio!"); return; }
+            if(!ind) { alert("L'indirizzo di fatturazione è obbligatorio!"); return; }
+            if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
+            
+            const { data } = await db.from('clienti').insert([{ 
+                tipo_cliente: document.getElementById('newTipo').value, 
+                denominazione: d, 
+                indirizzo_fatturazione: ind, 
+                telefono: tel===""?null:tel, 
+                email: em===""?null:em, 
+                partita_iva: document.getElementById('newPartitaIva').value.trim(), 
+                codice_fiscale: document.getElementById('newCodiceFiscale').value.trim(), 
+                note_generali: document.getElementById('newNote').value.trim() 
+            }]).select();
+            
             if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
+
+        // --- SVUOTAMENTO COMPLETO DEI CAMPI ALLA RIAPERTURA DEL MODULO ---
         function openNewClientModal() { 
+            document.getElementById('newTipo').value = "PRIVATO";
+            document.getElementById('newDenominazione').value = "";
+            document.getElementById('newIndirizzo').value = "";
+            document.getElementById('newTelefono').value = "";
+            document.getElementById('newEmail').value = "";
+            document.getElementById('newPartitaIva').value = "";
+            document.getElementById('newCodiceFiscale').value = "";
+            document.getElementById('newNote').value = "";
+            
             document.getElementById('omonimiaSuggestBox').classList.add('hidden');
             document.getElementById('omonimiaListContainer').innerHTML = "";
             document.getElementById('clientModal').classList.remove('hidden'); 
@@ -695,7 +726,6 @@
         async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
 
-        // --- LOGICA SPECIALE: CONTROLLO OMONIMIA IN TEMPO REALE SUL COGNOME/NOME O INVERSIONE ---
         function checkOmonimiaDoppioni(valoreDigitato) {
             clearTimeout(omonimiaTimeout);
             const box = document.getElementById('omonimiaSuggestBox');
@@ -708,15 +738,11 @@
                 return;
             }
 
-            // Ritardo di 350ms (Debounce) per non tempestare di query Supabase ad ogni lettera
             omonimiaTimeout = setTimeout(() => {
-                // Scomponiamo le singole parole (es. ["mario", "rossi"])
                 const parole = termine.split(/\s+/);
                 
-                // Filtriamo l'array locale allClients per verificare incroci Nome/Cognome invertiti
                 let duplicatiTrovati = allClients.filter(c => {
                     const denominazioneLocale = c.denominazione.toLowerCase();
-                    // Il record deve contenere TUTTE le parole digitate, in qualsiasi ordine si trovino
                     return parole.every(p => denominazioneLocale.includes(p));
                 });
 
@@ -726,7 +752,6 @@
                     return;
                 }
 
-                // Generiamo la lista dei suggerimenti con l'indirizzo
                 listContainer.innerHTML = "";
                 duplicatiTrovati.forEach(dup => {
                     const d = document.createElement('div');
@@ -734,11 +759,10 @@
                     d.innerHTML = `<span>👤 ${dup.denominazione}</span>
                                    <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
                     
-                    // Al click sul suggerimento: Annulla inserimento corrente e naviga sul cliente esistente
                     d.onclick = () => {
-                        closeModal(); // Chiude il modale inserimento
+                        closeModal();
                         currentClienteId = dup.id;
-                        navigateTo('hub'); // Va all'hub del cliente esistente
+                        navigateTo('hub');
                     };
                     listContainer.appendChild(d);
                 });
