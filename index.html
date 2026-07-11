@@ -9,9 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -30,11 +33,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
+    <!-- Header Global con nome dev Sebak e collegamento Mail -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
-        <div class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Dev: Administrator</div>
+        <a href="mailto:sebak.brn@gmail.com" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:text-blue-400 transition-colors">
+            Dev: Sebak
+        </a>
     </header>
 
+    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -59,6 +66,7 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
+    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -90,6 +98,7 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
@@ -113,6 +122,7 @@
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
+        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -164,6 +174,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -208,6 +219,7 @@
             </div>
         </div>
 
+        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -238,6 +250,7 @@
         </div>
     </main>
 
+    <!-- SCHERMATA 4: IMPOSTAZIONI -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         
@@ -271,6 +284,7 @@
         </div>
     </main>
 
+    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -282,6 +296,7 @@
         </div>
     </nav>
 
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -295,6 +310,7 @@
                     <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
                     <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
                     
+                    <!-- BOX SUGGERIMENTI -->
                     <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
                         <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
                         <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
@@ -323,7 +339,7 @@
                         <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
                         <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
                     </div>
                 </div>
@@ -338,6 +354,7 @@
         </div>
     </div>
 
+    <!-- MODALE MODIFICA ANAGRAFICA -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
@@ -395,6 +412,7 @@
         </div>
     </div>
 
+    <!-- MODALE PASSWORD CON MASCHERAMENTO (TYPE="PASSWORD") -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
             <div class="text-red-600 text-2xl">🔒</div>
@@ -537,7 +555,7 @@
             });
         }
 
-        // 1. GESTIONE FLUSSO COGNITIVO AVVISI ELIMINAZIONE
+        // MESSAGGI GENERI SENZA RIFERIMENTI PERSONALI
         function triggerClientDeletionFlow() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -548,7 +566,6 @@
             const secondaConferma = confirm(`Sei assolutamente sicuro al 100%? Tutti i log storici andranno persi.`);
             if (!secondaConferma) return;
 
-            // Se i check passano, apriamo il modale grafico per inserire la password nascosta
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
             document.getElementById('adminPasswordHiddenInput').focus();
@@ -558,7 +575,6 @@
             document.getElementById('passwordAuthModal').classList.add('hidden');
         }
 
-        // 2. LOGICA CONTROLLO PASSWORD MASCHERATA ED ELIMINAZIONE REALE
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
 
@@ -567,7 +583,6 @@
                 return;
             }
 
-            // Password corretta -> Procediamo con la pulizia sicura dal DB
             closePasswordAuthModal();
             try {
                 const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
