@@ -77,7 +77,12 @@
                     <p id="hubClientInfo" class="text-xs text-slate-500 mt-0.5">📞 Tel | ✉️ Email</p>
                     <p id="hubClientFiscale" class="text-[11px] text-slate-400 mt-0.5">P.IVA | C.F.</p>
                 </div>
-                <button onclick="openAnagraficaModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm">✏️ Modifica Anagrafica</button>
+                <div class="flex flex-col space-y-2 items-end shrink-0">
+                    <button onclick="openAnagraficaModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition-colors">✏️ Modifica Anagrafica</button>
+                    <button onclick="deleteCurrentClientCascade()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1">
+                        <span>🗑️</span> <span>Elimina Cliente</span>
+                    </button>
+                </div>
             </div>
             <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
         </div>
@@ -222,7 +227,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-500 mb-1">Stato Pratica Contratto</label>
-                    <select id="subStatoContratto" onchange="updateCommessaField('contratto_stato', this.value)" class="w-full p-2 border rounded-lg bg-slate-50 text-xs font-semibold">
+                    <select id="subStatoContratto" onchange="updateCommessaField('contract_stato', this.value)" class="w-full p-2 border rounded-lg bg-slate-50 text-xs font-semibold">
                         <option value="REDZIONE">📝 In Redazione / Elaborazione</option>
                         <option value="INVIATO_CONSEGNA">📬 Inviato per approvazione</option>
                         <option value="MODIFICHE_IN_CORSO">🔧 Modifiche Richieste in Corso</option>
@@ -289,7 +294,7 @@
         </div>
     </nav>
 
-    <!-- MODALE AGGIUNGI CLIENTE CON LABEL IN GRASSETTO NERO SOPRA I CAMPI -->
+    <!-- MODALI -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -303,7 +308,7 @@
                     <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
                     <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
                     
-                    <!-- BOX SUGGERIMENTI SE ESISTONO POTENZIALI DOPPIONI -->
+                    <!-- BOX SUGGERIMENTI -->
                     <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
                         <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
                         <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
@@ -347,7 +352,7 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA CON LABEL IN GRASSETTO NERO SOPRA I CAMPI -->
+    <!-- MODALE MODIFICA ANAGRAFICA -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
@@ -530,6 +535,43 @@
                 </div>`;
                 listContainer.appendChild(div);
             });
+        }
+
+        // ELIMINAZIONE CASCATA AGGIORNATA CON PASSWORD AMMINISTRATORE 'Fighette@69'
+        async function deleteCurrentClientCascade() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
+
+            const primaConferma = confirm(`⚠️ ATTENZIONE, SEBAK!\n\nStai per cancellare definitivamente il cliente "${cliente.denominazione}" e TUTTE le commesse collegate.\n\nQuesta azione è TOTALMENTE IRREVERSIBILE. Vuoi procedere?`);
+            if (!primaConferma) return;
+
+            const secondaConferma = confirm(`Sei assolutamente sicuro al 100%? Perderai tutti i log di diario e cantieri.`);
+            if (!secondaConferma) return;
+
+            // Richiesta password aggiornata
+            const adminPasswordInput = prompt("🔒 AUTENTICAZIONE RICHIESTA:\nInserisci la password di Amministratore per confermare la cancellazione definitiva:");
+            
+            if (adminPasswordInput === null) return; 
+
+            if (adminPasswordInput !== "Fighette@69") {
+                alert("❌ ACCESSO NEGATO:\nPassword amministratore errata. L'operazione è stata bloccata.");
+                return;
+            }
+
+            try {
+                const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
+                if (errorCommesse) throw errorCommesse;
+
+                const { error: errorCliente } = await db.from('clienti').delete().eq('id', currentClienteId);
+                if (errorCliente) throw errorCliente;
+
+                alert("🟢 Cliente e relative commesse eliminate con successo.");
+                currentClienteId = null;
+                navigateTo('main');
+            } catch (err) {
+                console.error(err);
+                alert("❌ Errore durante l'eliminazione: " + err.message);
+            }
         }
 
         function openCommessaWorkspace(commessaId) {
@@ -828,7 +870,7 @@
                     const d = document.createElement('div');
                     d.className = "p-1.5 bg-white hover:bg-slate-100 rounded-lg border text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors flex flex-col";
                     d.innerHTML = `<span>👤 ${dup.denominazione}</span>
-                                   <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
+                                   <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non microscopic'}</span>`;
                     
                     d.onclick = () => {
                         closeModal();
