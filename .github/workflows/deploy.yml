@@ -25,8 +25,8 @@ jobs:
           # 1. Colleghiamo il progetto usando le virgolette per proteggere i caratteri speciali della password
           supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
           
-          # 2. Facciamo il deploy usando il nome della cartella locale reale (google-drive-upload)
-          supabase functions deploy google-drive-upload --no-verify-jwt
+          # 2. Facciamo il deploy della cartella locale "google-drive-upload" ma sovrascriviamo la funzione online "index-ts"
+          supabase functions deploy google-drive-upload --name index-ts --no-verify-jwt
           
           # 3. Inviamo la chiave di Google Drive a Supabase
           supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}'
