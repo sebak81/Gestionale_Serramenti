@@ -1104,7 +1104,7 @@
             try {
                 // Chiamiamo la Edge Function su Supabase
                 // Nota: db.functions.invoke() utilizza automaticamente l'URL corretto del tuo progetto
-                const { data, error } = await db.functions.invoke('google-drive-upload', {
+                const { data, error } = await db.functions.invoke('index-ts', {
                     body: formData
                 });
         
