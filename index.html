@@ -158,7 +158,7 @@
 
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
-                    <h3 class="text-sm font-bold text-slate-900">📁 Documenti Cantiere (Google Drive)</h3>
+                    <h3 class="text-sm font-bold text-slate-900">📁 Documenti Cantiere (Supabase Storage)</h3>
                     
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
                         <select id="categoriaDriveInput" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-semibold w-full sm:w-44">
@@ -166,13 +166,13 @@
                         
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
                             ➕ Carica
-                            <input type="file" id="fileDriveInput" onchange="uploadFileToGoogleDrive(this)" class="hidden">
+                            <input type="file" id="fileDriveInput" onchange="uploadFileToStorage(this)" class="hidden">
                         </label>
                     </div>
                 </div>
                 
                 <div id="driveUploadStatus" class="text-xs text-blue-600 font-semibold hidden animate-pulse">
-                    ⏳ Creazione cartelle e invio file a Google Drive...
+                    ⏳ Invio file in corso...
                 </div>
 
                 <div id="driveAllegatiList" class="space-y-3 max-h-64 overflow-y-auto">
@@ -569,7 +569,7 @@
             const primaConferma = confirm(`⚠️ ATTENZIONE:\n\nStai per cancellare definitivamente l'anagrafica selezionata e TUTTI i cantieri ad essa collegati.\n\nL'azione è irreversibile. Procedere?`);
             if (!primaConferma) return;
 
-            const secondaConferma = confirm(`Sei assolutamente sicuro al 100%? Tutti i log storici andranno persi.`);
+            const secondaConferma = confirm(`Sei absolutely sicuro al 100%? Tutti i log storici andranno persi.`);
             if (!secondaConferma) return;
 
             document.getElementById('adminPasswordHiddenInput').value = "";
@@ -636,7 +636,7 @@
             aggiornaSelettoreCategorie(currentCommessa.stato_macro); // Abilita solo le categorie permesse per questa fase
             fetchDiarioTimeline(); 
             fetchPreventivoTimeline();
-            fetchAllegatiDrive(); // Caricamento allegati raggruppati per l'Ufficio
+            fetchAllegatiDrive(); // Caricamento allegati
             navigateTo('detail');
         }
 
@@ -665,7 +665,7 @@
             aggiornaSelettoreCategorie(nuevaFase); // Aggiorna dinamicamente le opzioni d'upload se cambi fase a schermo
         }
 
-        // --- DINAMISMO SELETTORE CATEGORIE GOOGLE DRIVE IN BASE ALLO STATO MACRO ---
+        // --- DINAMISMO SELETTORE CATEGORIE IN BASE ALLO STATO MACRO ---
         function aggiornaSelettoreCategorie(fase) {
             const select = document.getElementById('categoriaDriveInput');
             if (!select) return;
@@ -744,7 +744,7 @@
             if(!op1Value || !annotazioni) { alert("Incaricato e Annotazioni obbligatori!"); return; }
 
             await db.from('commesse').update({ stato_macro: nuovaFase, contatto_gestito_da: op1Value, preventivo_assegnato_a: op2Value===""?null:op2Value }).eq('id', currentCommessaId);
-            currentCommessa.stato_macro = nuovaFase; currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
+            currentCommessa.stato_macro = nuevaFase; currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
             
             document.getElementById('faseAnnotazioniInput').value = "";
             alert("🎉 Fase Salvata!"); openCommessaWorkspace(currentCommessaId);
@@ -974,7 +974,7 @@
             }, 350);
         }
 
-        // --- VISUALIZZAZIONE COMPLETA ALLEGATI GOOGLE DRIVE SUDDIVISI (OPZIONE 2 CON NUOVE CATEGORIE) ---
+        // --- ENTRATA IN FUNZIONE DELLO STORAGE NATIVO DI SUPABASE ---
         async function fetchAllegatiDrive() {
             const container = document.getElementById('driveAllegatiList');
             if (!container) return;
@@ -994,22 +994,11 @@
                     return;
                 }
 
-                // Raggruppiamo per tutte le categorie previste
-                const categorie = {
-                    'PREVENTIVO': [],
-                    'CONTRATTO': [],
-                    'FATTURA': [],
-                    'ORDINE': [],
-                    'FOTO': [],
-                    'ALTRO': []
-                };
+                const categorie = { 'PREVENTIVO': [], 'CONTRATTO': [], 'FATTURA': [], 'ORDINE': [], 'FOTO': [], 'ALTRO': [] };
 
                 data.forEach(all => {
-                    if (categorie[all.categoria]) {
-                        categorie[all.categoria].push(all);
-                    } else {
-                        categorie['ALTRO'].push(all);
-                    }
+                    if (categorie[all.categoria]) categorie[all.categoria].push(all);
+                    else categorie['ALTRO'].push(all);
                 });
 
                 container.innerHTML = "";
@@ -1047,7 +1036,9 @@
                     files.forEach(all => {
                         const item = document.createElement('div');
                         item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
-                        const viewUrl = `https://drive.google.com/file/d/${all.google_drive_file_id}/view?usp=drivesdk`;
+                        
+                        // Generiamo al volo l'URL pubblico nativo di Supabase usando il percorso salvato
+                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
 
                         item.innerHTML = `
                             <div class="flex items-center space-x-2 truncate">
@@ -1055,8 +1046,8 @@
                                 <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
                             </div>
                             <div class="flex space-x-3 shrink-0 pl-2">
-                                <a href="${viewUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
-                                <button onclick="deleteDriveAllegato('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+                                <a href="${publicUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
+                                <button onclick="deleteFileFromStorage('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
                             </div>
                         `;
                         filesContainer.appendChild(item);
@@ -1072,60 +1063,62 @@
             }
         }
 
-        async function deleteDriveAllegato(idSupabase, fileIdDrive) {
-            if(!confirm("Vuoi rimuovere il riferimento a questo file dall'applicazione?")) return;
-            try {
-                const { error } = await db.from('allegati_drive').delete().eq('id', idSupabase);
-                if (error) throw error;
-                alert("🟢 Riferimento rimosso con successo.");
-                fetchAllegatiDrive();
-            } catch (err) { alert(err.message); }
-        }
-
-        // Funzione modificata per inviare il file fisico alla Edge Function di Supabase bypassando blocchi di gateway
-        async function uploadFileToGoogleDrive(inputElement) {
+        // Funzione nativa per caricare il file nello storage di Supabase
+        async function uploadFileToStorage(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
         
-            // Mostriamo lo stato di caricamento animato
             const statusBox = document.getElementById('driveUploadStatus');
             if (statusBox) statusBox.classList.remove('hidden');
         
-            // Recuperiamo la categoria selezionata dall'utente (es. PREVENTIVO, ORDINE...)
             const categoriaSelect = document.getElementById('categoriaDriveInput');
             const categoriaSelezionata = categoriaSelect ? categoriaSelect.value : 'ALTRO';
         
-            // Prepariamo il pacchetto Multipart Form Data da inviare al backend
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("commessa_id", currentCommessaId);
-            formData.append("categoria", categoriaSelezionata);
-        
             try {
-                // Inviamo il file direttamente tramite fetch standard bypassando i limiti del client automatico
-                const response = await fetch('https://jskrttromnqvupuzghap.supabase.co/functions/v1/index-ts', {
-                    method: 'POST',
-                    body: formData
-                });
+                // Creiamo un percorso organizzato per cartelle: id_commessa/nome_file
+                const filePath = `${currentCommessaId}/${Date.now()}_${file.name}`;
 
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(`Server response ${response.status}: ${errText}`);
-                }
+                // Upload diretto nel bucket di Supabase
+                const { data, error } = await db.storage
+                    .from('documenti')
+                    .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-                alert("🟢 Documento salvato e archiviato con successo nella cartella dell'ufficio!");
-                
-                // Rinfreschiamo la lista a schermo per mostrare il nuovo file sotto la sua categoria
+                if (error) throw error;
+
+                // Registriamo il riferimento nella tabella allegati esistente per non cambiare struttura database
+                await db.from('allegati_drive').insert([{
+                    commessa_id: currentCommessaId,
+                    nome_file: file.name,
+                    categoria: categoriaSelezionata,
+                    google_drive_file_id: filePath // Salviamo il percorso dello storage qui dentro
+                }]);
+
+                alert("🟢 Documento caricato e archiviato con successo nello Storage!");
                 fetchAllegatiDrive();
         
             } catch (err) {
                 console.error("Errore durante l'upload:", err);
-                alert("❌ Errore durante il caricamento su Google Drive: " + (err.message || err));
+                alert("❌ Errore durante il caricamento: " + (err.message || err));
             } finally {
-                // Nascondiamo lo stato di caricamento e resettiamo l'input del file
                 if (statusBox) statusBox.classList.add('hidden');
                 inputElement.value = "";
             }
+        }
+
+        // Funzione per eliminare il file fisicamente sia dal database che dallo Storage
+        async function deleteFileFromStorage(idSupabase, filePath) {
+            if(!confirm("Vuoi eliminare permanentemente questo documento dallo Storage?")) return;
+            try {
+                // 1. Rimuoviamo il file fisico dallo storage
+                await db.storage.from('documenti').remove([filePath]);
+
+                // 2. Rimuoviamo la riga dalla tabella del database
+                const { error } = await db.from('allegati_drive').delete().eq('id', idSupabase);
+                if (error) throw error;
+
+                alert("🟢 Documento rimosso correttamente.");
+                fetchAllegatiDrive();
+            } catch (err) { alert(err.message); }
         }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
