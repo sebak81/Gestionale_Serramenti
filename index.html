@@ -1082,11 +1082,47 @@
             } catch (err) { alert(err.message); }
         }
 
+        // Funzione per inviare il file fisico alla Edge Function di Supabase
         async function uploadFileToGoogleDrive(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
-            alert("Interfaccia e categorie configurate. Siamo pronti ad agganciare la funzione di backend (Passo 3)!");
-            inputElement.value = "";
+        
+            // Mostriamo lo stato di caricamento animato
+            const statusBox = document.getElementById('driveUploadStatus');
+            if (statusBox) statusBox.classList.remove('hidden');
+        
+            // Recuperiamo la categoria selezionata dall'utente (es. PREVENTIVO, ORDINE...)
+            const categoriaSelect = document.getElementById('categoriaDriveInput');
+            const categoriaSelezionata = categoriaSelect ? categoriaSelect.value : 'ALTRO';
+        
+            // Prepariamo il pacchetto Multipart Form Data da inviare al backend
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("commessa_id", currentCommessaId);
+            formData.append("categoria", categoriaSelezionata);
+        
+            try {
+                // Chiamiamo la Edge Function su Supabase
+                // Nota: db.functions.invoke() utilizza automaticamente l'URL corretto del tuo progetto
+                const { data, error } = await db.functions.invoke('google-drive-upload', {
+                    body: formData
+                });
+        
+                if (error) throw error;
+        
+                alert("🟢 Documento salvato e archiviato con successo nella cartella dell'ufficio!");
+                
+                // Rinfreschiamo la lista a schermo per mostrare il nuovo file sotto la sua categoria
+                fetchAllegatiDrive();
+        
+            } catch (err) {
+                console.error("Errore durante l'upload:", err);
+                alert("❌ Errore durante il caricamento su Google Drive: " + (err.message || err));
+            } finally {
+                // Nascondiamo lo stato di caricamento e resettiamo l'input del file
+                if (statusBox) statusBox.classList.add('hidden');
+                inputElement.value = "";
+            }
         }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
