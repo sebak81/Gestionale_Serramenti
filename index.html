@@ -9,12 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Libreria Ufficiale Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- CONFIGURAZIONE ESTERNA -->
     <script src="config.js"></script>
     
     <style>
@@ -33,7 +30,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header Global con nome dev Sebak e collegamento Mail + Oggetto Precompilato -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
         <a href="mailto:sebak.brn@gmail.com?subject=Richiesta%20assistenza%20PWA%20Gestione%20Commesse" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:text-blue-400 transition-colors">
@@ -41,7 +37,6 @@
         </a>
     </header>
 
-    <!-- SCHERMATA 1: SEZIONE PRINCIPALE CLIENTI (HOME) -->
     <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
@@ -66,7 +61,6 @@
         <div class="space-y-3 hidden" id="clientList"></div>
     </main>
 
-    <!-- SCHERMATA 2: HUB DETTAGLIO CLIENTE -->
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
@@ -98,7 +92,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 3: WORKSPACE COMMESSA OPERATIVA -->
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna al Cliente</span>
@@ -122,7 +115,6 @@
             <button id="tabBtnContrattoTab" onclick="switchTab('contrattoTab')" class="flex-1 py-2 text-center rounded-lg transition-all opacity-40">✍️ Contratto</button>
         </div>
 
-        <!-- TAB CONTENT 1: FASE DI LAVORAZIONE & DIARIO -->
         <div id="tabContentDiario" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div>
@@ -164,18 +156,13 @@
                 </div>
             </div>
 
-            <!-- SEZIONE STRUTTURATA GOOGLE DRIVE (OPZIONE 2) -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                     <h3 class="text-sm font-bold text-slate-900">📁 Documenti Cantiere (Google Drive)</h3>
                     
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <select id="categoriaDriveInput" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-semibold">
-                            <option value="PREVENTIVO">📄 Preventivo</option>
-                            <option value="ORDINE">📦 Ordine / Commessa</option>
-                            <option value="FOTO">📸 Foto Cantiere</option>
-                            <option value="ALTRO">📎 Altro</option>
-                        </select>
+                        <select id="categoriaDriveInput" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-semibold w-full sm:w-44">
+                            </select>
                         
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
                             ➕ Carica
@@ -203,7 +190,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 2: PREVENTIVAZIONE -->
         <div id="tabContentPreventiviTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📄 Preventivazione</h3>
@@ -248,7 +234,6 @@
             </div>
         </div>
 
-        <!-- TAB CONTENT 3: CONTRATTO -->
         <div id="tabContentContrattoTab" class="space-y-4 hidden">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <h3 class="text-sm font-bold text-slate-900 border-b pb-1">📐 Misure Esecutive & Contratto</h3>
@@ -279,7 +264,6 @@
         </div>
     </main>
 
-    <!-- SCHERMATA 4: IMPOSTAZIONI -->
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         
@@ -313,7 +297,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR IN BASSO -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -325,7 +308,6 @@
         </div>
     </nav>
 
-    <!-- MODALE AGGIUNGI CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -381,7 +363,6 @@
         </div>
     </div>
 
-    <!-- MODALE MODIFICA ANAGRAFICA -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
@@ -427,7 +408,6 @@
         </div>
     </div>
 
-    <!-- MODALE COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -440,7 +420,6 @@
         </div>
     </div>
 
-    <!-- MODALE PASSWORD -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
             <div class="text-red-600 text-2xl">🔒</div>
@@ -654,6 +633,7 @@
             document.getElementById('charCounter').innerText = "0 / 150";
 
             adjustWorkerLabels(currentCommessa.stato_macro);
+            aggiornaSelettoreCategorie(currentCommessa.stato_macro); // Abilita solo le categorie permesse per questa fase
             fetchDiarioTimeline(); 
             fetchPreventivoTimeline();
             fetchAllegatiDrive(); // Caricamento allegati raggruppati per l'Ufficio
@@ -666,7 +646,7 @@
         function handleFaseChange() {
             const faseAttuale = currentCommessa.stato_macro;
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            if (faseAttuale === nuovaFase) return;
+            if (faseAttuale === nuevaFase) return;
 
             const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
             const indexNuovo = workflowOrdinato.indexOf(nuevaFase);
@@ -682,6 +662,62 @@
             document.getElementById('workerContattoSelect').value = "";
             document.getElementById('workerAssegnatoSelect').value = "";
             adjustWorkerLabels(nuevaFase);
+            aggiornaSelettoreCategorie(nuevaFase); // Aggiorna dinamicamente le opzioni d'upload se cambi fase a schermo
+        }
+
+        // --- DINAMISMO SELETTORE CATEGORIE GOOGLE DRIVE IN BASE ALLO STATO MACRO ---
+        function aggiornaSelettoreCategorie(fase) {
+            const select = document.getElementById('categoriaDriveInput');
+            if (!select) return;
+
+            let opzioni = [];
+
+            switch(fase) {
+                case 'PRIMO_CONTATTO':
+                    opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }];
+                    break;
+                case 'PREVENTIVAZIONE':
+                    opzioni = [
+                        { val: 'PREVENTIVO', label: '📄 Preventivo' },
+                        { val: 'ALTRO', label: '📎 Altro' }
+                    ];
+                    break;
+                case 'MISURE_ESECUTIVE':
+                    opzioni = [
+                        { val: 'CONTRATTO', label: '✍️ Contratto' },
+                        { val: 'ALTRO', label: '📎 Altro' },
+                        { val: 'FOTO', label: '📸 Foto Cantiere' }
+                    ];
+                    break;
+                case 'FATTURA_ACCONTO':
+                    opzioni = [
+                        { val: 'FATTURA', label: '💰 Fattura' },
+                        { val: 'ALTRO', label: '📎 Altro' }
+                    ];
+                    break;
+                case 'ORDINI_FORNITORI':
+                    opzioni = [
+                        { val: 'ORDINE', label: '📦 Ordine / Commessa' },
+                        { val: 'ALTRO', label: '📎 Altro' }
+                    ];
+                    break;
+                case 'INSTALLAZIONE':
+                    opzioni = [
+                        { val: 'FOTO', label: '📸 Foto Cantiere' },
+                        { val: 'ALTRO', label: '📎 Altro' }
+                    ];
+                    break;
+                case 'SALDO_CONCLUSO':
+                    opzioni = [
+                        { val: 'FATTURA', label: '💰 Fatture' },
+                        { val: 'ALTRO', label: '📎 Altro' }
+                    ];
+                    break;
+                default:
+                    opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
+            }
+
+            select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
         async function saveFaseLavorazioneConDati() {
@@ -938,7 +974,7 @@
             }, 350);
         }
 
-        // --- SVILUPPO FUNZIONE LOGICA DI RENDERING DEGLI ALLEGATI GOOGLE DRIVE SUDDIVISI IN CATEGORIE (OPZIONE 2) ---
+        // --- VISUALIZZAZIONE COMPLETA ALLEGATI GOOGLE DRIVE SUDDIVISI (OPZIONE 2 CON NUOVE CATEGORIE) ---
         async function fetchAllegatiDrive() {
             const container = document.getElementById('driveAllegatiList');
             if (!container) return;
@@ -958,8 +994,11 @@
                     return;
                 }
 
+                // Raggruppiamo per tutte le categorie previste
                 const categorie = {
                     'PREVENTIVO': [],
+                    'CONTRATTO': [],
+                    'FATTURA': [],
                     'ORDINE': [],
                     'FOTO': [],
                     'ALTRO': []
@@ -983,6 +1022,8 @@
 
                     const badgeColors = {
                         'PREVENTIVO': 'bg-green-100 text-green-800 border-green-200',
+                        'CONTRATTO': 'bg-amber-100 text-amber-800 border-amber-200',
+                        'FATTURA': 'bg-emerald-100 text-emerald-800 border-emerald-200',
                         'ORDINE': 'bg-blue-100 text-blue-800 border-blue-200',
                         'FOTO': 'bg-purple-100 text-purple-800 border-purple-200',
                         'ALTRO': 'bg-slate-100 text-slate-800 border-slate-200'
@@ -991,7 +1032,11 @@
                     section.innerHTML = `
                         <div class="flex items-center">
                             <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeColors[key]}">
-                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : key === 'ORDINE' ? '📦 Ordini / Fornitori' : key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
+                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : 
+                                  key === 'CONTRATTO' ? '✍️ Contratti' : 
+                                  key === 'FATTURA' ? '💰 Fatture' : 
+                                  key === 'ORDINE' ? '📦 Ordini / Fornitori' : 
+                                  key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
                             </span>
                         </div>
                     `;
@@ -1027,7 +1072,6 @@
             }
         }
 
-        // Funzione provvisoria per l'interfaccia di cancellazione record locale
         async function deleteDriveAllegato(idSupabase, fileIdDrive) {
             if(!confirm("Vuoi rimuovere il riferimento a questo file dall'applicazione?")) return;
             try {
@@ -1038,11 +1082,10 @@
             } catch (err) { alert(err.message); }
         }
 
-        // Segnaposto logico per il successivo collegamento backend del form-data binario
         async function uploadFileToGoogleDrive(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
-            alert("Interfaccia configurata. Pronto per agganciare la funzione di backend (Passo 3)!");
+            alert("Interfaccia e categorie configurate. Siamo pronti ad agganciare la funzione di backend (Passo 3)!");
             inputElement.value = "";
         }
 
