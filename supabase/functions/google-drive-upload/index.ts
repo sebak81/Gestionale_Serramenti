@@ -233,3 +233,5 @@ async function getGoogleAccessToken(creds: any): Promise<string> {
   if (data.access_token) return data.access_token
   throw new Error("Impossibile ottenere l'access token da Google: " + JSON.stringify(data))
 }
+
+// Test di deploy
