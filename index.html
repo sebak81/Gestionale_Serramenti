@@ -81,7 +81,7 @@
                 </div>
                 <div class="flex flex-col space-y-2 items-end shrink-0">
                     <button onclick="openAnagraficaModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition-colors">✏️ Modifica Anagrafica</button>
-                    <button onclick="triggerClientDeletionFlow()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1">
+                    <button onclick="deleteCurrentClientCascade()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1">
                         <span>🗑️</span> <span>Elimina Cliente</span>
                     </button>
                 </div>
@@ -161,6 +161,35 @@
                     <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors flex items-center justify-center space-x-1">
                         <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- SEZIONE STRUTTURATA GOOGLE DRIVE (OPZIONE 2) -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
+                    <h3 class="text-sm font-bold text-slate-900">📁 Documenti Cantiere (Google Drive)</h3>
+                    
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <select id="categoriaDriveInput" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-semibold">
+                            <option value="PREVENTIVO">📄 Preventivo</option>
+                            <option value="ORDINE">📦 Ordine / Commessa</option>
+                            <option value="FOTO">📸 Foto Cantiere</option>
+                            <option value="ALTRO">📎 Altro</option>
+                        </select>
+                        
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
+                            ➕ Carica
+                            <input type="file" id="fileDriveInput" onchange="uploadFileToGoogleDrive(this)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="driveUploadStatus" class="text-xs text-blue-600 font-semibold hidden animate-pulse">
+                    ⏳ Creazione cartelle e invio file a Google Drive...
+                </div>
+
+                <div id="driveAllegatiList" class="space-y-3 max-h-64 overflow-y-auto">
+                    <p class="text-xs text-slate-400 italic">Nessun documento caricato per questo cantiere.</p>
                 </div>
             </div>
             
@@ -296,7 +325,7 @@
         </div>
     </nav>
 
-    <!-- MODALI -->
+    <!-- MODALE AGGIUNGI CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -309,8 +338,6 @@
                 <div>
                     <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
                     <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
-                    
-                    <!-- BOX SUGGERIMENTI -->
                     <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
                         <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
                         <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
@@ -348,7 +375,7 @@
                     <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
                     <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
                 </div>
-                <div class="text-[10px] text-slate-400 italic font-medium">* Almeno un contatto tra Telefono ed Email deve essere compilato.</div>
+                <div class="text-[10px] text-slate-400 italic font-medium">* Almeno un contatto deve essere compilato.</div>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
         </div>
@@ -400,6 +427,7 @@
         </div>
     </div>
 
+    <!-- MODALE COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -412,7 +440,7 @@
         </div>
     </div>
 
-    <!-- MODALE PASSWORD CON MASCHERAMENTO -->
+    <!-- MODALE PASSWORD -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
             <div class="text-red-600 text-2xl">🔒</div>
@@ -555,7 +583,7 @@
             });
         }
 
-        function triggerClientDeletionFlow() {
+        async function deleteCurrentClientCascade() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
 
@@ -626,8 +654,10 @@
             document.getElementById('charCounter').innerText = "0 / 150";
 
             adjustWorkerLabels(currentCommessa.stato_macro);
-            fetchDiarioTimeline(); fetchPreventivoTimeline();
-            navigateTo('detail'); renderTabPrivileges(currentCommessa.stato_macro);
+            fetchDiarioTimeline(); 
+            fetchPreventivoTimeline();
+            fetchAllegatiDrive(); // Caricamento allegati raggruppati per l'Ufficio
+            navigateTo('detail');
         }
 
         function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
@@ -635,11 +665,11 @@
 
         function handleFaseChange() {
             const faseAttuale = currentCommessa.stato_macro;
-            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            const nuevaFase = document.getElementById('commessaMacroSelect').value;
             if (faseAttuale === nuovaFase) return;
 
             const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
-            const indexNuovo = workflowOrdinato.indexOf(nuovaFase);
+            const indexNuovo = workflowOrdinato.indexOf(nuevaFase);
 
             if (indexNuovo < indexAttuale) {
                 alert(`⚠️ Azione Bloccata: Non puoi retrocedere.`);
@@ -651,7 +681,7 @@
             }
             document.getElementById('workerContattoSelect').value = "";
             document.getElementById('workerAssegnatoSelect').value = "";
-            adjustWorkerLabels(nuovaFase);
+            adjustWorkerLabels(nuevaFase);
         }
 
         async function saveFaseLavorazioneConDati() {
@@ -672,7 +702,7 @@
             if(nuovaFase === currentCommessa.stato_macro) {
                 await db.from('commesse').update({ contatto_gestito_da: op1Value===""?null:op1Value, preventivo_assegnato_a: op2Value===""?null:op2Value }).eq('id', currentCommessaId);
                 currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
-                await logAutomaticActivity(rigaLog); alert("✅ Diario Aggiornato!"); return;
+                alert("✅ Diario Aggiornato!"); return;
             }
 
             if(!op1Value || !annotazioni) { alert("Incaricato e Annotazioni obbligatori!"); return; }
@@ -681,7 +711,7 @@
             currentCommessa.stato_macro = nuovaFase; currentCommessa.contatto_gestito_da = op1Value; currentCommessa.preventivo_assegnato_a = op2Value;
             
             document.getElementById('faseAnnotazioniInput').value = "";
-            await logAutomaticActivity(rigaLog); alert("🎉 Fase Salvata!"); openCommessaWorkspace(currentCommessaId);
+            alert("🎉 Fase Salvata!"); openCommessaWorkspace(currentCommessaId);
         }
 
         async function saveStatoPreventivoDettagli() {
@@ -704,7 +734,6 @@
             currentCommessa.preventivo_stato = nuovoSub; currentCommessa.preventivo_data_invio = dataInizio; currentCommessa.preventivo_scadenza_promemoria = ggScadenza; currentCommessa.descrizione_lavoro = storico;
 
             fetchPreventivoTimeline();
-            await logAutomaticActivity(`📄 [ATTIVITÀ PREVENTIVO] - ${testoSub}. Note: "${annotazioni}"`);
             document.getElementById('annotazioniPreventivoInput').value = ""; alert("✅ Preventivo Aggiornato!");
         }
 
@@ -895,7 +924,7 @@
                     const d = document.createElement('div');
                     d.className = "p-1.5 bg-white hover:bg-slate-100 rounded-lg border text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors flex flex-col";
                     d.innerHTML = `<span>👤 ${dup.denominazione}</span>
-                                   <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non microscopic'}</span>`;
+                                   <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
                     
                     d.onclick = () => {
                         closeModal();
@@ -907,6 +936,114 @@
 
                 box.classList.remove('hidden');
             }, 350);
+        }
+
+        // --- SVILUPPO FUNZIONE LOGICA DI RENDERING DEGLI ALLEGATI GOOGLE DRIVE SUDDIVISI IN CATEGORIE (OPZIONE 2) ---
+        async function fetchAllegatiDrive() {
+            const container = document.getElementById('driveAllegatiList');
+            if (!container) return;
+            container.innerHTML = `<p class="text-xs text-slate-400">⏳ Caricamento documenti...</p>`;
+
+            try {
+                const { data, error } = await db
+                    .from('allegati_drive')
+                    .select('*')
+                    .eq('commessa_id', currentCommessaId)
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-400 italic">Nessun documento caricato per questo cantiere.</p>`;
+                    return;
+                }
+
+                const categorie = {
+                    'PREVENTIVO': [],
+                    'ORDINE': [],
+                    'FOTO': [],
+                    'ALTRO': []
+                };
+
+                data.forEach(all => {
+                    if (categorie[all.categoria]) {
+                        categorie[all.categoria].push(all);
+                    } else {
+                        categorie['ALTRO'].push(all);
+                    }
+                });
+
+                container.innerHTML = "";
+
+                for (const [key, files] of Object.entries(categorie)) {
+                    if (files.length === 0) continue;
+
+                    const section = document.createElement('div');
+                    section.className = "space-y-1.5 mt-2";
+
+                    const badgeColors = {
+                        'PREVENTIVO': 'bg-green-100 text-green-800 border-green-200',
+                        'ORDINE': 'bg-blue-100 text-blue-800 border-blue-200',
+                        'FOTO': 'bg-purple-100 text-purple-800 border-purple-200',
+                        'ALTRO': 'bg-slate-100 text-slate-800 border-slate-200'
+                    };
+
+                    section.innerHTML = `
+                        <div class="flex items-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeColors[key]}">
+                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : key === 'ORDINE' ? '📦 Ordini / Fornitori' : key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
+                            </span>
+                        </div>
+                    `;
+
+                    const filesContainer = document.createElement('div');
+                    filesContainer.className = "space-y-1 pl-2 border-l-2 border-slate-200 ml-2 mt-1";
+
+                    files.forEach(all => {
+                        const item = document.createElement('div');
+                        item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
+                        const viewUrl = `https://drive.google.com/file/d/${all.google_drive_file_id}/view?usp=drivesdk`;
+
+                        item.innerHTML = `
+                            <div class="flex items-center space-x-2 truncate">
+                                <span>📄</span>
+                                <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
+                            </div>
+                            <div class="flex space-x-3 shrink-0 pl-2">
+                                <a href="${viewUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
+                                <button onclick="deleteDriveAllegato('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+                            </div>
+                        `;
+                        filesContainer.appendChild(item);
+                    });
+
+                    section.appendChild(filesContainer);
+                    container.appendChild(section);
+                }
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p class="text-xs text-red-500">Errore nel caricamento dei file.</p>`;
+            }
+        }
+
+        // Funzione provvisoria per l'interfaccia di cancellazione record locale
+        async function deleteDriveAllegato(idSupabase, fileIdDrive) {
+            if(!confirm("Vuoi rimuovere il riferimento a questo file dall'applicazione?")) return;
+            try {
+                const { error } = await db.from('allegati_drive').delete().eq('id', idSupabase);
+                if (error) throw error;
+                alert("🟢 Riferimento rimosso con successo.");
+                fetchAllegatiDrive();
+            } catch (err) { alert(err.message); }
+        }
+
+        // Segnaposto logico per il successivo collegamento backend del form-data binario
+        async function uploadFileToGoogleDrive(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+            alert("Interfaccia configurata. Pronto per agganciare la funzione di backend (Passo 3)!");
+            inputElement.value = "";
         }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
