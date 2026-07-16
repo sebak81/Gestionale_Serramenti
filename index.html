@@ -112,9 +112,8 @@
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             
-            <!-- 1. FASE DI LAVORAZIONE -->
             <div>
-                <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione (Libera per inserimenti storici)</label>
+                <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                     <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
                     <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
@@ -127,38 +126,33 @@
                 </select>
             </div>
 
-            <!-- OPZIONE DINAMICA FLAG FINANZIAMENTO -->
             <div id="boxFinanziamentoFlag" class="hidden bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex items-center space-x-2">
                 <input type="checkbox" id="checkFinanziamentoAttivo" onchange="toggleFinanziamentoFlusso(this.checked)" class="rounded text-blue-600 h-4 w-4 focus:ring-blue-500">
                 <label for="checkFinanziamentoAttivo" class="text-xs font-bold text-slate-700 select-none">💳 Gestione tramite Finanziamento</label>
             </div>
 
-            <!-- 2. DETTAGLIO STATO AVANZAMENTO -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
                 <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
-            <!-- 3. SELEZIONE INCARICATI -->
             <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
                 <div id="boxWorkerContatto">
                     <label id="lblWorkerContatto" class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Incaricato / Operatore *</label>
                     <select id="workerContattoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
                 </div>
-                <div id="boxWorkerAssegnato">
+                <div id="boxWorkerAssegnato" class="hidden">
                     <label class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Assegnato a:</label>
                     <select id="workerAssegnatoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
                 </div>
             </div>
 
-            <!-- 4. SELEZIONE DATA ATTIVITÀ -->
             <div class="border-t pt-3">
-                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Modificabile se retrodatata - No future)</label>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Default Oggi - No future)</label>
                 <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <!-- 5. ANNOTAZIONI DEL PASSAGGIO CORRENTE -->
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     <label>3. Annotazioni del passaggio *</label>
@@ -167,7 +161,6 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
-            <!-- 6. SEZIONE CARICAMENTO DOCUMENTI -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                     <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
@@ -192,7 +185,6 @@
                 </div>
             </div>
 
-            <!-- 7. PULSANTONE DI SALVATAGGIO -->
             <div class="pt-2">
                 <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-sm shadow transition-colors flex items-center justify-center space-x-2">
                     <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -200,7 +192,6 @@
             </div>
         </div>
         
-        <!-- 8. DIARIO DI LAVORAZIONE GLOBAL -->
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
@@ -244,7 +235,6 @@
         </div>
     </nav>
 
-    <!-- INTERFACCIA MODAL DIALOGS -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -367,7 +357,7 @@
             'ORDINI_FORNITORI': [
                 {val: 'SVILUPPO_ORDINE', label: '📐 Sviluppo Ordine'},
                 {val: 'INVIO_ORDINE', label: '📦 Invio Ordine'},
-                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Conferma d\'Ordine'},
+                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Confirmazione d\'Ordine'},
                 {val: 'INVIO_CONFERMA', label: '📬 Invio Conferma d\'Ordine'},
                 {val: 'MERCE_ARRIVATA', label: '✅ Merce Arrivata'}
             ],
@@ -526,7 +516,8 @@
             });
         }
 
-        function openCommessaWorkspace(commessaId) {
+        // CARICAMENTO ED ALLINEAMENTO BASATO SULLA TABELLA RELAZIONALE
+        async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
             currentCommessaId = commessaId;
@@ -534,17 +525,33 @@
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
-            
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
-            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            gestisciVisibilitaFinanziamentoBox(currentCommessa.stato_macro);
-            
-            const isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
+            // 1. Recuperiamo lo storico delle attività dal database relazionale ordinato cronologicamente dal più recente
+            const { data: timelineAttivita, error } = await db
+                .from('status_diario_attivita')
+                .select('*, lavoratori(nome)')
+                .eq('commessa_id', currentCommessaId)
+                .order('data_attivita', { ascending: false })
+                .order('creato_il', { ascending: false });
+
+            // 2. LOGICA DI ALLINEAMENTO AUTOMATICO STRUTTURALE ALLA NOTA PIÙ RECENTE
+            let macroFaseImpostata = currentCommessa.stato_macro;
+            let subStatoImpostato = currentCommessa.preventivo_stato;
+            let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
+
+            if (timelineAttivita && timelineAttivita.length > 0) {
+                // Sovrascriviamo lo stato a schermo basandoci sulla riga cronologicamente più recente della tabella
+                macroFaseImpostata = timelineAttivita[0].macro_fase;
+                subStatoImpostato = timelineAttivita[0].sub_stato;
+            }
+
+            document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
+            gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
-            popolaSubStatoMenu(currentCommessa.stato_macro, isFinanz);
-            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[currentCommessa.stato_macro][0].val);
+            popolaSubStatoMenu(macroFaseImpostata, isFinanz);
+            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
             
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
@@ -553,9 +560,11 @@
             document.getElementById('charCounter').innerText = "0 / 150";
 
             inizializzaCalendarioOggi();
-            adjustWorkerLabels(currentCommessa.stato_macro);
-            aggiornaSelettoreCategorie(currentCommessa.stato_macro); 
-            fetchDiarioTimeline(); 
+            adjustWorkerLabels(macroFaseImpostata);
+            aggiornaSelettoreCategorie(macroFaseImpostata); 
+            
+            // Disegnamo la lista del diario relazionale passandogli i dati caricati
+            renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             navigateTo('detail');
         }
@@ -622,9 +631,10 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
+        // INSERIMENTO PULITO DI UNA RIGA DEDICATA NELLA TABELLA RELAZIONALE
         async function saveFaseLavorazioneConDati() {
-            const nuovaFaseSceltaA_Schermo = document.getElementById('commessaMacroSelect').value;
-            const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
+            const macroFaseScelta = document.getElementById('commessaMacroSelect').value;
+            const subStatoScelto = document.getElementById('subStatoAvanzamentoSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
@@ -632,11 +642,6 @@
             const isFinanziamentoAttivo = document.getElementById('checkFinanziamentoAttivo').checked;
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
-            const op1Text = op1Select.options[op1Select.selectedIndex]?.text || 'Nessuno';
-            const op2Text = op2Select.options[op2Select.selectedIndex]?.text || 'Nessuno';
-
-            const selectSub = document.getElementById('subStatoAvanzamentoSelect');
-            const testoSubStato = selectSub.options[selectSub.selectedIndex]?.text || nuovoSubStato;
 
             if(!op1Value || !annotazioni) { 
                 alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
@@ -648,102 +653,114 @@
             const oggi = new Date(); oggi.setHours(23,59,59,999);
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
-            const partiData = dataSceltaRaw.split('-');
-            const dataFormattataUtente = `${partiData[2]}/${partiData[1]}/${partiData[0]}`;
-
-            let finanziamentoBadge = (nuovaFaseSceltaA_Schermo === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? '[FINANZIAMENTO] ' : '';
-
-            let rigaLog = `[${dataSceltaRaw}][FASE:${nuovaFaseSceltaA_Schermo}] - DATA: ${dataFormattataUtente} - Fase: ${finanziamentoBadge}${nuovaFaseSceltaA_Schermo} (${testoSubStato}) | Incaricato: ${op1Text}`;
-            if(nuovaFaseSceltaA_Schermo==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
-            rigaLog += ` | Nota: ${annotazioni}`;
-
-            let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
-
-            // Ordinamento cronologico decrescente (il più recente in alto)
-            let righeOrdinate = diarioCompletoRaw.split('\n')
-                .filter(r => r.trim() !== "")
-                .sort((a, b) => {
-                    const dataA = a.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
-                    const dataB = b.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
-                    if (dataA && dataB) return dataB[1].localeCompare(dataA[1]);
-                    return 0;
-                });
-
-            let diarioOrdinatoTesto = righeOrdinate.join('\n');
-
-            let macroFaseRealeDaSalvare = nuovaFaseSceltaA_Schermo; 
-            let sottoStatoRealeDaSalvare = nuovoSubStato;
-            
-            if (righeOrdinate.length > 0) {
-                const matchFase = righeOrdinate[0].match(/\[FASE:([A-Z_]+)\]/);
-                if (matchFase && matchFase[1]) macroFaseRealeDaSalvare = matchFase[1];
-            }
-
-            if (macroFaseRealeDaSalvare !== nuovaFaseSceltaA_Schermo) {
-                sottoStatoRealeDaSalvare = currentCommessa.preventivo_stato || subStatiOpzioni[macroFaseRealeDaSalvare][0].val;
-            }
-
-            let valoreFinanziamentoDB = (macroFaseRealeDaSalvare === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
-
             try {
+                // 1. Inseriamo la nuova riga indipendente nel diario relazionale status_diario_attivita
+                const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
+                    commessa_id: currentCommessaId,
+                    data_attivita: dataSceltaRaw,
+                    macro_fase: macroFaseScelta,
+                    sub_stato: subStatoScelto,
+                    operatore_id: op1Value,
+                    nota: annotazioni
+                }]);
+
+                if (errorDiario) throw errorDiario;
+
+                // 2. CALCOLO CRONOLOGICO AUTOMATICO DELLA FASE REALE DOPO L'INSERIMENTO
+                const { data: timelineAggiornata } = await db
+                    .from('status_diario_attivita')
+                    .select('*')
+                    .eq('commessa_id', currentCommessaId)
+                    .order('data_attivita', { ascending: false })
+                    .order('creato_il', { ascending: false });
+
+                let macroFaseFinaleDaImpostare = macroFaseScelta;
+                let subStatoFinaleDaImpostare = subStatoScelto;
+
+                if (timelineAggiornata && timelineAggiornata.length > 0) {
+                    macroFaseFinaleDaImpostare = timelineAggiornata[0].macro_fase;
+                    subStatoFinaleDaImpostare = timelineAggiornata[0].sub_stato;
+                }
+
+                let valoreFinanziamentoDB = (macroFaseFinaleDaImpostare === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
+
+                // 3. Aggiorniamo lo stato principale della commessa con l'attività cronologicamente più recente
                 await db.from('commesse').update({ 
-                    stato_macro: macroFaseRealeDaSalvare, 
-                    preventivo_stato: sottoStatoRealeDaSalvare,
+                    stato_macro: macroFaseFinaleDaImpostare,
+                    preventivo_stato: subStatoFinaleDaImpostare,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
-                    note_cantiere: diarioOrdinatoTesto,
                     descrizione_lavoro: valoreFinanziamentoDB
                 }).eq('id', currentCommessaId);
                 
-                currentCommessa.stato_macro = macroFaseRealeDaSalvare;
-                currentCommessa.preventivo_stato = sottoStatoRealeDaSalvare;
-                currentCommessa.contatto_gestito_da = op1Value; 
-                currentCommessa.preventivo_assegnato_a = op2Value;
-                currentCommessa.note_cantiere = diarioOrdinatoTesto;
-                currentCommessa.descrizione_lavoro = valoreFinanziamentoDB;
-                
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività inserita correttamente e memorizzata in ordine cronologico!");
+                alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
                 openCommessaWorkspace(currentCommessaId); 
                 
-            } catch(err) { alert("Errore: " + err.message); }
+            } catch(err) { alert("Errore tecnico: " + err.message); }
         }
 
-        // CORREZIONE DEFINITIVA ORDINAMENTO VISIVO INTERFACCIA
-        function fetchDiarioTimeline() {
+        // LETTURA DEI DATI NATIVI ORDINATI DAL PIÙ RECENTE
+        async function fetchDiarioTimeline() {
+            try {
+                const { data: timeline, error } = await db
+                    .from('status_diario_attivita')
+                    .select('*, lavoratori(nome)')
+                    .eq('commessa_id', currentCommessaId)
+                    .order('data_attivita', { ascending: false })
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+                renderDiarioTimelineInterfaccia(timeline || []);
+            } catch(err) { console.error(err); }
+        }
+
+        // STAMPA DEI RECORD A SCHERMO CON INTERCETTAZIONE DEL TRIPLO CLIC
+        function renderDiarioTimelineInterfaccia(arrayRecord) {
             const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
-            if(!currentCommessa || !currentCommessa.note_cantiere) {
-                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata.</p>`;
+            if(arrayRecord.length === 0) {
+                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
                 return;
             }
-            
-            // RIMOSSO il .reverse(): stampiamo esattamente come salvato (dal più recente in cima)
-            currentCommessa.note_cantiere.split('\n').forEach(l => {
-                if(l.trim()) {
-                    const r = document.createElement('div'); 
-                    r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
-                    
-                    let testoPulito = l.replace(/^\[\d{4}-\d{2}-\d{2}\]/, "").replace(/\[FASE:[A-Z_]+\]\s-\s/, "");
-                    r.innerText = testoPulito; 
-                    
-                    r.onclick = (e) => {
-                        if (e.detail === 3) requestDeleteNoteGlobal(l); 
-                    };
-                    container.appendChild(r);
-                }
+
+            arrayRecord.forEach(rec => {
+                const r = document.createElement('div'); 
+                r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
+                
+                // Formattiamo la data per l'utente leggendola dal campo data nativo del database
+                const dParti = rec.data_attivita.split('-');
+                const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
+                
+                const nomeOperatore = rec.lavoratori?.nome || 'Nessuno';
+                
+                // Risoluzione etichetta sottofase per la stampa estetica
+                let etichettaSottofase = rec.sub_stato;
+                const setOpzioni = subStatiOpzioni[rec.macro_fase] || [];
+                const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
+                if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
+
+                r.innerText = `[${dataLeggibile}] - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
+                
+                // TRIPLO CLIC PER ELIMINARE LA RIGA USANDO IL SUO ID UUID UNICO
+                r.onclick = (e) => {
+                    if (e.detail === 3) {
+                        requestDeleteNoteGlobalRelazionale(rec.id, r.innerText);
+                    }
+                };
+                container.appendChild(r);
             });
         }
 
-        function requestDeleteNoteGlobal(rigaIntera) {
-            if (!confirm(`Vuoi davvero eliminare definitivamente questa attività dallo storico?\n\n"${rigaIntera.replace(/^\[\d{4}-\d{2}-\d{2}\]/, "").replace(/\[FASE:[A-Z_]+\]\s-\s/, "")}"`)) return;
-            pendingDeleteAction = { type: 'NOTE', data: rigaIntera };
+        function requestDeleteNoteGlobalRelazionale(idRecordDiario, stringaTesto) {
+            if (!confirm(`Vuoi davvero eliminare permanentemente questa riga dal database relazionale?\n\n"${stringaTesto}"`)) return;
+            pendingDeleteAction = { type: 'NOTE_RELAZIONALE', data: idRecordDiario };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
             document.getElementById('adminPasswordHiddenInput').focus();
         }
 
         function requestDeleteCommessaCascade(commessaId, titolo) {
-            if (!confirm(`⚠️ ATTENZIONE:\n\nStai per eliminare permanentemente la commessa:\n"${titolo}"\n\ne TUTTO il suo diario storico. Questa azione è irreversibile. Procedere?`)) return;
+            if (!confirm(`⚠️ ATTENZIONE:\n\nStai per eliminare la commessa "${titolo}". Verranno cancellati a cascata tutti gli allegati e i diari storici. Procedere?`)) return;
             pendingDeleteAction = { type: 'COMMESSA', data: commessaId };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
@@ -753,54 +770,41 @@
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
             if (passValue !== "Fighette@69") {
-                alert("❌ ERRORE:\nPassword amministratore errata. Autorizzazione negata.");
+                alert("❌ Password amministratore errata.");
                 return;
             }
             closePasswordAuthModal();
             if (!pendingDeleteAction) return;
 
             try {
-                if (pendingDeleteAction.type === 'NOTE') {
-                    const rigaDaRimuovere = pendingDeleteAction.data;
-                    let lineeAggiornate = currentCommessa.note_cantiere.split('\n').filter(l => l.trim() !== rigaDaRimuovere.trim());
-                    let nuovoTestoDiario = lineeAggiornate.join('\n');
+                // CANCELLAZIONE RIGA DELLA NUOVA TABELLA RELAZIONALE
+                if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
+                    const idDaRimuovere = pendingDeleteAction.data;
                     
-                    let macroFaseRimastaMassima = "PRIMO_CONTATTO";
-                    if (lineeAggiornate.length > 0) {
-                        const matchFase = lineeAggiornate[0].match(/\[FASE:([A-Z_]+)\]/);
-                        if (matchFase && matchFase[1]) macroFaseRimastaMassima = matchFase[1];
-                    }
+                    // Rimuoviamo il record dalla tabella status_diario_attivita
+                    await db.from('status_diario_attivita').delete().eq('id', idDaRimuovere);
+                    alert("🗑️ Riga rimossa con successo dal Database relazionale.");
                     
-                    await db.from('commesse').update({ 
-                        note_cantiere: nuovoTestoDiario,
-                        stato_macro: macroFaseRimastaMassima
-                    }).eq('id', currentCommessaId);
-                    
-                    currentCommessa.note_cantiere = nuovoTestoDiario;
-                    currentCommessa.stato_macro = macroFaseRimastaMassima;
-                    
-                    alert("🗑️ Attività rimossa correttamente. Stato cantiere riallineato.");
+                    // Forza il riallineamento dello stato principale della commessa all'elemento più recente rimasto
                     openCommessaWorkspace(currentCommessaId);
                 } 
                 else if (pendingDeleteAction.type === 'COMMESSA') {
                     const commessaIdDaEliminare = pendingDeleteAction.data;
+                    await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
                     await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
                     const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
                     if (error) throw error;
-                    alert("🗑️ Cantiere e storico attività eliminati con successo.");
-                    await fetchClienti();
-                    renderClientHub(); 
+                    alert("🗑️ Cantiere rimosso.");
+                    await fetchClienti(); renderClientHub(); 
                 }
                 else if (pendingDeleteAction.type === 'CLIENTE') {
                     const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
                     if (errorCommesse) throw errorCommesse;
-                    const { error: errorCliente } = await db.from('clienti').delete().eq('id', currentClienteId);
-                    if (errorCliente) throw errorCliente;
-                    alert("🟢 Record cliente rimosso correttamente.");
-                    currentClienteId = null;
-                    navigateTo('main');
+                    await db.from('clienti').delete().eq('id', currentClienteId);
+                    alert("🟢 Record cliente rimosso.");
+                    currentClienteId = null; navigateTo('main');
                 }
-            } catch (err) { alert("Errore tecnico: " + err.message); }
+            } catch (err) { alert("Errore: " + err.message); }
             finally { pendingDeleteAction = null; }
         }
 
@@ -1033,7 +1037,7 @@
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
+            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
