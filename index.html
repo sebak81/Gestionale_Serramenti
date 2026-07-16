@@ -62,7 +62,7 @@
     </main>
 
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+        <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
@@ -127,7 +127,7 @@
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
                 <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
-                    </select>
+                </select>
             </div>
             
             <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
@@ -139,6 +139,11 @@
                     <label class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Assegnato a:</label>
                     <select id="workerAssegnatoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
                 </div>
+            </div>
+
+            <div class="border-t pt-3">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Modificabile se retrodatata - No future)</label>
+                <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
@@ -182,7 +187,7 @@
         
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Storico)</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Dal più recente)</h3>
             </div>
             <div id="diarioTimeline" class="space-y-2"></div>
         </div>
@@ -190,7 +195,6 @@
 
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
-        
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
             <div class="flex items-center space-x-2">
@@ -198,21 +202,14 @@
                 <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
             </div>
         </div>
-
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
-            
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                 <div id="workerFormTitle" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Nuovo Collaboratore</div>
                 <input type="hidden" id="editingWorkerId" value="">
-                
                 <div class="space-y-2 text-xs">
-                    <div>
-                        <input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
-                    </div>
-                    <div>
-                        <input type="text" id="newWorkerMansione" placeholder="Es. Posatore, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300">
-                    </div>
+                    <div><input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300"></div>
+                    <div><input type="text" id="newWorkerMansione" placeholder="Es. Posatore, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300"></div>
                     <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Collaboratore</button>
                     <button id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="w-full text-center text-[11px] text-slate-500 underline hidden">Annulla Modifica</button>
                 </div>
@@ -253,30 +250,17 @@
                     <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
-                        <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
-                        <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
-                        <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
-                        <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
                     <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
                 </div>
-                <div class="text-[10px] text-slate-400 italic font-medium">* Almeno un contatto deve essere compilato.</div>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
         </div>
@@ -286,38 +270,17 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
-                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label>
-                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label><input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold"></div>
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
-                        <input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
-                        <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
-                        <input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
-                        <input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
-                    <textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
-                </div>
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label><textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea></div>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
         </div>
@@ -361,7 +324,6 @@
         
         const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
 
-        // CONFIGURAZIONE DELLE OPZIONI DEI SUB-STATI PER OGNI MACRO FASE
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
@@ -380,7 +342,7 @@
             'FATTURA_ACCONTO': [
                 {val: 'EMISSIONE', label: '⏳ Richiesta emissione acconto'},
                 {val: 'ATTESA_BONIFICO', label: '💰 Emessa / In attesa di pagamento'},
-                {val: 'PAGATA', label: '✅ Pagata / Procedere con ordini'}
+                {val: 'PAGATA', label: '✅ Pagata / Proceedere con ordini'}
             ],
             'ORDINI_FORNITORI': [
                 {val: 'SVILUPPO_DISTINTE', label: '📐 Sviluppo distinte e conteggi'},
@@ -399,6 +361,22 @@
                 {val: 'CHIUSO', label: '🎉 Commessa incassata e Chiusa'}
             ]
         };
+
+        // Funzione per impostare la data odierna nei limiti dei campi di input HTML
+        function inizializzaCalendarioOggi() {
+            const oggi = new Date();
+            const anno = oggi.getFullYear();
+            const mese = String(oggi.getMonth() + 1).padStart(2, '0');
+            const giorno = String(oggi.getDate()).padStart(2, '0');
+            
+            const dataFormattata = `${anno}-${mese}-${giorno}`;
+            const inputData = document.getElementById('dataAttivitaInput');
+            
+            if (inputData) {
+                inputData.value = dataFormattata;
+                inputData.max = dataFormattata; // IMPEDISCE DATE FUTURE
+            }
+        }
 
         function navigateTo(screen) {
             if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
@@ -558,7 +536,6 @@
             }
         }
 
-        // CARICAMENTO IN UN'UNICA PAGINA FLUIDA
         function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -569,20 +546,19 @@
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
-            
-            // Imposta Macro Fase
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            // Genera e imposta le opzioni del Sub-Stato
             popolaSubStatoMenu(currentCommessa.stato_macro);
             document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || subStatiOpzioni[currentCommessa.stato_macro][0].val;
             
-            // Operatori
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
+
+            // Ripristina sempre il calendario alla data odierna di default
+            inizializzaCalendarioOggi();
 
             adjustWorkerLabels(currentCommessa.stato_macro);
             aggiornaSelettoreCategorie(currentCommessa.stato_macro); 
@@ -594,13 +570,7 @@
         function popolaSubStatoMenu(macroFase) {
             const select = document.getElementById('subStatoAvanzamentoSelect');
             const opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
-            select.innerHTML = opzioni.map(o => `<option value="${allineaSottoStatoDatabase(o.val)}">${o.label}</option>`).join('');
-        }
-
-        // Funzione di retrocompatibilità con i vecchi nomi delle tabelle del database
-        function allineaSottoStatoDatabase(val) {
-            if (val === 'REDZIONE') return 'REDZIONE'; // Lasciamo lo spelling esistente sul DB
-            return val;
+            select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
         function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
@@ -627,7 +597,6 @@
                 }
             }
             
-            // Aggiorna dinamicamente i sottomenu in base alla nuova macrofase selezionata a schermo
             popolaSubStatoMenu(nuevaFase);
             adjustWorkerLabels(nuevaFase);
             aggiornaSelettoreCategorie(nuevaFase); 
@@ -645,7 +614,6 @@
             }
         }
 
-        // --- DINAMISMO SELETTORE CATEGORIE IN BASE ALLO STATO MACRO ---
         function aggiornaSelettoreCategorie(fase) {
             const select = document.getElementById('categoriaDriveInput');
             if (!select) return;
@@ -679,13 +647,14 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // SALVATAGGIO FLUIDO UNIFICATO NEL DIARIO GLOBAL
+        // SALVATAGGIO CON ORDINAMENTO CRONOLOGICO INTELLIGENTE
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
+            const dataSceltaRaw = document.getElementById('dataAttivitaInput').value;
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
             const op1Text = op1Select.options[op1Select.selectedIndex]?.text || 'Nessuno';
@@ -695,18 +664,44 @@
             const testoSubStato = selectSub.options[selectSub.selectedIndex]?.text || nuovoSubStato;
 
             if(!op1Value || !annotazioni) { 
-                alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori per salvare!"); 
+                alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
                 return; 
             }
 
-            const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+            // Validazione data (controllo di sicurezza ulteriore)
+            if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
+            const dataScelta = new Date(dataSceltaRaw);
+            const oggi = new Date();
+            oggi.setHours(23,59,59,999); // Imposta fine giornata odierna per evitare falsi positivi
+            if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
-            // Generiamo la riga per lo storico del Diario Global
-            let rigaLog = `[${t}] - Fase: ${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
+            // Formattiamo la data scelta per l'utente (giorno/mese/anno)
+            const partiData = dataSceltaRaw.split('-');
+            const dataFormattataUtente = `${partiData[2]}/${partiData[1]}/${partiData[0]}`;
+
+            // Creiamo la riga stringa contrassegnata dal tag DATA-ISO speciale [YYYY-MM-DD] per l'ordinamento dinamico successivo
+            let rigaLog = `[${dataSceltaRaw}] - DATA: ${dataFormattataUtente} - Fase: ${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
             if(nuovaFase==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
             rigaLog += ` | Nota: ${annotazioni}`;
 
-            let diarioAggiornato = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
+            // Uniamo la nuova riga al blocco esistente
+            let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
+
+            // --- FLUSSO DI ORDINAMENTO INTUTITIVO CRONOLOGICO (DALLA PIÙ RECENTE ALLA PIÙ VECCHIA) ---
+            let righeOrdinate = diarioCompletoRaw.split('\n')
+                .filter(r => r.trim() !== "")
+                .sort((a, b) => {
+                    // Estraiamo il tag ISO iniziale [YYYY-MM-DD] da ogni riga per fare il confronto matematico
+                    const dataA = a.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
+                    const dataB = b.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
+                    
+                    if (dataA && dataB) {
+                        return dataB[1].localeCompare(dataA[1]); // Discendente: la più recente sopra
+                    }
+                    return 0;
+                });
+
+            let diarioOrdinatoTesto = righeOrdinate.join('\n');
 
             try {
                 await db.from('commesse').update({ 
@@ -714,19 +709,18 @@
                     preventivo_stato: nuovoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
-                    note_cantiere: diarioAggiornato
+                    note_cantiere: diarioOrdinatoTesto
                 }).eq('id', currentCommessaId);
                 
-                // Aggiorna lo stato locale per evitare refresh
                 currentCommessa.stato_macro = nuovaFase;
                 currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.contatto_gestito_da = op1Value; 
                 currentCommessa.preventivo_assegnato_a = op2Value;
-                currentCommessa.note_cantiere = diarioAggiornato;
+                currentCommessa.note_cantiere = diarioOrdinatoTesto;
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Modifiche e attività registrate correttamente nel Diario Global!");
-                openCommessaWorkspace(currentCommessaId); // Rinfresca visivamente la timeline
+                alert("🟢 Attività registrata e riordinata cronologicamente nel Diario Global!");
+                openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) {
                 alert("Errore tecnico durante il salvataggio: " + err.message);
@@ -739,10 +733,15 @@
                 container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
                 return;
             }
-            currentCommessa.note_cantiere.split('\n').reverse().forEach(l => {
+            
+            // Le righe sono già salvate nel database ordinate dalla più recente alla più vecchia, le stampiamo direttamente
+            currentCommessa.note_cantiere.split('\n').forEach(l => {
                 if(l.trim()) {
-                    const r = document.createElement('div'); r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed";
-                    r.innerText = l; container.appendChild(r);
+                    const r = document.createElement('div'); r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium";
+                    
+                    // Puliamo esteticamente il log rimuovendo il tag tecnico [YYYY-MM-DD] visibile a schermo
+                    r.innerText = l.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, ""); 
+                    container.appendChild(r);
                 }
             });
         }
@@ -886,7 +885,6 @@
             }, 350);
         }
 
-        // --- GESTIONE ALLEGATI CON SUPABASE STORAGE ---
         async function fetchAllegatiDrive() {
             const container = document.getElementById('driveAllegatiList');
             if (!container) return;
