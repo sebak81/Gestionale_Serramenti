@@ -26,6 +26,7 @@
         .macro-ORDINI_FORNITORI { background-color: #e0e7ff; color: #4338ca; }
         .macro-INSTALLAZIONE { background-color: #fee2e2; color: #b91c1c; }
         .macro-SALDO_CONCLUSO { background-color: #dcfce7; color: #15803d; }
+        .macro-ASSISTENZA_POST { background-color: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
@@ -111,6 +112,7 @@
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             
+            <!-- 1. FASE DI LAVORAZIONE -->
             <div>
                 <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
@@ -121,15 +123,24 @@
                     <option value="ORDINI_FORNITORI">📦 5. ORDINI AI FORNITORI</option>
                     <option value="INSTALLAZIONE">🔧 6. INSTALLAZIONE / POSA</option>
                     <option value="SALDO_CONCLUSO">✅ 7. SALDO E CONCLUSO</option>
+                    <option value="ASSISTENZA_POST">🛠️ 8. ASSISTENZA POST-VENDITA</option>
                 </select>
             </div>
 
+            <!-- OPZIONE DINAMICA FLAG FINANZIAMENTO (Sottofasi 4) -->
+            <div id="boxFinanziamentoFlag" class="hidden bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex items-center space-x-2">
+                <input type="checkbox" id="checkFinanziamentoAttivo" onchange="toggleFinanziamentoFlusso(this.checked)" class="rounded text-blue-600 h-4 w-4 focus:ring-blue-500">
+                <label for="checkFinanziamentoAttivo" class="text-xs font-bold text-slate-700 select-none">💳 Gestione tramite Finanziamento</label>
+            </div>
+
+            <!-- 2. DETTAGLIO STATO AVANZAMENTO -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
                 <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
+            <!-- 3. SELEZIONE INCARICATI -->
             <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
                 <div id="boxWorkerContatto">
                     <label id="lblWorkerContatto" class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Incaricato / Operatore *</label>
@@ -141,11 +152,13 @@
                 </div>
             </div>
 
+            <!-- 4. SELEZIONE DATA ATTIVITÀ -->
             <div class="border-t pt-3">
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Modificabile se retrodatata - No future)</label>
                 <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
             </div>
 
+            <!-- 5. ANNOTAZIONI DEL PASSAGGIO CORRENTE -->
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     <label>3. Annotazioni del passaggio *</label>
@@ -154,6 +167,7 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
+            <!-- 6. SEZIONE CARICAMENTO DOCUMENTI -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                     <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
@@ -178,6 +192,7 @@
                 </div>
             </div>
 
+            <!-- 7. PULSANTONE DI SALVATAGGIO -->
             <div class="pt-2">
                 <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-sm shadow transition-colors flex items-center justify-center space-x-2">
                     <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
@@ -185,6 +200,7 @@
             </div>
         </div>
         
+        <!-- 8. DIARIO DI LAVORAZIONE GLOBAL -->
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
@@ -229,6 +245,7 @@
         </div>
     </nav>
 
+    <!-- INTERFACCIA MODAL DIALOGS -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -323,45 +340,65 @@
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
         
-        const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
+        const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
+        // ARCHITETTURA COMPLETA DI TUTTE LE SOTTO_FASI DI LAVORAZIONE AGGIORNATE
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
+                {val: 'SOPRALLUOGO', label: '📐 Sopralluogo Preventivo'},
                 {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
-                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire / Consegnare'},
+                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire / Deliverare'},
                 {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
                 {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
                 {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
             ],
             'MISURE_ESECUTIVE': [
-                {val: 'REDZIONE', label: '📝 Contratto in Redazione / Misure da prendere'},
-                {val: 'INVIATO_CONSEGNA', label: '📬 Inviato per approvazione'},
-                {val: 'MODIFICHE_IN_CORSO', label: '🔧 Modifiche Richieste in Corso'},
-                {val: 'FIRMATO_CONFERMATO', label: '✍️ FIRMATO E SOTTOSCRITTO'}
+                {val: 'ESECUTIVE', label: '📐 Misure Esecutive'},
+                {val: 'PRE_ORDINI', label: '🔍 Pre Ordini'},
+                {val: 'SVILUPPO_CONTRATTO', label: '📝 Sviluppo Contratto'},
+                {val: 'INVIATO_CONSEGNA', label: '📬 Contratto Inviato / Consegnato'},
+                {val: 'MODIFICHE_IN_CORSO', label: '🔧 Contratto Rifiutato'},
+                {val: 'FIRMATO_CONFERMATO', label: '✍️ Contratto Firmato'}
             ],
             'FATTURA_ACCONTO': [
-                {val: 'EMISSIONE', label: '⏳ Richiesta emissione acconto'},
-                {val: 'ATTESA_BONIFICO', label: '💰 Emessa / In attesa di pagamento'},
-                {val: 'PAGATA', label: '✅ Pagata / Procedere con ordini'}
+                {val: 'FATTURA_DA_FARE', label: '⏳ Fattura Da Fare'},
+                {val: 'FATTURA_INVIATA', label: '📬 Fattura Acconto Inviata'},
+                {val: 'PAGATA', label: '💰 Acconto Pagato'}
             ],
             'ORDINI_FORNITORI': [
-                {val: 'SVILUPPO_DISTINTE', label: '📐 Sviluppo distinte e conteggi'},
-                {val: 'INVIATO_FORNITORE', label: '📦 Ordini inviati (Attesa conferme)'},
-                {val: 'CONFERMATO_DATA', label: '📅 Ordini confermati con data di consegna'}
+                {val: 'SVILUPPO_ORDINE', label: '📐 Sviluppo Ordine'},
+                {val: 'INVIO_ORDINE', label: '📦 Invio Ordine'},
+                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Conferma d\'Ordine'},
+                {val: 'INVIO_CONFERMA', label: '📬 Invio Conferma d\'Ordine'},
+                {val: 'MERCE_ARRIVATA', label: '✅ Merce Arrivata'}
             ],
             'INSTALLAZIONE': [
-                {val: 'PROGRAMMATO', label: '📅 Posa programmata a calendario'},
-                {val: 'IN_CORSO', label: '🔧 Posatori in cantiere'},
-                {val: 'FINITO_CON_RISERVA', label: '⚠️ Installato ma con contestazioni/mancanze'},
-                {val: 'COMPLETATO', label: '🆗 Posa eseguita a regola d\'arte'}
+                {val: 'POSA', label: '🔧 Posa'},
+                {val: 'FINITURE', label: '✨ Finiture'},
+                {val: 'SISTEMAZIONI', label: '🛠️ Sistemazioni'}
             ],
             'SALDO_CONCLUSO': [
-                {val: 'FATTURAZIONE_FINALE', label: '💵 Richiesta fattura di saldo'},
-                {val: 'ATTESA_SALDO', label: '⏳ In attesa di saldo finale'},
-                {val: 'CHIUSO', label: '🎉 Commessa incassata e Chiusa'}
+                {val: 'SALDO_DA_FARE', label: '💵 Fattura Da Fare'},
+                {val: 'SALDO_INVIATO', label: '📬 Fattura Saldo Inviata'},
+                {val: 'CHIUSO', label: '🎉 Saldo Pagato'}
+            ],
+            'ASSISTENZA_POST': [
+                {val: 'REGISTRAZIONI', label: '🔧 Registrazioni / Sistemazioni'},
+                {val: 'RNC', label: '⚠️ RNC (Reclamo Non Conformità)'}
             ]
         };
+
+        // Sottofasi speciali se la pratica prevede un Finanziamento (Fase 4)
+        const sottofasiFinanziamento = [
+            {val: 'INSERIMENTO_PRATICA', label: '📝 Inserimento pratica (domanda)'},
+            {val: 'VERIFICA_VERDE', label: '🟢 Verifica (Luce Verde)'},
+            {val: 'VERIFICA_ROSSA', label: '🔴 Verifica (Luce Rossa)'},
+            {val: 'DOCUMENTI_MANCANTI', label: '⚠️ Documenti mancanti'},
+            {val: 'FATTURA_INVIATA_FIN', label: '📬 Fattura Acconto Inviata'},
+            {val: 'PAGATA_FIN', label: '💰 Acconto Pagato'},
+            {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
+        ];
 
         function inizializzaCalendarioOggi() {
             const oggi = new Date();
@@ -478,7 +515,7 @@
                 
                 div.innerHTML = `
                 <div class="flex-1 min-w-0" onclick="openCommessaWorkspace('${com.id}')" class="cursor-pointer">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro === 'ASSISTENZA_POST' ? 'POST-VENDITA' : com.stato_macro}</span>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
                         📍 Cantiere: ${com.indirizzo_cantiere}
@@ -504,8 +541,15 @@
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            popolaSubStatoMenu(currentCommessa.stato_macro);
-            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || subStatiOpzioni[currentCommessa.stato_macro][0].val;
+            // Gestione visibilità del Flag Finanziamento
+            gestisciVisibilitaFinanziamentoBox(currentCommessa.stato_macro);
+            
+            // Controlla se lo stato salvato appartiene al flusso finanziamento per reimpostare la checkbox
+            const isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
+            document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
+
+            popolaSubStatoMenu(currentCommessa.stato_macro, isFinanz);
+            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[currentCommessa.stato_macro][0].val);
             
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
@@ -521,9 +565,30 @@
             navigateTo('detail');
         }
 
-        function popolaSubStatoMenu(macroFase) {
+        function gestisciVisibilitaFinanziamentoBox(macroFase) {
+            const box = document.getElementById('boxFinanziamentoFlag');
+            if (macroFase === 'FATTURA_ACCONTO') {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function toggleFinanziamentoFlusso(isChecked) {
+            const macroFase = document.getElementById('commessaMacroSelect').value;
+            popolaSubStatoMenu(macroFase, isChecked);
+        }
+
+        function popolaSubStatoMenu(macroFase, isFinanziamento = false) {
             const select = document.getElementById('subStatoAvanzamentoSelect');
-            const opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
+            let opzioni = [];
+            
+            if (macroFase === 'FATTURA_ACCONTO' && isFinanziamento) {
+                opzioni = sottofasiFinanziamento;
+            } else {
+                opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
+            }
+            
             select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
@@ -550,7 +615,11 @@
                     return; 
                 }
             }
-            popolaSubStatoMenu(nuevaFase);
+            
+            gestisciVisibilitaFinanziamentoBox(nuevaFase);
+            document.getElementById('checkFinanziamentoAttivo').checked = false;
+
+            popolaSubStatoMenu(nuevaFase, false);
             adjustWorkerLabels(nuevaFase);
             aggiornaSelettoreCategorie(nuevaFase); 
         }
@@ -580,11 +649,13 @@
                 case 'ORDINI_FORNITORI': opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
                 case 'INSTALLAZIONE': opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
                 case 'SALDO_CONCLUSO': opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'ASSISTENZA_POST': opzioni = [{ val: 'FOTO', label: '📸 Foto Intervento' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
                 default: opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
             }
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
+        // SALVATAGGIO REINTEGRATO CON SUB-STATI AGGIORNATI
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -592,6 +663,7 @@
             const op2Select = document.getElementById('workerAssegnatoSelect');
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
             const dataSceltaRaw = document.getElementById('dataAttivitaInput').value;
+            const isFinanziamentoAttivo = document.getElementById('checkFinanziamentoAttivo').checked;
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
             const op1Text = op1Select.options[op1Select.selectedIndex]?.text || 'Nessuno';
@@ -610,10 +682,13 @@
             const oggi = new Date(); oggi.setHours(23,59,59,999);
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
-            const彩partiData = dataSceltaRaw.split('-');
-            const dataFormattataUtente = `${彩partiData[2]}/${彩partiData[1]}/${彩partiData[0]}`;
+            const partiData = dataSceltaRaw.split('-');
+            const dataFormattataUtente = `${partiData[2]}/${partiData[1]}/${partiData[0]}`;
 
-            let rigaLog = `[${dataSceltaRaw}] - DATA: ${dataFormattataUtente} - Fase: ${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
+            // Aggiungiamo un prefisso se la gestione acconto è sotto finanziamento
+            let finanziamentoBadge = (nuovaFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? '[FINANZIAMENTO] ' : '';
+
+            let rigaLog = `[${dataSceltaRaw}] - DATA: ${dataFormattataUtente} - Fase: ${finanziamentoBadge}${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
             if(nuovaFase==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
             rigaLog += ` | Nota: ${annotazioni}`;
 
@@ -630,13 +705,17 @@
 
             let diarioOrdinatoTesto = righeOrdinate.join('\n');
 
+            // Salviamo lo stato del finanziamento dentro il campo descrizione_lavoro per non alterare la struttura del database esistente
+            let valoreFinanziamentoDB = isFinanziamentoAttivo ? 'FINANZIAMENTO_ATTIVO' : null;
+
             try {
                 await db.from('commesse').update({ 
                     stato_macro: nuovaFase,
                     preventivo_stato: nuovoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
-                    note_cantiere: diarioOrdinatoTesto
+                    note_cantiere: diarioOrdinatoTesto,
+                    descrizione_lavoro: valoreFinanziamentoDB
                 }).eq('id', currentCommessaId);
                 
                 currentCommessa.stato_macro = nuovaFase;
@@ -644,6 +723,7 @@
                 currentCommessa.contatto_gestito_da = op1Value; 
                 currentCommessa.preventivo_assegnato_a = op2Value;
                 currentCommessa.note_cantiere = diarioOrdinatoTesto;
+                currentCommessa.descrizione_lavoro = valoreFinanziamentoDB;
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività salvata correttamente nel Diario Global!");
@@ -733,17 +813,6 @@
             finally { pendingDeleteAction = null; }
         }
 
-        async function deleteCurrentClientCascade() {
-            const cliente = allClients.find(c => c.id === currentClienteId);
-            if (!cliente) return;
-            if (!confirm(`⚠️ ATTENZIONE CLIENTE:\n\nStai per cancellare l'anagrafica di "${cliente.denominazione}" e TUTTI i cantieri/diari collegati. Procedere?`)) return;
-            
-            pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
-            document.getElementById('adminPasswordHiddenInput').value = "";
-            document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
-        }
-
         function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
         async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
         async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
@@ -814,7 +883,6 @@
         function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
         function saveDefaultDaysConfig() { localStorage.setItem('cfg_days_default', document.getElementById('cfgDefaultDays').value.trim()); alert("Valore salvato!"); }
         
-        // INTERFACCIA ELENCO COLLABORATORI SENZA COLONNA MANSIONE
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
             listLavoratori.forEach(w => {
@@ -974,7 +1042,7 @@
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
+            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
