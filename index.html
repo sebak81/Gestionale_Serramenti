@@ -329,7 +329,7 @@
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
         
-        const workflowOrOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
+        const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
@@ -516,6 +516,7 @@
             });
         }
 
+        // CARICAMENTO ED ALLINEAMENTO BASATO SULLA TABELLA RELAZIONALE CON AUTO-SELEZIONE ULTIMO OPERATORE
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -525,22 +526,7 @@
             const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
-            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            gestisciVisibilitaFinanziamentoBox(currentCommessa.stato_macro);
-            
-            const isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
-            document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
-
-            popolaSubStatoMenu(currentCommessa.stato_macro, isFinanz);
-            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[currentCommessa.stato_macro][0].val);
-            
-            document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
-            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
-            
-            document.getElementById('faseAnnotazioniInput').value = "";
-            document.getElementById('charCounter').innerText = "0 / 150";
-
             const { data: timelineAttivita, error } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
@@ -550,16 +536,31 @@
 
             let macroFaseImpostata = currentCommessa.stato_macro;
             let subStatoImpostato = currentCommessa.preventivo_stato;
+            let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
+            let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
             if (timelineAttivita && timelineAttivita.length > 0) {
                 macroFaseImpostata = timelineAttivita[0].macro_fase;
                 subStatoImpostato = timelineAttivita[0].sub_stato;
+                // RECUPERO INTELLIGENTE DELL'OPERATORE DALLA NOTA PIÙ RECENTE
+                if (timelineAttivita[0].operatore_id) {
+                    operatorePredefinito = timelineAttivita[0].operatore_id;
+                }
             }
 
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
+            document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
+
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
             document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
+            
+            // IMPOSTA L'OPERATORE RECENTE DI DEFAULT
+            document.getElementById('workerContattoSelect').value = operatorePredefinito;
+            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
+            
+            document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('charCounter').innerText = "0 / 150";
 
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
@@ -1000,7 +1001,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // FUNZIONE DI UPLOAD AGGIORNATA CON SANIFICAZIONE AUTOMATICA DEI CARATTERI SPECIALI E ACCENTI
+        // FUNZIONE DI UPLOAD SANIFICATA AUTOMATICAMENTE
         async function uploadFileToStorage(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
@@ -1009,12 +1010,11 @@
             const categoriaSelezionata = document.getElementById('categoriaDriveInput')?.value || 'ALTRO';
         
             try {
-                // Ripuliamo il nome del file da accenti, spazi e caratteri strani per evitare "Invalid Key" su Supabase
                 const nomeSanificato = file.name
-                    .normalize("NFD")                     // Separa le lettere dagli accenti (à -> a + `)
-                    .replace(/[\u0300-\u036f]/g, "")     // Elimina gli accenti isolati
-                    .replace(/[^a-zA-Z0-9.\-_ ]/g, "")   // Rimuove caratteri non ammessi
-                    .replace(/\s+/g, "_");               // Converte gli spazi in underscore per stabilità di rete
+                    .normalize("NFD")                     
+                    .replace(/[\u0300-\u036f]/g, "")     
+                    .replace(/[^a-zA-Z0-9.\-_ ]/g, "")   
+                    .replace(/\s+/g, "_");               
 
                 const filePath = `${currentCommessaId}/${Date.now()}_${nomeSanificato}`;
                 const { error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
@@ -1022,14 +1022,14 @@
 
                 await db.from('allegati_drive').insert([{
                     commessa_id: currentCommessaId,
-                    nome_file: file.name, // Manteniamo il nome originale leggibile a schermo per l'utente
+                    nome_file: file.name, 
                     categoria: categoriaSelezionata,
                     google_drive_file_id: filePath
                 }]);
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
-            } catch (err) { alert("❌ Errore durante l'upload: " + err.message); }
+            } catch (err) { alert("❌ Errore: " + err.message); }
             finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
         }
 
