@@ -401,8 +401,8 @@
             const oggi = new Date();
             const anno = oggi.getFullYear();
             const mese = String(oggi.getMonth() + 1).padStart(2, '0');
-            const giorno = String(oggi.getDate()).padStart(2, '0');
-            const dataFormattata = `${anno}-${mese}-${giorno}`;
+            const g = String(oggi.getDate()).padStart(2, '0');
+            const dataFormattata = `${anno}-${mese}-${g}`;
             const inputData = document.getElementById('dataAttivitaInput');
             if (inputData) {
                 inputData.value = dataFormattata;
@@ -562,11 +562,8 @@
 
         function gestisciVisibilitaFinanziamentoBox(macroFase) {
             const box = document.getElementById('boxFinanziamentoFlag');
-            if (macroFase === 'FATTURA_ACCONTO') {
-                box.classList.remove('hidden');
-            } else {
-                box.classList.add('hidden');
-            }
+            if (macroFase === 'FATTURA_ACCONTO') box.classList.remove('hidden');
+            else box.classList.add('hidden');
         }
 
         function toggleFinanziamentoFlusso(isChecked) {
@@ -585,13 +582,8 @@
             select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
-        function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
-
-        // RIMOSSO IL BLOCCO SULLA RETROCESSIONE TEMPORANEA
         function handleFaseChange() {
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            
-            // Permettiamo il cambio libero dello schermo per inserimenti di note passate
             popolaSubStatoMenu(nuevaFase, false);
             adjustWorkerLabels(nuevaFase);
             aggiornaSelettoreCategorie(nuevaFase); 
@@ -630,7 +622,6 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // SALVATAGGIO CON RIPRISTINO AUTOMATICO MACROFASE REALE PIÙ RECENTE
         async function saveFaseLavorazioneConDati() {
             const nuovaFaseSceltaA_Schermo = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -662,14 +653,13 @@
 
             let finanziamentoBadge = (nuovaFaseSceltaA_Schermo === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? '[FINANZIAMENTO] ' : '';
 
-            // Conserviamo tra parentesi quadre la macrofase per estrarla in fase di calcolo automatico: [FASE:NOME_FASE]
             let rigaLog = `[${dataSceltaRaw}][FASE:${nuovaFaseSceltaA_Schermo}] - DATA: ${dataFormattataUtente} - Fase: ${finanziamentoBadge}${nuovaFaseSceltaA_Schermo} (${testoSubStato}) | Incaricato: ${op1Text}`;
             if(nuovaFaseSceltaA_Schermo==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
             rigaLog += ` | Nota: ${annotazioni}`;
 
             let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
 
-            // Ordinamento cronologico decrescente
+            // Ordinamento cronologico decrescente (il più recente in alto)
             let righeOrdinate = diarioCompletoRaw.split('\n')
                 .filter(r => r.trim() !== "")
                 .sort((a, b) => {
@@ -681,19 +671,14 @@
 
             let diarioOrdinatoTesto = righeOrdinate.join('\n');
 
-            // --- CALCOLO AUTOMATICO DELLA MACROFASE REALE PIÙ RECENTE ---
-            // La prima riga di righeOrdinate è matematicamente l'attività con la data più recente nel diario globale.
-            let macroFaseRealeDaSalvare = nuovaFaseSceltaA_Schermo; // Fallback di sicurezza
+            let macroFaseRealeDaSalvare = nuovaFaseSceltaA_Schermo; 
             let sottoStatoRealeDaSalvare = nuovoSubStato;
             
             if (righeOrdinate.length > 0) {
                 const matchFase = righeOrdinate[0].match(/\[FASE:([A-Z_]+)\]/);
-                if (matchFase && matchFase[1]) {
-                    macroFaseRealeDaSalvare = matchFase[1]; // Diventa la fase del giorno più recente
-                }
+                if (matchFase && matchFase[1]) macroFaseRealeDaSalvare = matchFase[1];
             }
 
-            // Se la riga più recente non è quella che abbiamo appena inserito a schermo, manteniamo i vecchi sub-stati strutturali
             if (macroFaseRealeDaSalvare !== nuovaFaseSceltaA_Schermo) {
                 sottoStatoRealeDaSalvare = currentCommessa.preventivo_stato || subStatiOpzioni[macroFaseRealeDaSalvare][0].val;
             }
@@ -702,7 +687,7 @@
 
             try {
                 await db.from('commesse').update({ 
-                    stato_macro: macroFaseRealeDaSalvare, // <--- SALVA LA FASE DEL GIORNO PIÙ RECENTE
+                    stato_macro: macroFaseRealeDaSalvare, 
                     preventivo_stato: sottoStatoRealeDaSalvare,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
@@ -719,11 +704,12 @@
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività inserita correttamente e memorizzata in ordine cronologico!");
-                openCommessaWorkspace(currentCommessaId); // Ricarica rinfrescando i selettori allo stato più recente reale
+                openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore: " + err.message); }
         }
 
+        // CORREZIONE DEFINITIVA ORDINAMENTO VISIVO INTERFACCIA
         function fetchDiarioTimeline() {
             const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
             if(!currentCommessa || !currentCommessa.note_cantiere) {
@@ -731,19 +717,17 @@
                 return;
             }
             
+            // RIMOSSO il .reverse(): stampiamo esattamente come salvato (dal più recente in cima)
             currentCommessa.note_cantiere.split('\n').forEach(l => {
                 if(l.trim()) {
                     const r = document.createElement('div'); 
                     r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
                     
-                    // Puliamo visivamente sia il tag della data che il tag nascosto [FASE:...] per non farli vedere all'utente
                     let testoPulito = l.replace(/^\[\d{4}-\d{2}-\d{2}\]/, "").replace(/\[FASE:[A-Z_]+\]\s-\s/, "");
                     r.innerText = testoPulito; 
                     
                     r.onclick = (e) => {
-                        if (e.detail === 3) {
-                            requestDeleteNoteGlobal(l); 
-                        }
+                        if (e.detail === 3) requestDeleteNoteGlobal(l); 
                     };
                     container.appendChild(r);
                 }
@@ -781,10 +765,7 @@
                     let lineeAggiornate = currentCommessa.note_cantiere.split('\n').filter(l => l.trim() !== rigaDaRimuovere.trim());
                     let nuovoTestoDiario = lineeAggiornate.join('\n');
                     
-                    // Ricalcoliamo la fase massima rimasta dopo la cancellazione della riga
                     let macroFaseRimastaMassima = "PRIMO_CONTATTO";
-                    let sottoStatoRimasto = "INFO";
-                    
                     if (lineeAggiornate.length > 0) {
                         const matchFase = lineeAggiornate[0].match(/\[FASE:([A-Z_]+)\]/);
                         if (matchFase && matchFase[1]) macroFaseRimastaMassima = matchFase[1];
@@ -1052,7 +1033,7 @@
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
+            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
