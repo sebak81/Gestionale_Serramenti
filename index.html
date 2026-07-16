@@ -62,7 +62,7 @@
     </main>
 
     <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+        <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
             <span>⬅️</span> <span>Torna alla lista clienti</span>
         </button>
 
@@ -187,7 +187,7 @@
         
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Dal più recente)</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
             </div>
             <div id="diarioTimeline" class="space-y-2"></div>
         </div>
@@ -306,7 +306,7 @@
             <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center font-bold tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
             <div class="flex space-x-2 pt-1 text-xs font-bold">
                 <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
-                <button onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
+                <button id="modalConfirmBtn" onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
             </div>
         </div>
     </div>
@@ -321,6 +321,7 @@
         let currentCommessaId = null;
         let currentCommessa = null;
         let omonimiaTimeout = null;
+        let pendingDeleteAction = null; // Memorizza temporaneamente cosa eliminare nel modal della password
         
         const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
 
@@ -342,7 +343,7 @@
             'FATTURA_ACCONTO': [
                 {val: 'EMISSIONE', label: '⏳ Richiesta emissione acconto'},
                 {val: 'ATTESA_BONIFICO', label: '💰 Emessa / In attesa di pagamento'},
-                {val: 'PAGATA', label: '✅ Pagata / Proceedere con ordini'}
+                {val: 'PAGATA', label: '✅ Pagata / Procedere con ordini'}
             ],
             'ORDINI_FORNITORI': [
                 {val: 'SVILUPPO_DISTINTE', label: '📐 Sviluppo distinte e conteggi'},
@@ -362,19 +363,16 @@
             ]
         };
 
-        // Funzione per impostare la data odierna nei limiti dei campi di input HTML
         function inizializzaCalendarioOggi() {
             const oggi = new Date();
             const anno = oggi.getFullYear();
             const mese = String(oggi.getMonth() + 1).padStart(2, '0');
             const giorno = String(oggi.getDate()).padStart(2, '0');
-            
             const dataFormattata = `${anno}-${mese}-${giorno}`;
             const inputData = document.getElementById('dataAttivitaInput');
-            
             if (inputData) {
                 inputData.value = dataFormattata;
-                inputData.max = dataFormattata; // IMPEDISCE DATE FUTURE
+                inputData.max = dataFormattata; 
             }
         }
 
@@ -472,68 +470,26 @@
             document.getElementById('hubClientFiscale').innerText = `P.IVA: ${cliente.partita_iva || 'N/D'} | C.F.: ${cliente.codice_fiscale || 'N/D'}`;
 
             const listContainer = document.getElementById('hubCommesseList'); listContainer.innerHTML = "";
-            if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa.</p>`; return; }
+            if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa attiva.</p>`; return; }
             
             cliente.commesse.forEach(com => {
-                const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm";
+                const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
                 const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 div.innerHTML = `
-                <div class="flex-1">
-                    <div class="cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
-                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
-                        <h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Senza Titolo'}</h4>
-                    </div>
-                    <p class="text-slate-500 mt-1">
-                        <a href="${mapsUrl}" target="_blank" class="text-blue-500 hover:underline">📍 Cantiere: ${com.indirizzo_cantiere}</a>
+                <div class="flex-1 min-w-0" onclick="openCommessaWorkspace('${com.id}')" class="cursor-pointer">
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                    <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
+                    <p class="text-slate-500 mt-1 text-[11px] truncate">
+                        📍 Cantiere: ${com.indirizzo_cantiere}
                     </p>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0 pl-2">
+                    <a href="${mapsUrl}" target="_blank" onclick="e.stopPropagation();" class="p-2 bg-slate-50 border rounded-lg text-center" title="Mappa">🗺️</a>
+                    <button onclick="event.stopPropagation(); requestDeleteCommessaCascade('${com.id}', '${escapeHtml(com.titolo_lavoro)}')" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-100 font-bold" title="Elimina cantiere">🗑️</button>
                 </div>`;
                 listContainer.appendChild(div);
             });
-        }
-
-        async function deleteCurrentClientCascade() {
-            const cliente = allClients.find(c => c.id === currentClienteId);
-            if (!cliente) return;
-
-            const primaConferma = confirm(`⚠️ ATTENZIONE:\n\nStai per cancellare definitivamente l'anagrafica selezionata e TUTTI i cantieri ad essa collegati.\n\nL'azione è irreversibile. Procedere?`);
-            if (!primaConferma) return;
-
-            const secondaConferma = confirm(`Sei assolutamente sicuro al 100%? Tutti i log storici andranno persi.`);
-            if (!secondaConferma) return;
-
-            document.getElementById('adminPasswordHiddenInput').value = "";
-            document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
-        }
-
-        function closePasswordAuthModal() {
-            document.getElementById('passwordAuthModal').classList.add('hidden');
-        }
-
-        async function submitAdminPasswordFlow() {
-            const passValue = document.getElementById('adminPasswordHiddenInput').value;
-
-            if (passValue !== "Fighette@69") {
-                alert("❌ ERRORE:\nPassword errata. Autorizzazione negata.");
-                return;
-            }
-
-            closePasswordAuthModal();
-            try {
-                const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
-                if (errorCommesse) throw errorCommesse;
-
-                const { error: errorCliente } = await db.from('clienti').delete().eq('id', currentClienteId);
-                if (errorCliente) throw errorCliente;
-
-                alert("🟢 Record rimosso correttamente.");
-                currentClienteId = null;
-                navigateTo('main');
-            } catch (err) {
-                console.error(err);
-                alert("Errore tecnico: " + err.message);
-            }
         }
 
         function openCommessaWorkspace(commessaId) {
@@ -557,9 +513,7 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            // Ripristina sempre il calendario alla data odierna di default
             inizializzaCalendarioOggi();
-
             adjustWorkerLabels(currentCommessa.stato_macro);
             aggiornaSelettoreCategorie(currentCommessa.stato_macro); 
             fetchDiarioTimeline(); 
@@ -596,7 +550,6 @@
                     return; 
                 }
             }
-            
             popolaSubStatoMenu(nuevaFase);
             adjustWorkerLabels(nuevaFase);
             aggiornaSelettoreCategorie(nuevaFase); 
@@ -620,34 +573,19 @@
 
             let opzioni = [];
             switch(fase) {
-                case 'PRIMO_CONTATTO':
-                    opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }];
-                    break;
-                case 'PREVENTIVAZIONE':
-                    opzioni = [{ val: 'PREVENTIVO', label: '📄 Preventivo' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                case 'MISURE_ESECUTIVE':
-                    opzioni = [{ val: 'CONTRATTO', label: '✍️ Contratto' }, { val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                case 'FATTURA_ACCONTO':
-                    opzioni = [{ val: 'FATTURA', label: '💰 Fattura' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                case 'ORDINI_FORNITORI':
-                    opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                case 'INSTALLAZIONE':
-                    opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                case 'SALDO_CONCLUSO':
-                    opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }];
-                    break;
-                default:
-                    opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
+                case 'PRIMO_CONTATTO': opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }]; break;
+                case 'PREVENTIVAZIONE': opzioni = [{ val: 'PREVENTIVO', label: '📄 Preventivo' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'MISURE_ESECUTIVE': opzioni = [{ val: 'CONTRATTO', label: '✍️ Contratto' }, { val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'FATTURA_ACCONTO': opzioni = [{ val: 'FATTURA', label: '💰 Fattura' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'ORDINI_FORNITORI': opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'INSTALLAZIONE': opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                case 'SALDO_CONCLUSO': opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
+                default: opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
             }
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // SALVATAGGIO CON ORDINAMENTO CRONOLOGICO INTELLIGENTE
+        // SALVATAGGIO FLUIDO
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -668,36 +606,27 @@
                 return; 
             }
 
-            // Validazione data (controllo di sicurezza ulteriore)
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
             const dataScelta = new Date(dataSceltaRaw);
-            const oggi = new Date();
-            oggi.setHours(23,59,59,999); // Imposta fine giornata odierna per evitare falsi positivi
+            const oggi = new Date(); oggi.setHours(23,59,59,999);
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
-            // Formattiamo la data scelta per l'utente (giorno/mese/anno)
-            const partiData = dataSceltaRaw.split('-');
-            const dataFormattataUtente = `${partiData[2]}/${partiData[1]}/${partiData[0]}`;
+            const彩partiData = dataSceltaRaw.split('-');
+            const dataFormattataUtente = `${彩partiData[2]}/${彩partiData[1]}/${彩partiData[0]}`;
 
-            // Creiamo la riga stringa contrassegnata dal tag DATA-ISO speciale [YYYY-MM-DD] per l'ordinamento dinamico successivo
             let rigaLog = `[${dataSceltaRaw}] - DATA: ${dataFormattataUtente} - Fase: ${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
             if(nuovaFase==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
             rigaLog += ` | Nota: ${annotazioni}`;
 
-            // Uniamo la nuova riga al blocco esistente
             let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
 
-            // --- FLUSSO DI ORDINAMENTO INTUTITIVO CRONOLOGICO (DALLA PIÙ RECENTE ALLA PIÙ VECCHIA) ---
+            // Ordinamento decrescente
             let righeOrdinate = diarioCompletoRaw.split('\n')
                 .filter(r => r.trim() !== "")
                 .sort((a, b) => {
-                    // Estraiamo il tag ISO iniziale [YYYY-MM-DD] da ogni riga per fare il confronto matematico
                     const dataA = a.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
                     const dataB = b.match(/^\[(\d{4}-\d{2}-\d{2})\]/);
-                    
-                    if (dataA && dataB) {
-                        return dataB[1].localeCompare(dataA[1]); // Discendente: la più recente sopra
-                    }
+                    if (dataA && dataB) return dataB[1].localeCompare(dataA[1]);
                     return 0;
                 });
 
@@ -706,7 +635,7 @@
             try {
                 await db.from('commesse').update({ 
                     stato_macro: nuovaFase,
-                    preventivo_stato: nuovoSubStato,
+                    preventivo_stato: !nuovoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     note_cantiere: diarioOrdinatoTesto
@@ -719,32 +648,123 @@
                 currentCommessa.note_cantiere = diarioOrdinatoTesto;
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività registrata e riordinata cronologicamente nel Diario Global!");
+                alert("🟢 Attività salvata correttamente nel Diario Global!");
                 openCommessaWorkspace(currentCommessaId); 
                 
-            } catch(err) {
-                alert("Errore tecnico durante il salvataggio: " + err.message);
-            }
+            } catch(err) { alert("Errore: " + err.message); }
         }
 
+        // COSTRUZIONE TIMELINE CON INTERCETTAZIONE TRIPLO CLIC
         function fetchDiarioTimeline() {
             const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
             if(!currentCommessa || !currentCommessa.note_cantiere) {
-                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
+                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata.</p>`;
                 return;
             }
             
-            // Le righe sono già salvate nel database ordinate dalla più recente alla più vecchia, le stampiamo direttamente
             currentCommessa.note_cantiere.split('\n').forEach(l => {
                 if(l.trim()) {
-                    const r = document.createElement('div'); r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium";
-                    
-                    // Puliamo esteticamente il log rimuovendo il tag tecnico [YYYY-MM-DD] visibile a schermo
+                    const r = document.createElement('div'); 
+                    r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
                     r.innerText = l.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, ""); 
+                    
+                    // INTERCETTAZIONE TRIPLO CLIC NATIVO
+                    r.onclick = (e) => {
+                        if (e.detail === 3) {
+                            requestDeleteNoteGlobal(l); // Passiamo la riga intera originale (compresa di tag nascosto) per rimuoverla con precisione
+                        }
+                    };
+                    
                     container.appendChild(r);
                 }
             });
         }
+
+        // --- APERTURA PASSPHRASE MODAL PER CANCELLAZIONE ATTIVITÀ ---
+        function requestDeleteNoteGlobal(rigaIntera) {
+            if (!confirm(`Vuoi davvero eliminare definitivamente questa attività dallo storico?\n\n"${rigaIntera.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, "")}"`)) return;
+            
+            pendingDeleteAction = { type: 'NOTE', data: rigaIntera };
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordHiddenInput').focus();
+        }
+
+        // --- APERTURA PASSPHRASE MODAL PER CANCELLAZIONE COMMESSA/CANTIERE ---
+        function requestDeleteCommessaCascade(commessaId, titolo) {
+            if (!confirm(`⚠️ ATTENZIONE:\n\nStai per eliminare permanentemente la commessa:\n"${titolo}"\n\ne TUTTO il suo diario storico. Questa azione è irreversibile. Procedere?`)) return;
+            
+            pendingDeleteAction = { type: 'COMMESSA', data: commessaId };
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordHiddenInput').focus();
+        }
+
+        // --- AUTENTICAZIONE E FLUSSO DI ELIMINAZIONE UNIFICATO ---
+        async function submitAdminPasswordFlow() {
+            const passValue = document.getElementById('adminPasswordHiddenInput').value;
+
+            if (passValue !== "Fighette@69") {
+                alert("❌ ERRORE:\nPassword amministratore errata. Autorizzazione negata.");
+                return;
+            }
+
+            closePasswordAuthModal();
+            
+            if (!pendingDeleteAction) return;
+
+            try {
+                // CASO 1: ELIMINAZIONE ATTIVITÀ DIARIO GLOBAL
+                if (pendingDeleteAction.type === 'NOTE') {
+                    const rigaDaRimuovere = pendingDeleteAction.data;
+                    
+                    // Filtriamo il testo eliminando la riga selezionata
+                    let lineeAggiornate = currentCommessa.note_cantiere.split('\n')
+                        .filter(l => l.trim() !== rigaDaRimuovere.trim());
+                    
+                    let nuovoTestoDiario = lineeAggiornate.join('\n');
+                    
+                    await db.from('commesse').update({ note_cantiere: nuovoTestoDiario }).eq('id', currentCommessaId);
+                    currentCommessa.note_cantiere = nuovoTestoDiario;
+                    
+                    alert("🗑️ Attività rimossa correttamente dal Diario Global.");
+                    fetchDiarioTimeline();
+                } 
+                // CASO 2: ELIMINAZIONE COMMESSA/CANTIERE A CASCATA
+                else if (pendingDeleteAction.type === 'COMMESSA') {
+                    const commessaIdDaEliminare = pendingDeleteAction.data;
+                    
+                    // Prima puliamo i riferimenti dei file allegati nel DB
+                    await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
+                    
+                    // Poi eliminiamo fisicamente la commessa
+                    const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
+                    if (error) throw error;
+                    
+                    alert("🗑️ Cantiere e storico attività eliminati con successo.");
+                    await fetchClienti();
+                    renderClientHub(); // Rinfresca la scheda cliente
+                }
+            } catch (err) {
+                alert("Errore tecnico: " + err.message);
+            } finally {
+                pendingDeleteAction = null;
+            }
+        }
+
+        async function deleteCurrentClientCascade() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
+            if (!confirm(`⚠️ ATTENZIONE CLIENTE:\n\nStai per cancellare l'anagrafica di "${cliente.denominazione}" e TUTTI i cantieri/diari collegati. Procedere?`)) return;
+            
+            pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordHiddenInput').focus();
+        }
+
+        // Questo gestisce il vecchio pulsante anagrafica se premuto, altrimenti bypassa
+        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
 
         async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
         async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
@@ -806,7 +826,6 @@
             document.getElementById('newPartitaIva').value = "";
             document.getElementById('newCodiceFiscale').value = "";
             document.getElementById('newNote').value = "";
-            
             document.getElementById('omonimiaSuggestBox').classList.add('hidden');
             document.getElementById('omonimiaListContainer').innerHTML = "";
             document.getElementById('clientModal').classList.remove('hidden'); 
@@ -852,13 +871,8 @@
             clearTimeout(omonimiaTimeout);
             const box = document.getElementById('omonimiaSuggestBox');
             const listContainer = document.getElementById('omonimiaListContainer');
-            
             const termine = valoreDigitato.toLowerCase().trim();
-            if (termine.length < 3) {
-                box.classList.add('hidden');
-                listContainer.innerHTML = "";
-                return;
-            }
+            if (termine.length < 3) { box.classList.add('hidden'); listContainer.innerHTML = ""; return; }
 
             omonimiaTimeout = setTimeout(() => {
                 const parole = termine.split(/\s+/);
@@ -866,13 +880,7 @@
                     const denominazioneLocale = c.denominazione.toLowerCase();
                     return parole.every(p => denominazioneLocale.includes(p));
                 });
-
-                if (duplicatiTrovati.length === 0) {
-                    box.classList.add('hidden');
-                    listContainer.innerHTML = "";
-                    return;
-                }
-
+                if (duplicatiTrovati.length === 0) { box.classList.add('hidden'); listContainer.innerHTML = ""; return; }
                 listContainer.innerHTML = "";
                 duplicatiTrovati.forEach(dup => {
                     const d = document.createElement('div');
@@ -885,6 +893,7 @@
             }, 350);
         }
 
+        // --- STORAGE ---
         async function fetchAllegatiDrive() {
             const container = document.getElementById('driveAllegatiList');
             if (!container) return;
@@ -944,7 +953,6 @@
                     files.forEach(all => {
                         const item = document.createElement('div');
                         item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
-                        
                         const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
 
                         item.innerHTML = `
@@ -962,26 +970,19 @@
                     section.appendChild(filesContainer);
                     container.appendChild(section);
                 }
-
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = `<p class="text-xs text-red-500">Errore nel caricamento dei file.</p>`;
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function uploadFileToStorage(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
-        
             const statusBox = document.getElementById('driveUploadStatus');
             if (statusBox) statusBox.classList.remove('hidden');
-        
-            const categoriaSelect = document.getElementById('categoriaDriveInput');
-            const categoriaSelezionata = categoriaSelect ? categoriaSelect.value : 'ALTRO';
+            const categoriaSelezionata = document.getElementById('categoriaDriveInput')?.value || 'ALTRO';
         
             try {
                 const filePath = `${currentCommessaId}/${Date.now()}_${file.name}`;
-                const { data, error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
+                const { error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
                 if (error) throw error;
 
                 await db.from('allegati_drive').insert([{
@@ -993,21 +994,15 @@
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
-        
-            } catch (err) {
-                alert("❌ Errore durante il caricamento: " + err.message);
-            } finally {
-                if (statusBox) statusBox.classList.add('hidden');
-                inputElement.value = "";
-            }
+            } catch (err) { alert("❌ Errore: " + err.message); }
+            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
             if(!confirm("Vuoi eliminare permanentemente questo documento dallo Storage?")) return;
             try {
                 await db.storage.from('documenti').remove([filePath]);
-                const { error } = await db.from('allegati_drive').delete().eq('id', idSupabase);
-                if (error) throw error;
+                await db.from('allegati_drive').delete().eq('id', idSupabase);
                 alert("🟢 Documento rimosso.");
                 fetchAllegatiDrive();
             } catch (err) { alert(err.message); }
