@@ -387,6 +387,16 @@
             {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
         ];
 
+        // Funzione per convertire i byte in un formato leggibile (KB o MB)
+        function formattaPeso(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            const kb = bytes / 1024;
+            if (kb < 1024) return kb.toFixed(1) + ' KB';
+            const mb = kb / 1024;
+            return mb.toFixed(1) + ' MB';
+        }
+
         function inizializzaCalendarioOggi() {
             const oggi = new Date();
             const anno = oggi.getFullYear();
@@ -516,7 +526,6 @@
             });
         }
 
-        // CARICAMENTO ED ALLINEAMENTO BASATO SULLA TABELLA RELAZIONALE CON AUTO-SELEZIONE ULTIMO OPERATORE
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -542,7 +551,6 @@
             if (timelineAttivita && timelineAttivita.length > 0) {
                 macroFaseImpostata = timelineAttivita[0].macro_fase;
                 subStatoImpostato = timelineAttivita[0].sub_stato;
-                // RECUPERO INTELLIGENTE DELL'OPERATORE DALLA NOTA PIÙ RECENTE
                 if (timelineAttivita[0].operatore_id) {
                     operatorePredefinito = timelineAttivita[0].operatore_id;
                 }
@@ -555,7 +563,6 @@
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
             document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
             
-            // IMPOSTA L'OPERATORE RECENTE DI DEFAULT
             document.getElementById('workerContattoSelect').value = operatorePredefinito;
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             
@@ -983,9 +990,13 @@
                         item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
                         const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
 
+                        const testoPeso = all.peso_bytes ? `<span class="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md font-bold ml-2 shrink-0">${formattaPeso(all.peso_bytes)}</span>` : '';
+
                         item.innerHTML = `
-                            <div class="flex items-center space-x-2 truncate">
-                                <span>📄</span> <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
+                            <div class="flex items-center space-x-2 truncate flex-1 min-w-0">
+                                <span>📄</span> 
+                                <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
+                                ${testoPeso}
                             </div>
                             <div class="flex space-x-3 shrink-0 pl-2">
                                 <a href="${publicUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
@@ -1001,7 +1012,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // FUNZIONE DI UPLOAD SANIFICATA AUTOMATICAMENTE
         async function uploadFileToStorage(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
@@ -1024,7 +1034,8 @@
                     commessa_id: currentCommessaId,
                     nome_file: file.name, 
                     categoria: categoriaSelezionata,
-                    google_drive_file_id: filePath
+                    google_drive_file_id: filePath,
+                    peso_bytes: file.size
                 }]);
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
