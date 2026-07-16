@@ -114,7 +114,7 @@
             
             <!-- 1. FASE DI LAVORAZIONE -->
             <div>
-                <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
+                <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione (Libera per inserimenti storici)</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                     <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
                     <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
@@ -127,7 +127,7 @@
                 </select>
             </div>
 
-            <!-- OPZIONE DINAMICA FLAG FINANZIAMENTO (Sottofasi 4) -->
+            <!-- OPZIONE DINAMICA FLAG FINANZIAMENTO -->
             <div id="boxFinanziamentoFlag" class="hidden bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex items-center space-x-2">
                 <input type="checkbox" id="checkFinanziamentoAttivo" onchange="toggleFinanziamentoFlusso(this.checked)" class="rounded text-blue-600 h-4 w-4 focus:ring-blue-500">
                 <label for="checkFinanziamentoAttivo" class="text-xs font-bold text-slate-700 select-none">💳 Gestione tramite Finanziamento</label>
@@ -218,7 +218,6 @@
                 <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
             </div>
         </div>
-        
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -342,7 +341,6 @@
         
         const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
-        // ARCHITETTURA COMPLETA DI TUTTE LE SOTTO_FASI DI LAVORAZIONE AGGIORNATE
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
@@ -389,7 +387,6 @@
             ]
         };
 
-        // Sottofasi speciali se la pratica prevede un Finanziamento (Fase 4)
         const sottofasiFinanziamento = [
             {val: 'INSERIMENTO_PRATICA', label: '📝 Inserimento pratica (domanda)'},
             {val: 'VERIFICA_VERDE', label: '🟢 Verifica (Luce Verde)'},
@@ -541,10 +538,8 @@
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            // Gestione visibilità del Flag Finanziamento
             gestisciVisibilitaFinanziamentoBox(currentCommessa.stato_macro);
             
-            // Controlla se lo stato salvato appartiene al flusso finanziamento per reimpostare la checkbox
             const isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
@@ -582,46 +577,26 @@
         function popolaSubStatoMenu(macroFase, isFinanziamento = false) {
             const select = document.getElementById('subStatoAvanzamentoSelect');
             let opzioni = [];
-            
             if (macroFase === 'FATTURA_ACCONTO' && isFinanziamento) {
                 opzioni = sottofasiFinanziamento;
             } else {
                 opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
             }
-            
             select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
-        function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
         function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
 
+        // RIMOSSO IL BLOCCO SULLA RETROCESSIONE TEMPORANEA
         function handleFaseChange() {
-            const faseAttuale = currentCommessa.stato_macro;
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            if (faseAttuale === nuevaFase) return;
-
-            const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
-            const indexNuovo = workflowOrdinato.indexOf(nuevaFase);
-
-            if (indexNuovo < indexAttuale) {
-                alert(`⚠️ Azione Bloccata: Non puoi retrocedere la fase principale.`);
-                document.getElementById('commessaMacroSelect').value = faseAttuale; 
-                return;
-            }
-
-            if ((indexNuovo - indexAttuale) > 2) {
-                if (!confirm("Salto di fase elevato. Confermi?")) { 
-                    document.getElementById('commessaMacroSelect').value = faseAttuale; 
-                    return; 
-                }
-            }
             
-            gestisciVisibilitaFinanziamentoBox(nuevaFase);
-            document.getElementById('checkFinanziamentoAttivo').checked = false;
-
+            // Permettiamo il cambio libero dello schermo per inserimenti di note passate
             popolaSubStatoMenu(nuevaFase, false);
             adjustWorkerLabels(nuevaFase);
             aggiornaSelettoreCategorie(nuevaFase); 
+            gestisciVisibilitaFinanziamentoBox(nuevaFase);
+            document.getElementById('checkFinanziamentoAttivo').checked = false;
         }
 
         function adjustWorkerLabels(fase) {
@@ -655,9 +630,9 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // SALVATAGGIO REINTEGRATO CON SUB-STATI AGGIORNATI
+        // SALVATAGGIO CON RIPRISTINO AUTOMATICO MACROFASE REALE PIÙ RECENTE
         async function saveFaseLavorazioneConDati() {
-            const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            const nuovaFaseSceltaA_Schermo = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
@@ -685,15 +660,16 @@
             const partiData = dataSceltaRaw.split('-');
             const dataFormattataUtente = `${partiData[2]}/${partiData[1]}/${partiData[0]}`;
 
-            // Aggiungiamo un prefisso se la gestione acconto è sotto finanziamento
-            let finanziamentoBadge = (nuovaFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? '[FINANZIAMENTO] ' : '';
+            let finanziamentoBadge = (nuovaFaseSceltaA_Schermo === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? '[FINANZIAMENTO] ' : '';
 
-            let rigaLog = `[${dataSceltaRaw}] - DATA: ${dataFormattataUtente} - Fase: ${finanziamentoBadge}${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
-            if(nuovaFase==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
+            // Conserviamo tra parentesi quadre la macrofase per estrarla in fase di calcolo automatico: [FASE:NOME_FASE]
+            let rigaLog = `[${dataSceltaRaw}][FASE:${nuovaFaseSceltaA_Schermo}] - DATA: ${dataFormattataUtente} - Fase: ${finanziamentoBadge}${nuovaFaseSceltaA_Schermo} (${testoSubStato}) | Incaricato: ${op1Text}`;
+            if(nuovaFaseSceltaA_Schermo==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
             rigaLog += ` | Nota: ${annotazioni}`;
 
             let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
 
+            // Ordinamento cronologico decrescente
             let righeOrdinate = diarioCompletoRaw.split('\n')
                 .filter(r => r.trim() !== "")
                 .sort((a, b) => {
@@ -705,29 +681,45 @@
 
             let diarioOrdinatoTesto = righeOrdinate.join('\n');
 
-            // Salviamo lo stato del finanziamento dentro il campo descrizione_lavoro per non alterare la struttura del database esistente
-            let valoreFinanziamentoDB = isFinanziamentoAttivo ? 'FINANZIAMENTO_ATTIVO' : null;
+            // --- CALCOLO AUTOMATICO DELLA MACROFASE REALE PIÙ RECENTE ---
+            // La prima riga di righeOrdinate è matematicamente l'attività con la data più recente nel diario globale.
+            let macroFaseRealeDaSalvare = nuovaFaseSceltaA_Schermo; // Fallback di sicurezza
+            let sottoStatoRealeDaSalvare = nuovoSubStato;
+            
+            if (righeOrdinate.length > 0) {
+                const matchFase = righeOrdinate[0].match(/\[FASE:([A-Z_]+)\]/);
+                if (matchFase && matchFase[1]) {
+                    macroFaseRealeDaSalvare = matchFase[1]; // Diventa la fase del giorno più recente
+                }
+            }
+
+            // Se la riga più recente non è quella che abbiamo appena inserito a schermo, manteniamo i vecchi sub-stati strutturali
+            if (macroFaseRealeDaSalvare !== nuovaFaseSceltaA_Schermo) {
+                sottoStatoRealeDaSalvare = currentCommessa.preventivo_stato || subStatiOpzioni[macroFaseRealeDaSalvare][0].val;
+            }
+
+            let valoreFinanziamentoDB = (macroFaseRealeDaSalvare === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
             try {
                 await db.from('commesse').update({ 
-                    stato_macro: nuovaFase,
-                    preventivo_stato: nuovoSubStato,
+                    stato_macro: macroFaseRealeDaSalvare, // <--- SALVA LA FASE DEL GIORNO PIÙ RECENTE
+                    preventivo_stato: sottoStatoRealeDaSalvare,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     note_cantiere: diarioOrdinatoTesto,
                     descrizione_lavoro: valoreFinanziamentoDB
                 }).eq('id', currentCommessaId);
                 
-                currentCommessa.stato_macro = nuovaFase;
-                currentCommessa.preventivo_stato = nuovoSubStato;
+                currentCommessa.stato_macro = macroFaseRealeDaSalvare;
+                currentCommessa.preventivo_stato = sottoStatoRealeDaSalvare;
                 currentCommessa.contatto_gestito_da = op1Value; 
                 currentCommessa.preventivo_assegnato_a = op2Value;
                 currentCommessa.note_cantiere = diarioOrdinatoTesto;
                 currentCommessa.descrizione_lavoro = valoreFinanziamentoDB;
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività salvata correttamente nel Diario Global!");
-                openCommessaWorkspace(currentCommessaId); 
+                alert("🟢 Attività inserita correttamente e memorizzata in ordine cronologico!");
+                openCommessaWorkspace(currentCommessaId); // Ricarica rinfrescando i selettori allo stato più recente reale
                 
             } catch(err) { alert("Errore: " + err.message); }
         }
@@ -743,7 +735,10 @@
                 if(l.trim()) {
                     const r = document.createElement('div'); 
                     r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
-                    r.innerText = l.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, ""); 
+                    
+                    // Puliamo visivamente sia il tag della data che il tag nascosto [FASE:...] per non farli vedere all'utente
+                    let testoPulito = l.replace(/^\[\d{4}-\d{2}-\d{2}\]/, "").replace(/\[FASE:[A-Z_]+\]\s-\s/, "");
+                    r.innerText = testoPulito; 
                     
                     r.onclick = (e) => {
                         if (e.detail === 3) {
@@ -756,7 +751,7 @@
         }
 
         function requestDeleteNoteGlobal(rigaIntera) {
-            if (!confirm(`Vuoi davvero eliminare definitivamente questa attività dallo storico?\n\n"${rigaIntera.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, "")}"`)) return;
+            if (!confirm(`Vuoi davvero eliminare definitivamente questa attività dallo storico?\n\n"${rigaIntera.replace(/^\[\d{4}-\d{2}-\d{2}\]/, "").replace(/\[FASE:[A-Z_]+\]\s-\s/, "")}"`)) return;
             pendingDeleteAction = { type: 'NOTE', data: rigaIntera };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
@@ -786,10 +781,25 @@
                     let lineeAggiornate = currentCommessa.note_cantiere.split('\n').filter(l => l.trim() !== rigaDaRimuovere.trim());
                     let nuovoTestoDiario = lineeAggiornate.join('\n');
                     
-                    await db.from('commesse').update({ note_cantiere: nuovoTestoDiario }).eq('id', currentCommessaId);
+                    // Ricalcoliamo la fase massima rimasta dopo la cancellazione della riga
+                    let macroFaseRimastaMassima = "PRIMO_CONTATTO";
+                    let sottoStatoRimasto = "INFO";
+                    
+                    if (lineeAggiornate.length > 0) {
+                        const matchFase = lineeAggiornate[0].match(/\[FASE:([A-Z_]+)\]/);
+                        if (matchFase && matchFase[1]) macroFaseRimastaMassima = matchFase[1];
+                    }
+                    
+                    await db.from('commesse').update({ 
+                        note_cantiere: nuovoTestoDiario,
+                        stato_macro: macroFaseRimastaMassima
+                    }).eq('id', currentCommessaId);
+                    
                     currentCommessa.note_cantiere = nuovoTestoDiario;
-                    alert("🗑️ Attività rimossa correttamente dal Diario Global.");
-                    fetchDiarioTimeline();
+                    currentCommessa.stato_macro = macroFaseRimastaMassima;
+                    
+                    alert("🗑️ Attività rimossa correttamente. Stato cantiere riallineato.");
+                    openCommessaWorkspace(currentCommessaId);
                 } 
                 else if (pendingDeleteAction.type === 'COMMESSA') {
                     const commessaIdDaEliminare = pendingDeleteAction.data;
