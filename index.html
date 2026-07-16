@@ -202,6 +202,7 @@
                 <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
             </div>
         </div>
+        
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -209,7 +210,6 @@
                 <input type="hidden" id="editingWorkerId" value="">
                 <div class="space-y-2 text-xs">
                     <div><input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300"></div>
-                    <div><input type="text" id="newWorkerMansione" placeholder="Es. Posatore, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300"></div>
                     <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Collaboratore</button>
                     <button id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="w-full text-center text-[11px] text-slate-500 underline hidden">Annulla Modifica</button>
                 </div>
@@ -321,7 +321,7 @@
         let currentCommessaId = null;
         let currentCommessa = null;
         let omonimiaTimeout = null;
-        let pendingDeleteAction = null; // Memorizza temporaneamente cosa eliminare nel modal della password
+        let pendingDeleteAction = null; 
         
         const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
 
@@ -418,7 +418,7 @@
             const sels = ['workerContattoSelect', 'workerAssegnatoSelect'];
             sels.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome} [${l.mansione || 'Generico'}]</option>`).join('');
+                if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
             });
         }
 
@@ -485,7 +485,7 @@
                     </p>
                 </div>
                 <div class="flex items-center space-x-2 shrink-0 pl-2">
-                    <a href="${mapsUrl}" target="_blank" onclick="e.stopPropagation();" class="p-2 bg-slate-50 border rounded-lg text-center" title="Mappa">🗺️</a>
+                    <a href="${mapsUrl}" target="_blank" onclick="event.stopPropagation();" class="p-2 bg-slate-50 border rounded-lg text-center" title="Mappa">🗺️</a>
                     <button onclick="event.stopPropagation(); requestDeleteCommessaCascade('${com.id}', '${escapeHtml(com.titolo_lavoro)}')" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-100 font-bold" title="Elimina cantiere">🗑️</button>
                 </div>`;
                 listContainer.appendChild(div);
@@ -585,7 +585,6 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // SALVATAGGIO FLUIDO
         async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
             const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -620,7 +619,6 @@
 
             let diarioCompletoRaw = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
 
-            // Ordinamento decrescente
             let righeOrdinate = diarioCompletoRaw.split('\n')
                 .filter(r => r.trim() !== "")
                 .sort((a, b) => {
@@ -635,7 +633,7 @@
             try {
                 await db.from('commesse').update({ 
                     stato_macro: nuovaFase,
-                    preventivo_stato: !nuovoSubStato,
+                    preventivo_stato: nuovoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     note_cantiere: diarioOrdinatoTesto
@@ -654,7 +652,6 @@
             } catch(err) { alert("Errore: " + err.message); }
         }
 
-        // COSTRUZIONE TIMELINE CON INTERCETTAZIONE TRIPLO CLIC
         function fetchDiarioTimeline() {
             const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
             if(!currentCommessa || !currentCommessa.note_cantiere) {
@@ -668,88 +665,72 @@
                     r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
                     r.innerText = l.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, ""); 
                     
-                    // INTERCETTAZIONE TRIPLO CLIC NATIVO
                     r.onclick = (e) => {
                         if (e.detail === 3) {
-                            requestDeleteNoteGlobal(l); // Passiamo la riga intera originale (compresa di tag nascosto) per rimuoverla con precisione
+                            requestDeleteNoteGlobal(l); 
                         }
                     };
-                    
                     container.appendChild(r);
                 }
             });
         }
 
-        // --- APERTURA PASSPHRASE MODAL PER CANCELLAZIONE ATTIVITÀ ---
         function requestDeleteNoteGlobal(rigaIntera) {
             if (!confirm(`Vuoi davvero eliminare definitivamente questa attività dallo storico?\n\n"${rigaIntera.replace(/^\[\d{4}-\d{2}-\d{2}\]\s-\s/, "")}"`)) return;
-            
             pendingDeleteAction = { type: 'NOTE', data: rigaIntera };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
             document.getElementById('adminPasswordHiddenInput').focus();
         }
 
-        // --- APERTURA PASSPHRASE MODAL PER CANCELLAZIONE COMMESSA/CANTIERE ---
         function requestDeleteCommessaCascade(commessaId, titolo) {
             if (!confirm(`⚠️ ATTENZIONE:\n\nStai per eliminare permanentemente la commessa:\n"${titolo}"\n\ne TUTTO il suo diario storico. Questa azione è irreversibile. Procedere?`)) return;
-            
             pendingDeleteAction = { type: 'COMMESSA', data: commessaId };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
             document.getElementById('adminPasswordHiddenInput').focus();
         }
 
-        // --- AUTENTICAZIONE E FLUSSO DI ELIMINAZIONE UNIFICATO ---
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
-
             if (passValue !== "Fighette@69") {
                 alert("❌ ERRORE:\nPassword amministratore errata. Autorizzazione negata.");
                 return;
             }
-
             closePasswordAuthModal();
-            
             if (!pendingDeleteAction) return;
 
             try {
-                // CASO 1: ELIMINAZIONE ATTIVITÀ DIARIO GLOBAL
                 if (pendingDeleteAction.type === 'NOTE') {
                     const rigaDaRimuovere = pendingDeleteAction.data;
-                    
-                    // Filtriamo il testo eliminando la riga selezionata
-                    let lineeAggiornate = currentCommessa.note_cantiere.split('\n')
-                        .filter(l => l.trim() !== rigaDaRimuovere.trim());
-                    
+                    let lineeAggiornate = currentCommessa.note_cantiere.split('\n').filter(l => l.trim() !== rigaDaRimuovere.trim());
                     let nuovoTestoDiario = lineeAggiornate.join('\n');
                     
                     await db.from('commesse').update({ note_cantiere: nuovoTestoDiario }).eq('id', currentCommessaId);
                     currentCommessa.note_cantiere = nuovoTestoDiario;
-                    
                     alert("🗑️ Attività rimossa correttamente dal Diario Global.");
                     fetchDiarioTimeline();
                 } 
-                // CASO 2: ELIMINAZIONE COMMESSA/CANTIERE A CASCATA
                 else if (pendingDeleteAction.type === 'COMMESSA') {
                     const commessaIdDaEliminare = pendingDeleteAction.data;
-                    
-                    // Prima puliamo i riferimenti dei file allegati nel DB
                     await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
-                    
-                    // Poi eliminiamo fisicamente la commessa
                     const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
                     if (error) throw error;
-                    
                     alert("🗑️ Cantiere e storico attività eliminati con successo.");
                     await fetchClienti();
-                    renderClientHub(); // Rinfresca la scheda cliente
+                    renderClientHub(); 
                 }
-            } catch (err) {
-                alert("Errore tecnico: " + err.message);
-            } finally {
-                pendingDeleteAction = null;
-            }
+                else if (pendingDeleteAction.type === 'CLIENTE') {
+                    const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
+                    if (errorCommesse) throw errorCommesse;
+                    const { error: errorCliente } = await db.from('clienti').delete().eq('id', currentClienteId);
+                    if (errorCliente) throw errorCliente;
+                    alert("🟢 Record cliente rimosso correttamente.");
+                    currentClienteId = null;
+                    navigateTo('main');
+                }
+            } catch (err) { alert("Errore tecnico: " + err.message); }
+            finally { pendingDeleteAction = null; }
         }
 
         async function deleteCurrentClientCascade() {
@@ -763,9 +744,7 @@
             document.getElementById('adminPasswordHiddenInput').focus();
         }
 
-        // Questo gestisce il vecchio pulsante anagrafica se premuto, altrimenti bypassa
         function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
-
         async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
         async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
 
@@ -835,36 +814,37 @@
         function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
         function saveDefaultDaysConfig() { localStorage.setItem('cfg_days_default', document.getElementById('cfgDefaultDays').value.trim()); alert("Valore salvato!"); }
         
+        // INTERFACCIA ELENCO COLLABORATORI SENZA COLONNA MANSIONE
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
             listLavoratori.forEach(w => {
-                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1";
-                r.innerHTML = `<div>👤 ${w.nome} ${w.mansione?`[${w.mansione}]`:''}</div><div><button onclick="startEditWorker('${w.id}','${escapeHtml(w.nome)}','${escapeHtml(w.mansione||'')}')" class="text-blue-600 mr-2">✏️</button><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button></div>`;
+                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1 font-semibold";
+                r.innerHTML = `<div>👤 ${w.nome}</div><div><button onclick="startEditWorker('${w.id}','${escapeHtml(w.nome)}')" class="text-blue-600 mr-2">✏️</button><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button></div>`;
                 container.appendChild(r);
             });
         }
-        function startEditWorker(id, n, m) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('newWorkerMansione').value = m; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
-        function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('newWorkerMansione').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
+        function startEditWorker(id, n) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
+        function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
         
         async function saveWorkerToDatabase() {
-            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim(); const m = document.getElementById('newWorkerMansione').value.trim();
+            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim();
             if(!n) return;
             const btn = document.getElementById('btnSaveWorkerDb');
             try {
                 btn.disabled = true;
                 if(id) {
-                    const { error } = await db.from('lavoratori').update({ nome: n, mansione: m===""?null:m }).eq('id', id);
+                    const { error } = await db.from('lavoratori').update({ nome: n }).eq('id', id);
                     if(error) throw error;
                     alert("✅ Collaboratore aggiornato con successo!");
                 } else {
-                    const { error } = await db.from('lavoratori').insert([{ nome: n, mansione: m===""?null:m }]);
+                    const { error } = await db.from('lavoratori').insert([{ nome: n }]);
                     if(error) throw error;
                     alert("✅ Collaboratore aggiunto con successo!");
                 }
                 resetWorkerForm(); await initLists(); renderSettingsWorkersList();
             } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
         }
-        async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
+        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamente questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
 
         function checkOmonimiaDoppioni(valoreDigitato) {
@@ -893,7 +873,6 @@
             }, 350);
         }
 
-        // --- STORAGE ---
         async function fetchAllegatiDrive() {
             const container = document.getElementById('driveAllegatiList');
             if (!container) return;
@@ -995,7 +974,7 @@
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
+            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
