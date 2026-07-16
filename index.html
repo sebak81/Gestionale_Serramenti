@@ -329,7 +329,7 @@
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
         
-        const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
+        const workflowOrOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
@@ -338,8 +338,8 @@
                 {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
                 {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire'},
                 {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
-                {val: 'RIFIUTATO', label: '❌ Rifiutato'},
-                {val: 'CONFERMATO', label: '🎉 CONFERMATO'}
+                {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
+                {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
             ],
             'MISURE_ESECUTIVE': [
                 {val: 'ESECUTIVE', label: '📐 Misure Esecutive'},
@@ -516,7 +516,6 @@
             });
         }
 
-        // CARICAMENTO ED ALLINEAMENTO BASATO SULLA TABELLA RELAZIONALE
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -526,32 +525,15 @@
             const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
+            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
             
-            // 1. Recuperiamo lo storico delle attività dal database relazionale ordinato cronologicamente dal più recente
-            const { data: timelineAttivita, error } = await db
-                .from('status_diario_attivita')
-                .select('*, lavoratori(nome)')
-                .eq('commessa_id', currentCommessaId)
-                .order('data_attivita', { ascending: false })
-                .order('creato_il', { ascending: false });
-
-            // 2. LOGICA DI ALLINEAMENTO AUTOMATICO STRUTTURALE ALLA NOTA PIÙ RECENTE
-            let macroFaseImpostata = currentCommessa.stato_macro;
-            let subStatoImpostato = currentCommessa.preventivo_stato;
-            let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
-
-            if (timelineAttivita && timelineAttivita.length > 0) {
-                // Sovrascriviamo lo stato a schermo basandoci sulla riga cronologicamente più recente della tabella
-                macroFaseImpostata = timelineAttivita[0].macro_fase;
-                subStatoImpostato = timelineAttivita[0].sub_stato;
-            }
-
-            document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
-            gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
+            gestisciVisibilitaFinanziamentoBox(currentCommessa.stato_macro);
+            
+            const isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
-            popolaSubStatoMenu(macroFaseImpostata, isFinanz);
-            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
+            popolaSubStatoMenu(currentCommessa.stato_macro, isFinanz);
+            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[currentCommessa.stato_macro][0].val);
             
             document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
@@ -559,11 +541,29 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
+            const { data: timelineAttivita, error } = await db
+                .from('status_diario_attivita')
+                .select('*, lavoratori(nome)')
+                .eq('commessa_id', currentCommessaId)
+                .order('data_attivita', { ascending: false })
+                .order('creato_il', { ascending: false });
+
+            let macroFaseImpostata = currentCommessa.stato_macro;
+            let subStatoImpostato = currentCommessa.preventivo_stato;
+
+            if (timelineAttivita && timelineAttivita.length > 0) {
+                macroFaseImpostata = timelineAttivita[0].macro_fase;
+                subStatoImpostato = timelineAttivita[0].sub_stato;
+            }
+
+            document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
+            gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
+            popolaSubStatoMenu(macroFaseImpostata, isFinanz);
+            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
+
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
-            
-            // Disegnamo la lista del diario relazionale passandogli i dati caricati
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             navigateTo('detail');
@@ -631,7 +631,6 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // INSERIMENTO PULITO DI UNA RIGA DEDICATA NELLA TABELLA RELAZIONALE
         async function saveFaseLavorazioneConDati() {
             const macroFaseScelta = document.getElementById('commessaMacroSelect').value;
             const subStatoScelto = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -654,7 +653,6 @@
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
-                // 1. Inseriamo la nuova riga indipendente nel diario relazionale status_diario_attivita
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
                     commessa_id: currentCommessaId,
                     data_attivita: dataSceltaRaw,
@@ -666,7 +664,6 @@
 
                 if (errorDiario) throw errorDiario;
 
-                // 2. CALCOLO CRONOLOGICO AUTOMATICO DELLA FASE REALE DOPO L'INSERIMENTO
                 const { data: timelineAggiornata } = await db
                     .from('status_diario_attivita')
                     .select('*')
@@ -684,7 +681,6 @@
 
                 let valoreFinanziamentoDB = (macroFaseFinaleDaImpostare === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
-                // 3. Aggiorniamo lo stato principale della commessa con l'attività cronologicamente più recente
                 await db.from('commesse').update({ 
                     stato_macro: macroFaseFinaleDaImpostare,
                     preventivo_stato: subStatoFinaleDaImpostare,
@@ -700,7 +696,6 @@
             } catch(err) { alert("Errore tecnico: " + err.message); }
         }
 
-        // LETTURA DEI DATI NATIVI ORDINATI DAL PIÙ RECENTE
         async function fetchDiarioTimeline() {
             try {
                 const { data: timeline, error } = await db
@@ -715,7 +710,6 @@
             } catch(err) { console.error(err); }
         }
 
-        // STAMPA DEI RECORD A SCHERMO CON INTERCETTAZIONE DEL TRIPLO CLIC
         function renderDiarioTimelineInterfaccia(arrayRecord) {
             const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
             if(arrayRecord.length === 0) {
@@ -727,13 +721,10 @@
                 const r = document.createElement('div'); 
                 r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
                 
-                // Formattiamo la data per l'utente leggendola dal campo data nativo del database
                 const dParti = rec.data_attivita.split('-');
                 const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
-                
                 const nomeOperatore = rec.lavoratori?.nome || 'Nessuno';
                 
-                // Risoluzione etichetta sottofase per la stampa estetica
                 let etichettaSottofase = rec.sub_stato;
                 const setOpzioni = subStatiOpzioni[rec.macro_fase] || [];
                 const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
@@ -741,7 +732,6 @@
 
                 r.innerText = `[${dataLeggibile}] - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
                 
-                // TRIPLO CLIC PER ELIMINARE LA RIGA USANDO IL SUO ID UUID UNICO
                 r.onclick = (e) => {
                     if (e.detail === 3) {
                         requestDeleteNoteGlobalRelazionale(rec.id, r.innerText);
@@ -777,15 +767,10 @@
             if (!pendingDeleteAction) return;
 
             try {
-                // CANCELLAZIONE RIGA DELLA NUOVA TABELLA RELAZIONALE
                 if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
                     const idDaRimuovere = pendingDeleteAction.data;
-                    
-                    // Rimuoviamo il record dalla tabella status_diario_attivita
                     await db.from('status_diario_attivita').delete().eq('id', idDaRimuovere);
                     alert("🗑️ Riga rimossa con successo dal Database relazionale.");
-                    
-                    // Forza il riallineamento dello stato principale della commessa all'elemento più recente rimasto
                     openCommessaWorkspace(currentCommessaId);
                 } 
                 else if (pendingDeleteAction.type === 'COMMESSA') {
@@ -1015,6 +1000,7 @@
             } catch (err) { console.error(err); }
         }
 
+        // FUNZIONE DI UPLOAD AGGIORNATA CON SANIFICAZIONE AUTOMATICA DEI CARATTERI SPECIALI E ACCENTI
         async function uploadFileToStorage(inputElement) {
             const file = inputElement.files[0];
             if (!file) return;
@@ -1023,21 +1009,28 @@
             const categoriaSelezionata = document.getElementById('categoriaDriveInput')?.value || 'ALTRO';
         
             try {
-                const filePath = `${currentCommessaId}/${Date.now()}_${file.name}`;
+                // Ripuliamo il nome del file da accenti, spazi e caratteri strani per evitare "Invalid Key" su Supabase
+                const nomeSanificato = file.name
+                    .normalize("NFD")                     // Separa le lettere dagli accenti (à -> a + `)
+                    .replace(/[\u0300-\u036f]/g, "")     // Elimina gli accenti isolati
+                    .replace(/[^a-zA-Z0-9.\-_ ]/g, "")   // Rimuove caratteri non ammessi
+                    .replace(/\s+/g, "_");               // Converte gli spazi in underscore per stabilità di rete
+
+                const filePath = `${currentCommessaId}/${Date.now()}_${nomeSanificato}`;
                 const { error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
                 if (error) throw error;
 
                 await db.from('allegati_drive').insert([{
                     commessa_id: currentCommessaId,
-                    nome_file: file.name,
+                    nome_file: file.name, // Manteniamo il nome originale leggibile a schermo per l'utente
                     categoria: categoriaSelezionata,
                     google_drive_file_id: filePath
                 }]);
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 fetchAllegatiDrive();
-            } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.add('hidden'); inputElement.value = ""; }
+            } catch (err) { alert("❌ Errore durante l'upload: " + err.message); }
+            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
         }
 
         async function deleteFileFromStorage(idSupabase, filePath) {
