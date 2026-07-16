@@ -1,5 +1,688 @@
-async function saveFaseLavorazioneConDati() {
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Commesse</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="config.js"></script>
+    
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        
+        /* Colori dei Macro Stati */
+        .macro-PRIMO_CONTATTO { background-color: #f1f5f9; color: #475569; }
+        .macro-PREVENTIVAZIONE { background-color: #e0f2fe; color: #0369a1; }
+        .macro-MISURE_ESECUTIVE { background-color: #fef3c7; color: #b45309; }
+        .macro-FATTURA_ACCONTO { background-color: #fae8ff; color: #a21caf; }
+        .macro-ORDINI_FORNITORI { background-color: #e0e7ff; color: #4338ca; }
+        .macro-INSTALLAZIONE { background-color: #fee2e2; color: #b91c1c; }
+        .macro-SALDO_CONCLUSO { background-color: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <span class="text-xl font-bold tracking-tight text-blue-400">🚪 Gestione Commesse</span>
+        <a href="mailto:sebak.brn@gmail.com?subject=Richiesta%20assistenza%20PWA%20Gestione%20Commesse" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700 hover:text-blue-400 transition-colors">
+            Dev: Sebak
+        </a>
+    </header>
+
+    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
+        <div class="space-y-2">
+            <div class="flex space-x-2">
+                <div class="relative flex-1">
+                    <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente o appunti..." 
+                           class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+                </div>
+                <button onclick="openNewClientModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium shadow text-sm transition-colors shrink-0 flex items-center space-x-1">
+                    <span class="text-white font-bold">＋</span> <span>Nuovo</span>
+                </button>
+            </div>
+
+            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
+                <button id="subTabClientiAll" onclick="switchClientSubTab('all')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
+                <button id="subTabClientiInCorso" onclick="switchClientSubTab('incorso')" class="flex-1 py-1.5 text-center rounded-lg transition-all">In Corso</button>
+                <button id="subTabClientiConclusi" onclick="switchClientSubTab('conclusi')" class="flex-1 py-1.5 text-center rounded-lg transition-all">Completati</button>
+            </div>
+        </div>
+
+        <div id="loading" class="text-center py-8 text-slate-500 text-sm">⏳ Caricamento dati...</div>
+        <div class="space-y-3 hidden" id="clientList"></div>
+    </main>
+
+    <main id="clientHubScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <button onclick="navigateTo('main')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna alla lista clienti</span>
+        </button>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 id="hubClientName" class="text-lg font-bold text-slate-900">Nome Cliente</h2>
+                    <p id="hubClientInfo" class="text-xs text-slate-500 mt-0.5">📞 Tel | ✉️ Email</p>
+                    <p id="hubClientFiscale" class="text-[11px] text-slate-400 mt-0.5">P.IVA | C.F.</p>
+                </div>
+                <div class="flex flex-col space-y-2 items-end shrink-0">
+                    <button onclick="openAnagraficaModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition-colors">✏️ Modifica Anagrafica</button>
+                    <button onclick="deleteCurrentClientCascade()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center space-x-1">
+                        <span>🗑️</span> <span>Elimina Cliente</span>
+                    </button>
+                </div>
+            </div>
+            <div id="hubClientNotesBox" class="bg-slate-50 p-2.5 rounded-xl border text-xs text-slate-600 italic hidden"></div>
+        </div>
+
+        <div class="space-y-2">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📦 Commesse e Cantieri di lavoro</h3>
+                <button onclick="openNewCommessaModal()" class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">➕ Nuova Commessa</button>
+            </div>
+            <div id="hubCommesseList" class="space-y-3"></div>
+        </div>
+    </main>
+
+    <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna al Cliente</span>
+        </button>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span id="commessaBadgeStato" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">STATO</span>
+                    <span id="commessaTitleHeader" class="text-xs font-bold text-blue-600">Titolo Commessa</span>
+                </div>
+                <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
+                <p id="commessaCantiere" class="text-xs text-blue-600 hover:underline mt-0.5 font-medium cursor-pointer"></p>
+            </div>
+            <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            
+            <div>
+                <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
+                <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                    <option value="PRIMO_CONTATTO">📞 1. PRIMO CONTATTO</option>
+                    <option value="PREVENTIVAZIONE">📄 2. PREVENTIVAZIONE</option>
+                    <option value="MISURE_ESECUTIVE">📐 3. MISURE E CONTRATTO</option>
+                    <option value="FATTURA_ACCONTO">💰 4. FATTURA DI ACCONTO</option>
+                    <option value="ORDINI_FORNITORI">📦 5. ORDINI AI FORNITORI</option>
+                    <option value="INSTALLAZIONE">🔧 6. INSTALLAZIONE / POSA</option>
+                    <option value="SALDO_CONCLUSO">✅ 7. SALDO E CONCLUSO</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
+                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                    </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
+                <div id="boxWorkerContatto">
+                    <label id="lblWorkerContatto" class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Incaricato / Operatore *</label>
+                    <select id="workerContattoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
+                </div>
+                <div id="boxWorkerAssegnato">
+                    <label class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Assegnato a:</label>
+                    <select id="workerAssegnatoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
+                </div>
+            </div>
+
+            <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
+                <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label>3. Annotazioni del passaggio *</label>
+                    <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
+                </div>
+                <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
+                    <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
+                    
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <select id="categoriaDriveInput" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-bold w-full sm:w-44">
+                        </select>
+                        
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
+                            ➕ Carica File
+                            <input type="file" id="fileDriveInput" onchange="uploadFileToStorage(this)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="driveUploadStatus" class="text-[11px] text-blue-600 font-bold hidden animate-pulse">
+                    ⏳ Invio file e archiviazione in corso...
+                </div>
+
+                <div id="driveAllegatiList" class="space-y-2 max-h-48 overflow-y-auto">
+                    <p class="text-xs text-slate-400 italic">Nessun documento caricato.</p>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-sm shadow transition-colors flex items-center justify-center space-x-2">
+                    <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Storico)</h3>
+            </div>
+            <div id="diarioTimeline" class="space-y-2"></div>
+        </div>
+    </main>
+
+    <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
+        
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
+            <div class="flex items-center space-x-2">
+                <input type="number" id="cfgDefaultDays" min="0" placeholder="Es. 7" class="w-24 p-2 border rounded-lg bg-slate-50 text-xs font-bold text-center">
+                <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
+            
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div id="workerFormTitle" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Nuovo Collaboratore</div>
+                <input type="hidden" id="editingWorkerId" value="">
+                
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
+                    </div>
+                    <div>
+                        <input type="text" id="newWorkerMansione" placeholder="Es. Posatore, Amministrazione..." class="w-full bg-white border p-2.5 rounded-lg font-medium border-slate-300">
+                    </div>
+                    <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Collaboratore</button>
+                    <button id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="w-full text-center text-[11px] text-slate-500 underline hidden">Annulla Modifica</button>
+                </div>
+            </div>
+            <div id="settingsWorkerList" class="space-y-2 pt-1 max-h-64 overflow-y-auto"></div>
+        </div>
+    </main>
+
+    <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
+                <span class="text-lg">👥</span><span>Clienti</span>
+            </button>
+            <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">⚙️</span><span>Impostazioni</span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Tipo Cliente</label>
+                    <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
+                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                    <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
+                        <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
+                        <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione *</label>
+                    <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
+                        <input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
+                        <input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
+                        <input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
+                    <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                </div>
+                <div class="text-[10px] text-slate-400 italic font-medium">* Almeno un contatto deve essere compilato.</div>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
+        </div>
+    </div>
+
+    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label>
+                    <input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label>
+                        <input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label>
+                        <input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label>
+                        <input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label>
+                        <input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
+                    <textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
+        </div>
+    </div>
+
+    <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
+            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
+            <input type="hidden" id="modalCommessaId">
+            <div class="space-y-3 text-xs">
+                <input type="text" id="modalTitoloInput" placeholder="Titolo Lavoro *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCommessa" onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva</button></div>
+        </div>
+    </div>
+
+    <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
+            <div class="text-red-600 text-2xl">🔒</div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Autenticazione Richiesta</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Inserisci la password amministratore per autorizzare la cancellazione permanente.</p>
+            <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center font-bold tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+            <div class="flex space-x-2 pt-1 text-xs font-bold">
+                <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                <button onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let allClients = [];
+        let listLavoratori = [];
+        
+        let currentClienteId = null;
+        let currentCommessaId = null;
+        let currentCommessa = null;
+        let omonimiaTimeout = null;
+        
+        const workflowOrdinato = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO"];
+
+        // CONFIGURAZIONE DELLE OPZIONI DEI SUB-STATI PER OGNI MACRO FASE
+        const subStatiOpzioni = {
+            'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
+            'PREVENTIVAZIONE': [
+                {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
+                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire / Consegnare'},
+                {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
+                {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
+                {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
+            ],
+            'MISURE_ESECUTIVE': [
+                {val: 'REDZIONE', label: '📝 Contratto in Redazione / Misure da prendere'},
+                {val: 'INVIATO_CONSEGNA', label: '📬 Inviato per approvazione'},
+                {val: 'MODIFICHE_IN_CORSO', label: '🔧 Modifiche Richieste in Corso'},
+                {val: 'FIRMATO_CONFERMATO', label: '✍️ FIRMATO E SOTTOSCRITTO'}
+            ],
+            'FATTURA_ACCONTO': [
+                {val: 'EMISSIONE', label: '⏳ Richiesta emissione acconto'},
+                {val: 'ATTESA_BONIFICO', label: '💰 Emessa / In attesa di pagamento'},
+                {val: 'PAGATA', label: '✅ Pagata / Procedere con ordini'}
+            ],
+            'ORDINI_FORNITORI': [
+                {val: 'SVILUPPO_DISTINTE', label: '📐 Sviluppo distinte e conteggi'},
+                {val: 'INVIATO_FORNITORE', label: '📦 Ordini inviati (Attesa conferme)'},
+                {val: 'CONFERMATO_DATA', label: '📅 Ordini confermati con data di consegna'}
+            ],
+            'INSTALLAZIONE': [
+                {val: 'PROGRAMMATO', label: '📅 Posa programmata a calendario'},
+                {val: 'IN_CORSO', label: '🔧 Posatori in cantiere'},
+                {val: 'FINITO_CON_RISERVA', label: '⚠️ Installato ma con contestazioni/mancanze'},
+                {val: 'COMPLETATO', label: '🆗 Posa eseguita a regola d\'arte'}
+            ],
+            'SALDO_CONCLUSO': [
+                {val: 'FATTURAZIONE_FINALE', label: '💵 Richiesta fattura di saldo'},
+                {val: 'ATTESA_SALDO', label: '⏳ In attesa di saldo finale'},
+                {val: 'CHIUSO', label: '🎉 Commessa incassata e Chiusa'}
+            ]
+        };
+
+        function navigateTo(screen) {
+            if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
+            if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
+            if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
+            if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
+            
+            const btnClienti = document.getElementById('navBtnClienti');
+            const btnSettings = document.getElementById('navBtnImpostazioni');
+            if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
+            if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
+
+            if (screen === 'main') {
+                if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                fetchClienti();
+            } else if (screen === 'hub') {
+                if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderClientHub();
+            } else if (screen === 'detail') {
+                if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
+                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+            } else if (screen === 'settings') {
+                if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
+                if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderSettingsPanel();
+            }
+        }
+
+        async function initLists() {
+            try {
+                let { data: w, error } = await db.from('lavoratori').select('*').order('nome', { ascending: true });
+                if (error) throw error;
+                listLavoratori = w || [];
+                populateSelects();
+            } catch (err) { console.error(err); }
+        }
+
+        function populateSelects() {
+            const sels = ['workerContattoSelect', 'workerAssegnatoSelect'];
+            sels.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome} [${l.mansione || 'Generico'}]</option>`).join('');
+            });
+        }
+
+        async function fetchClienti() {
+            try {
+                const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
+                if (error) throw error;
+                allClients = data || [];
+                renderClientsList();
+            } catch (err) { console.error(err); }
+        }
+
+        function renderClientsList() {
+            const container = document.getElementById('clientList'); 
+            if (!container) return; container.innerHTML = "";
+            if(document.getElementById('loading')) document.getElementById('loading').classList.add('hidden'); 
+            container.classList.remove('hidden');
+
+            const term = document.getElementById('searchClient').value.toLowerCase().trim();
+            let listFiltrata = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
+
+            listFiltrata.forEach(cliente => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer text-sm font-semibold flex justify-between items-center";
+                
+                const mainClickable = document.createElement('div');
+                mainClickable.className = "flex-1";
+                mainClickable.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
+                mainClickable.innerHTML = `👤 ${cliente.denominazione}<p class="text-xs font-normal text-slate-400 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Non indicato'}</p>`;
+                
+                const act = document.createElement('div');
+                act.className = "flex items-center space-x-2";
+                if(cliente.telefono) {
+                    const b = document.createElement('button'); b.className = "p-2 bg-slate-50 border rounded-xl text-xs"; b.innerText = "📞";
+                    b.onclick = (e) => { e.stopPropagation(); if(confirm(`Chiamare il contatto selezionato?`)) window.location.href=`tel:${cliente.telefono}`; };
+                    act.appendChild(b);
+                }
+                card.appendChild(mainClickable); card.appendChild(act); container.appendChild(card);
+            });
+        }
+
+        function filterClients() { renderClientsList(); }
+
+        function renderClientHub() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
+            document.getElementById('hubClientName').innerText = cliente.denominazione;
+            document.getElementById('hubClientInfo').innerText = `📞 ${cliente.telefono || 'N/D'} | ✉️ ${cliente.email || 'N/D'}`;
+            document.getElementById('hubClientFiscale').innerText = `P.IVA: ${cliente.partita_iva || 'N/D'} | C.F.: ${cliente.codice_fiscale || 'N/D'}`;
+
+            const listContainer = document.getElementById('hubCommesseList'); listContainer.innerHTML = "";
+            if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa.</p>`; return; }
+            
+            cliente.commesse.forEach(com => {
+                const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm";
+                const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
+                
+                div.innerHTML = `
+                <div class="flex-1">
+                    <div class="cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span>
+                        <h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Senza Titolo'}</h4>
+                    </div>
+                    <p class="text-slate-500 mt-1">
+                        <a href="${mapsUrl}" target="_blank" class="text-blue-500 hover:underline">📍 Cantiere: ${com.indirizzo_cantiere}</a>
+                    </p>
+                </div>`;
+                listContainer.appendChild(div);
+            });
+        }
+
+        async function deleteCurrentClientCascade() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            if (!cliente) return;
+
+            const primaConferma = confirm(`⚠️ ATTENZIONE:\n\nStai per cancellare definitivamente l'anagrafica selezionata e TUTTI i cantieri ad essa collegati.\n\nL'azione è irreversibile. Procedere?`);
+            if (!primaConferma) return;
+
+            const secondaConferma = confirm(`Sei assolutamente sicuro al 100%? Tutti i log storici andranno persi.`);
+            if (!secondaConferma) return;
+
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordHiddenInput').focus();
+        }
+
+        function closePasswordAuthModal() {
+            document.getElementById('passwordAuthModal').classList.add('hidden');
+        }
+
+        async function submitAdminPasswordFlow() {
+            const passValue = document.getElementById('adminPasswordHiddenInput').value;
+
+            if (passValue !== "Fighette@69") {
+                alert("❌ ERRORE:\nPassword errata. Autorizzazione negata.");
+                return;
+            }
+
+            closePasswordAuthModal();
+            try {
+                const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
+                if (errorCommesse) throw errorCommesse;
+
+                const { error: errorCliente } = await db.from('clienti').delete().eq('id', currentClienteId);
+                if (errorCliente) throw errorCliente;
+
+                alert("🟢 Record rimosso correttamente.");
+                currentClienteId = null;
+                navigateTo('main');
+            } catch (err) {
+                console.error(err);
+                alert("Errore tecnico: " + err.message);
+            }
+        }
+
+        // CARICAMENTO IN UN'UNICA PAGINA FLUIDA
+        function openCommessaWorkspace(commessaId) {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            currentCommessa = cliente.commesse.find(com => com.id === commessaId);
+            currentCommessaId = commessaId;
+
+            document.getElementById('commessaClientName').innerText = cliente.denominazione;
+            const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
+            document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
+            
+            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
+            
+            // Imposta Macro Fase
+            document.getElementById('commessaMacroSelect').value = currentCommessa.stato_macro;
+            
+            // Genera e imposta le opzioni del Sub-Stato
+            popolaSubStatoMenu(currentCommessa.stato_macro);
+            document.getElementById('subStatoAvanzamentoSelect').value = currentCommessa.preventivo_stato || subStatiOpzioni[currentCommessa.stato_macro][0].val;
+            
+            // Operatori
+            document.getElementById('workerContattoSelect').value = currentCommessa.contatto_gestito_da || '';
+            document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
+            
+            document.getElementById('faseAnnotazioniInput').value = "";
+            document.getElementById('charCounter').innerText = "0 / 150";
+
+            adjustWorkerLabels(currentCommessa.stato_macro);
+            aggiornaSelettoreCategorie(currentCommessa.stato_macro); 
+            fetchDiarioTimeline(); 
+            fetchAllegatiDrive(); 
+            navigateTo('detail');
+        }
+
+        function popolaSubStatoMenu(macroFase) {
+            const select = document.getElementById('subStatoAvanzamentoSelect');
+            const opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
+            select.innerHTML = opzioni.map(o => `<option value="${allineaSottoStatoDatabase(o.val)}">${o.label}</option>`).join('');
+        }
+
+        // Funzione di retrocompatibilità con i vecchi nomi delle tabelle del database
+        function allineaSottoStatoDatabase(val) {
+            if (val === 'REDZIONE') return 'REDZIONE'; // Lasciamo lo spelling esistente sul DB
+            return val;
+        }
+
+        function currentWorkspaceValue(field) { return (currentCommessa && currentCommessa[field]) ? currentCommessa[field] : ''; }
+        function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
+
+        function handleFaseChange() {
+            const faseAttuale = currentCommessa.stato_macro;
+            const nuevaFase = document.getElementById('commessaMacroSelect').value;
+            if (faseAttuale === nuevaFase) return;
+
+            const indexAttuale = workflowOrdinato.indexOf(faseAttuale);
+            const indexNuovo = workflowOrdinato.indexOf(nuevaFase);
+
+            if (indexNuovo < indexAttuale) {
+                alert(`⚠️ Azione Bloccata: Non puoi retrocedere la fase principale.`);
+                document.getElementById('commessaMacroSelect').value = faseAttuale; 
+                return;
+            }
+
+            if ((indexNuovo - indexAttuale) > 2) {
+                if (!confirm("Salto di fase elevato. Confermi?")) { 
+                    document.getElementById('commessaMacroSelect').value = faseAttuale; 
+                    return; 
+                }
+            }
+            
+            // Aggiorna dinamicamente i sottomenu in base alla nuova macrofase selezionata a schermo
+            popolaSubStatoMenu(nuevaFase);
+            adjustWorkerLabels(nuevaFase);
+            aggiornaSelettoreCategorie(nuevaFase); 
+        }
+
+        function adjustWorkerLabels(fase) {
+            const lbl = document.getElementById('lblWorkerContatto'); 
+            const box2 = document.getElementById('boxWorkerAssegnato');
+            if(fase==='PRIMO_CONTATTO') { 
+                if(lbl) lbl.innerText = "Contatto preso da: *"; 
+                if(box2) box2.classList.remove('hidden'); 
+            } else { 
+                if(lbl) lbl.innerText = "Incaricato / Operatore *"; 
+                if(box2) box2.classList.add('hidden'); 
+            }
+        }
+
+        // --- DINAMISMO SELETTORE CATEGORIE IN BASE ALLO STATO MACRO ---
+        function aggiornaSelettoreCategorie(fase) {
+            const select = document.getElementById('categoriaDriveInput');
+            if (!select) return;
+
+            let opzioni = [];
+            switch(fase) {
+                case 'PRIMO_CONTATTO':
+                    opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }];
+                    break;
+                case 'PREVENTIVAZIONE':
+                    opzioni = [{ val: 'PREVENTIVO', label: '📄 Preventivo' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                case 'MISURE_ESECUTIVE':
+                    opzioni = [{ val: 'CONTRATTO', label: '✍️ Contratto' }, { val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                case 'FATTURA_ACCONTO':
+                    opzioni = [{ val: 'FATTURA', label: '💰 Fattura' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                case 'ORDINI_FORNITORI':
+                    opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                case 'INSTALLAZIONE':
+                    opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                case 'SALDO_CONCLUSO':
+                    opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }];
+                    break;
+                default:
+                    opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
+            }
+            select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
+        }
+
+        // SALVATAGGIO FLUIDO UNIFICATO NEL DIARIO GLOBAL
+        async function saveFaseLavorazioneConDati() {
             const nuovaFase = document.getElementById('commessaMacroSelect').value;
+            const nuovoSubStato = document.getElementById('subStatoAvanzamentoSelect').value;
             const op1Select = document.getElementById('workerContattoSelect');
             const op2Select = document.getElementById('workerAssegnatoSelect');
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
@@ -8,51 +691,331 @@ async function saveFaseLavorazioneConDati() {
             const op1Text = op1Select.options[op1Select.selectedIndex]?.text || 'Nessuno';
             const op2Text = op2Select.options[op2Select.selectedIndex]?.text || 'Nessuno';
 
+            const selectSub = document.getElementById('subStatoAvanzamentoSelect');
+            const testoSubStato = selectSub.options[selectSub.selectedIndex]?.text || nuovoSubStato;
+
+            if(!op1Value || !annotazioni) { 
+                alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori per salvare!"); 
+                return; 
+            }
+
             const t = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
 
-            // 1. Prepariamo la riga di testo da salvare nel Diario Global
-            let rigaLog = `[${t}] - Fase: ${nuovaFase}. `;
-            if(nuovaFase==='PRIMO_CONTATTO') rigaLog += `Contatto da: ${op1Text} | Assegnato: ${op2Text} `;
-            else rigaLog += `Incaricato: ${op1Text} `;
-            rigaLog += `| Note: ${annotazioni || 'Nessuna nota inserita'}`;
+            // Generiamo la riga per lo storico del Diario Global
+            let rigaLog = `[${t}] - Fase: ${nuovaFase} (${testoSubStato}) | Incaricato: ${op1Text}`;
+            if(nuovaFase==='PRIMO_CONTATTO' && op2Value !== "") rigaLog += ` / Assegnato a: ${op2Text}`;
+            rigaLog += ` | Nota: ${annotazioni}`;
 
-            // Uniamo la nuova riga al diario esistente (se c'è già)
             let diarioAggiornato = currentCommessa.note_cantiere ? currentCommessa.note_cantiere + '\n' + rigaLog : rigaLog;
 
-            // CASO A: Stiamo solo aggiornando i dati della stessa fase senza cambiarla
-            if(nuovaFase === currentCommessa.stato_macro) {
+            try {
                 await db.from('commesse').update({ 
+                    stato_macro: nuovaFase,
+                    preventivo_stato: nuovoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
-                    note_cantiere: diarioAggiornato // <--- SALVA NEL DIARIO GLOBAL
+                    note_cantiere: diarioAggiornato
                 }).eq('id', currentCommessaId);
                 
+                // Aggiorna lo stato locale per evitare refresh
+                currentCommessa.stato_macro = nuovaFase;
+                currentCommessa.preventivo_stato = nuovoSubStato;
                 currentCommessa.contatto_gestito_da = op1Value; 
                 currentCommessa.preventivo_assegnato_a = op2Value;
                 currentCommessa.note_cantiere = diarioAggiornato;
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                fetchDiarioTimeline(); // Aggiorna subito la lista a schermo
-                alert("✅ Diario e Operatori Aggiornati!"); 
+                alert("🟢 Modifiche e attività registrate correttamente nel Diario Global!");
+                openCommessaWorkspace(currentCommessaId); // Rinfresca visivamente la timeline
+                
+            } catch(err) {
+                alert("Errore tecnico durante il salvataggio: " + err.message);
+            }
+        }
+
+        function fetchDiarioTimeline() {
+            const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
+            if(!currentCommessa || !currentCommessa.note_cantiere) {
+                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
+                return;
+            }
+            currentCommessa.note_cantiere.split('\n').reverse().forEach(l => {
+                if(l.trim()) {
+                    const r = document.createElement('div'); r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed";
+                    r.innerText = l; container.appendChild(r);
+                }
+            });
+        }
+
+        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
+        async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
+
+        function openNewCommessaModal() { document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function openCommessaEditModalCurrent() { document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
+        async function saveCommessaDati() {
+            const id = document.getElementById('modalCommessaId').value; const t = document.getElementById('modalTitoloInput').value.trim(); const c = document.getElementById('modalCantiereInput').value.trim();
+            if(!t || !c) return;
+            if(id) await db.from('commesse').update({ titolo_lavoro: t, indirizzo_cantiere: c }).eq('id', id);
+            else await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
+            closeCommessaModal(); await fetchClienti(); renderClientHub();
+        }
+
+        function openAnagraficaModal() {
+            const c = allClients.find(cl => cl.id === currentClienteId); if(!c) return;
+            document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || '';
+            document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || '';
+            document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || '';
+            document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden');
+        }
+        function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
+        async function updateAnagrafica() {
+            const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
+            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
+            closeAnagraficaModal(); await fetchClienti(); renderClientHub();
+        }
+        async function saveCliente() {
+            const d = document.getElementById('newDenominazione').value.trim();
+            const ind = document.getElementById('newIndirizzo').value.trim();
+            const tel = document.getElementById('newTelefono').value.trim();
+            const em = document.getElementById('newEmail').value.trim();
+            
+            if(!d) { alert("Il campo Nome / Ragione Sociale è obbligatorio!"); return; }
+            if(!ind) { alert("L'indirizzo di fatturazione è obbligatorio!"); return; }
+            if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
+            
+            const { data } = await db.from('clienti').insert([{ 
+                tipo_cliente: document.getElementById('newTipo').value, 
+                denominazione: d, 
+                indirizzo_fatturazione: ind, 
+                telefono: tel===""?null:tel, 
+                email: em===""?null:em, 
+                partita_iva: document.getElementById('newPartitaIva').value.trim(), 
+                codice_fiscale: document.getElementById('newCodiceFiscale').value.trim(), 
+                note_generali: document.getElementById('newNote').value.trim() 
+            }]).select();
+            
+            if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
+        }
+
+        function openNewClientModal() { 
+            document.getElementById('newTipo').value = "PRIVATO";
+            document.getElementById('newDenominazione').value = "";
+            document.getElementById('newIndirizzo').value = "";
+            document.getElementById('newTelefono').value = "";
+            document.getElementById('newEmail').value = "";
+            document.getElementById('newPartitaIva').value = "";
+            document.getElementById('newCodiceFiscale').value = "";
+            document.getElementById('newNote').value = "";
+            
+            document.getElementById('omonimiaSuggestBox').classList.add('hidden');
+            document.getElementById('omonimiaListContainer').innerHTML = "";
+            document.getElementById('clientModal').classList.remove('hidden'); 
+        }
+        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
+
+        function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
+        function saveDefaultDaysConfig() { localStorage.setItem('cfg_days_default', document.getElementById('cfgDefaultDays').value.trim()); alert("Valore salvato!"); }
+        
+        function renderSettingsWorkersList() {
+            const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
+            listLavoratori.forEach(w => {
+                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1";
+                r.innerHTML = `<div>👤 ${w.nome} ${w.mansione?`[${w.mansione}]`:''}</div><div><button onclick="startEditWorker('${w.id}','${escapeHtml(w.nome)}','${escapeHtml(w.mansione||'')}')" class="text-blue-600 mr-2">✏️</button><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button></div>`;
+                container.appendChild(r);
+            });
+        }
+        function startEditWorker(id, n, m) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('newWorkerMansione').value = m; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
+        function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('newWorkerMansione').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
+        
+        async function saveWorkerToDatabase() {
+            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim(); const m = document.getElementById('newWorkerMansione').value.trim();
+            if(!n) return;
+            const btn = document.getElementById('btnSaveWorkerDb');
+            try {
+                btn.disabled = true;
+                if(id) {
+                    const { error } = await db.from('lavoratori').update({ nome: n, mansione: m===""?null:m }).eq('id', id);
+                    if(error) throw error;
+                    alert("✅ Collaboratore aggiornato con successo!");
+                } else {
+                    const { error } = await db.from('lavoratori').insert([{ nome: n, mansione: m===""?null:m }]);
+                    if(error) throw error;
+                    alert("✅ Collaboratore aggiunto con successo!");
+                }
+                resetWorkerForm(); await initLists(); renderSettingsWorkersList();
+            } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
+        }
+        async function deleteWorkerDatabase(id) { if(confirm("Eliminare?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
+        function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
+
+        function checkOmonimiaDoppioni(valoreDigitato) {
+            clearTimeout(omonimiaTimeout);
+            const box = document.getElementById('omonimiaSuggestBox');
+            const listContainer = document.getElementById('omonimiaListContainer');
+            
+            const termine = valoreDigitato.toLowerCase().trim();
+            if (termine.length < 3) {
+                box.classList.add('hidden');
+                listContainer.innerHTML = "";
                 return;
             }
 
-            // CASO B: C'è un vero e proprio avanzamento di Fase
-            if(!op1Value || !annotazioni) { alert("Incaricato e Annotazioni obbligatori per cambiare fase!"); return; }
+            omonimiaTimeout = setTimeout(() => {
+                const parole = termine.split(/\s+/);
+                let duplicatiTrovati = allClients.filter(c => {
+                    const denominazioneLocale = c.denominazione.toLowerCase();
+                    return parole.every(p => denominazioneLocale.includes(p));
+                });
 
-            await db.from('commesse').update({ 
-                stato_macro: nuovaFase, 
-                contatto_gestito_da: op1Value, 
-                preventivo_assegnato_a: op2Value===""?null:op2Value,
-                note_cantiere: diarioAggiornato // <--- SALVA NEL DIARIO GLOBAL
-            }).eq('id', currentCommessaId);
-            
-            currentCommessa.stato_macro = nuovaFase; 
-            currentCommessa.contatto_gestito_da = op1Value; 
-            currentCommessa.preventivo_assegnato_a = op2Value;
-            currentCommessa.note_cantiere = diarioAggiornato;
-            
-            document.getElementById('faseAnnotazioniInput').value = "";
-            alert("🎉 Nuova Fase e Diario Salvati!"); 
-            openCommessaWorkspace(currentCommessaId); // Rinfresca tutto il pannello
+                if (duplicatiTrovati.length === 0) {
+                    box.classList.add('hidden');
+                    listContainer.innerHTML = "";
+                    return;
+                }
+
+                listContainer.innerHTML = "";
+                duplicatiTrovati.forEach(dup => {
+                    const d = document.createElement('div');
+                    d.className = "p-1.5 bg-white hover:bg-slate-100 rounded-lg border text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors flex flex-col";
+                    d.innerHTML = `<span>👤 ${dup.denominazione}</span> <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
+                    d.onclick = () => { closeModal(); currentClienteId = dup.id; navigateTo('hub'); };
+                    listContainer.appendChild(d);
+                });
+                box.classList.remove('hidden');
+            }, 350);
         }
+
+        // --- GESTIONE ALLEGATI CON SUPABASE STORAGE ---
+        async function fetchAllegatiDrive() {
+            const container = document.getElementById('driveAllegatiList');
+            if (!container) return;
+            container.innerHTML = `<p class="text-xs text-slate-400">⏳ Caricamento documenti...</p>`;
+
+            try {
+                const { data, error } = await db
+                    .from('allegati_drive')
+                    .select('*')
+                    .eq('commessa_id', currentCommessaId)
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-400 italic">Nessun documento caricato.</p>`;
+                    return;
+                }
+
+                const categorie = { 'PREVENTIVO': [], 'CONTRATTO': [], 'FATTURA': [], 'ORDINE': [], 'FOTO': [], 'ALTRO': [] };
+                data.forEach(all => {
+                    if (categorie[all.categoria]) categorie[all.categoria].push(all);
+                    else categorie['ALTRO'].push(all);
+                });
+
+                container.innerHTML = "";
+
+                for (const [key, files] of Object.entries(categorie)) {
+                    if (files.length === 0) continue;
+
+                    const section = document.createElement('div');
+                    section.className = "space-y-1.5 mt-2";
+
+                    const badgeColors = {
+                        'PREVENTIVO': 'bg-green-100 text-green-800 border-green-200',
+                        'CONTRATTO': 'bg-amber-100 text-amber-800 border-amber-200',
+                        'FATTURA': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                        'ORDINE': 'bg-blue-100 text-blue-800 border-blue-200',
+                        'FOTO': 'bg-purple-100 text-purple-800 border-purple-200',
+                        'ALTRO': 'bg-slate-100 text-slate-800 border-slate-200'
+                    };
+
+                    section.innerHTML = `
+                        <div class="flex items-center">
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeColors[key]}">
+                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : 
+                                  key === 'CONTRATTO' ? '✍️ Contratti' : 
+                                  key === 'FATTURA' ? '💰 Fatture' : 
+                                  key === 'ORDINE' ? '📦 Ordini / Fornitori' : 
+                                  key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
+                            </span>
+                        </div>
+                    `;
+
+                    const filesContainer = document.createElement('div');
+                    filesContainer.className = "space-y-1 pl-2 border-l-2 border-slate-200 ml-2 mt-1";
+
+                    files.forEach(all => {
+                        const item = document.createElement('div');
+                        item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
+                        
+                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
+
+                        item.innerHTML = `
+                            <div class="flex items-center space-x-2 truncate">
+                                <span>📄</span> <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
+                            </div>
+                            <div class="flex space-x-3 shrink-0 pl-2">
+                                <a href="${publicUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
+                                <button onclick="deleteFileFromStorage('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+                            </div>
+                        `;
+                        filesContainer.appendChild(item);
+                    });
+
+                    section.appendChild(filesContainer);
+                    container.appendChild(section);
+                }
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p class="text-xs text-red-500">Errore nel caricamento dei file.</p>`;
+            }
+        }
+
+        async function uploadFileToStorage(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+        
+            const statusBox = document.getElementById('driveUploadStatus');
+            if (statusBox) statusBox.classList.remove('hidden');
+        
+            const categoriaSelect = document.getElementById('categoriaDriveInput');
+            const categoriaSelezionata = categoriaSelect ? categoriaSelect.value : 'ALTRO';
+        
+            try {
+                const filePath = `${currentCommessaId}/${Date.now()}_${file.name}`;
+                const { data, error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
+                if (error) throw error;
+
+                await db.from('allegati_drive').insert([{
+                    commessa_id: currentCommessaId,
+                    nome_file: file.name,
+                    categoria: categoriaSelezionata,
+                    google_drive_file_id: filePath
+                }]);
+
+                alert("🟢 Documento salvato ed archiviato correttamente!");
+                fetchAllegatiDrive();
+        
+            } catch (err) {
+                alert("❌ Errore durante il caricamento: " + err.message);
+            } finally {
+                if (statusBox) statusBox.classList.add('hidden');
+                inputElement.value = "";
+            }
+        }
+
+        async function deleteFileFromStorage(idSupabase, filePath) {
+            if(!confirm("Vuoi eliminare permanentemente questo documento dallo Storage?")) return;
+            try {
+                await db.storage.from('documenti').remove([filePath]);
+                const { error } = await db.from('allegati_drive').delete().eq('id', idSupabase);
+                if (error) throw error;
+                alert("🟢 Documento rimosso.");
+                fetchAllegatiDrive();
+            } catch (err) { alert(err.message); }
+        }
+
+        window.onload = async () => { await initLists(); await fetchClienti(); };
+    </script>
+</body>
+</html>
