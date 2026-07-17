@@ -477,7 +477,7 @@
         };
 
         const sottofasiFinanziamento = [
-            {val: 'INSERIMENTO_PRATICA', label: '📝 Inserimento pratica (domanda)'},
+            {val: 'INSERIMENTO_PRATICA', label: '📝 Inserimento prima (domanda)'},
             {val: 'VERIFICA_VERDE', label: '🟢 Verifica (Luce Verde)'},
             {val: 'VERIFICA_ROSSA', label: '🔴 Verifica (Luce Rossa)'},
             {val: 'DOCUMENTI_MANCANTI', label: '⚠️ Documenti mancanti'},
@@ -485,15 +485,6 @@
             {val: 'PAGATA_FIN', label: '💰 Acconto Pagato'},
             {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
         ];
-
-        function formattaPeso(bytes) {
-            if (!bytes) return '';
-            if (bytes < 1024) return bytes + ' B';
-            const kb = bytes / 1024;
-            if (kb < 1024) return kb.toFixed(1) + ' KB';
-            const mb = kb / 1024;
-            return mb.toFixed(1) + ' MB';
-        }
 
         async function initLists() {
             try {
@@ -742,7 +733,7 @@
                 const { error } = await db.from('ordini_fornitori').insert([{
                     commessa_id: currentCommessaId,
                     fornitore_id: fornitoreId,
-                    prodotto: producto || prodotto, 
+                    prodotto: prodotto, 
                     tipo_documento: tipoDoc,
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
@@ -875,7 +866,6 @@
             });
         }
 
-        async function部署FornitoreDaImpostazioni(id) {} // Interfaccia fittizia per compatibilità
         async function eliminaFornitoreDaImpostazioni(id) {
             if (confirm("Rimuovere definitivamente questo fornitore dalle anagrafiche generali dell'azienda?")) {
                 await db.from('fornitori').delete().eq('id', id);
@@ -1061,6 +1051,9 @@
                     await db.from('ordini_fornitori').delete().eq('commessa_id', pendingDeleteAction.data);
                     await db.from('commesse').delete().eq('id', pendingDeleteAction.data);
                     await fetchClienti(); renderClientHub();
+                } else if (pendingDeleteAction.type === 'CLIENTE') {
+                    await db.from('clienti').delete().eq('id', pendingDeleteAction.data);
+                    await fetchClienti(); navigateTo('main');
                 }
             } catch(err) { alert(err.message); }
         }
@@ -1091,7 +1084,7 @@
         function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
         async function updateAnagrafica() {
             const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
-            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
+            await db.from('clienti').update({ denominazione: d, border: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
             closeAnagraficaModal(); await fetchClienti(); renderClientHub();
         }
 
