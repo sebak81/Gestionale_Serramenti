@@ -18,7 +18,6 @@
         body { -webkit-tap-highlight-color: transparent; }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
         
-        /* Colori dei Macro Stati */
         .macro-PRIMO_CONTATTO { background-color: #f1f5f9; color: #475569; }
         .macro-PREVENTIVAZIONE { background-color: #e0f2fe; color: #0369a1; }
         .macro-MISURE_ESECUTIVE { background-color: #fef3c7; color: #b45309; }
@@ -38,7 +37,7 @@
         </a>
     </header>
 
-    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-3 mb-20">
+    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
                 <div class="relative flex-1">
@@ -51,26 +50,10 @@
                 </button>
             </div>
 
-            <!-- Griglia di Filtri Avanzati Compattata per Smartphone -->
-            <div class="flex flex-col space-y-1 bg-slate-200/80 p-1.5 rounded-xl text-[10px] font-bold text-slate-600 shadow-inner">
-                <!-- Riga 1: Tutti -->
-                <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
-                
-                <!-- Riga 2: Stati 1-4 -->
-                <div class="grid grid-cols-4 gap-1">
-                    <button id="btnFilter-PRIMO_CONTATTO" onclick="switchClientFilter('PRIMO_CONTATTO')" class="py-1 text-center rounded-md transition-all truncate">📞 Contatti</button>
-                    <button id="btnFilter-PREVENTIVAZIONE" onclick="switchClientFilter('PREVENTIVAZIONE')" class="py-1 text-center rounded-md transition-all truncate">📄 Prev.</button>
-                    <button id="btnFilter-MISURE_ESECUTIVE" onclick="switchClientFilter('MISURE_ESECUTIVE')" class="py-1 text-center rounded-md transition-all truncate">📐 Misure</button>
-                    <button id="btnFilter-FATTURA_ACCONTO" onclick="switchClientFilter('FATTURA_ACCONTO')" class="py-1 text-center rounded-md transition-all truncate">💰 Acconti</button>
-                </div>
-
-                <!-- Riga 3: Stati 5-8 -->
-                <div class="grid grid-cols-4 gap-1">
-                    <button id="btnFilter-ORDINI_FORNITORI" onclick="switchClientFilter('ORDINI_FORNITORI')" class="py-1 text-center rounded-md transition-all truncate">📦 Ordini</button>
-                    <button id="btnFilter-INSTALLAZIONE" onclick="switchClientFilter('INSTALLAZIONE')" class="py-1 text-center rounded-md transition-all truncate">🔧 Posa</button>
-                    <button id="btnFilter-SALDO_CONCLUSO" onclick="switchClientFilter('SALDO_CONCLUSO')" class="py-1 text-center rounded-md transition-all truncate">💵 Saldi</button>
-                    <button id="btnFilter-ASSISTENZA_POST" onclick="switchClientFilter('ASSISTENZA_POST')" class="py-1 text-center rounded-md transition-all truncate">🛠️ Post</button>
-                </div>
+            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
+                <button id="subTabClientiAll" onclick="switchClientSubTab('all')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
+                <button id="subTabClientiInCorso" onclick="switchClientSubTab('incorso')" class="flex-1 py-1.5 text-center rounded-lg transition-all">In Corso</button>
+                <button id="subTabClientiConclusi" onclick="switchClientSubTab('conclusi')" class="flex-1 py-1.5 text-center rounded-lg transition-all">Completati</button>
             </div>
         </div>
 
@@ -128,6 +111,7 @@
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             
+            <!-- 1. FASE DI LAVORAZIONE -->
             <div>
                 <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
@@ -142,17 +126,20 @@
                 </select>
             </div>
 
+            <!-- OPZIONE DINAMICA FLAG FINANZIAMENTO -->
             <div id="boxFinanziamentoFlag" class="hidden bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex items-center space-x-2">
                 <input type="checkbox" id="checkFinanziamentoAttivo" onchange="toggleFinanziamentoFlusso(this.checked)" class="rounded text-blue-600 h-4 w-4 focus:ring-blue-500">
                 <label for="checkFinanziamentoAttivo" class="text-xs font-bold text-slate-700 select-none">💳 Gestione tramite Finanziamento</label>
             </div>
 
+            <!-- 2. DETTAGLIO STATO AVANZAMENTO -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
-                <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
+            <!-- 3. SELEZIONE INCARICATI -->
             <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
                 <div id="boxWorkerContatto">
                     <label id="lblWorkerContatto" class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Incaricato / Operatore *</label>
@@ -164,17 +151,13 @@
                 </div>
             </div>
 
-            <div class="border-t pt-3 grid grid-cols-3 gap-2">
-                <div class="col-span-2">
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (No future)</label>
-                    <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div id="boxGiorniAllertaDinamici" class="hidden">
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">⏱️ Giorni Allerta</label>
-                    <input type="number" id="giorniAllertaInput" min="0" placeholder="GG" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-center text-red-600 focus:ring-2 focus:ring-blue-500">
-                </div>
+            <!-- 4. SELEZIONE DATA ATTIVITÀ -->
+            <div class="border-t pt-3">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Default Oggi - No future)</label>
+                <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
             </div>
 
+            <!-- 5. ANNOTAZIONI DEL PASSAGGIO CORRENTE -->
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     <label>3. Annotazioni del passaggio *</label>
@@ -183,6 +166,63 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
+            <!-- 6. SEZIONE NUOVA: MODULO ORDINI E MATERIALI AI FORNITORI (FASE 3 E FASE 5) -->
+            <div id="boxSezioneOrdiniFornitori" class="hidden bg-slate-900 text-white p-4 rounded-2xl border border-slate-700 space-y-3">
+                <div class="border-b border-slate-700 pb-1.5 flex justify-between items-center">
+                    <h3 id="titoloSezioneOrdini" class="text-xs font-bold uppercase tracking-wider text-blue-400">📦 Gestione Ordini ai Fornitori</h3>
+                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200">STATO</span>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Fornitore *</label>
+                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-semibold"></select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Materiale / Prodotto *</label>
+                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Data Invio Doc *</label>
+                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                        </div>
+                        <div id="boxDataArrivoPresunta">
+                            <label class="block font-bold text-amber-300 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-300 text-[10px] mb-1">Note Ordine / Fornitore</label>
+                        <input type="text" id="ordineNoteInput" placeholder="Note interne per questa fornitura..." class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white">
+                    </div>
+
+                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                        <div class="text-[10px] text-slate-400 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
+                            📎 Carica PDF
+                            <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
+                        </label>
+                    </div>
+                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-400 font-bold italic hidden"></div>
+
+                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl font-bold tracking-wide transition-colors">
+                        ➕ Registra Fornitura nel Cantiere
+                    </button>
+                </div>
+
+                <!-- Lista Materiali della Commessa Corrente -->
+                <div class="space-y-1.5 pt-2 border-t border-slate-700">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
+                    <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- 7. SEZIONE CARICAMENTO DOCUMENTI GENERALI -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                     <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
@@ -224,24 +264,29 @@
 
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
+        
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">⏱️ Scadenze e Allerte Fasi (Giorni di tolleranza)</h3>
-            <div class="space-y-2 text-xs font-semibold">
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>📄 Allerta Invio Preventivi:</span>
-                    <input type="number" id="cfgDaysPreventivi" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>✍️ Allerta Invio Contratti / Contratti Firmati:</span>
-                    <input type="number" id="cfgDaysContratti" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>💰 Allerta Fatture (Acconto e Saldo):</span>
-                    <input type="number" id="cfgDaysFatture" min="0" placeholder="Es. 5" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <button onclick="saveAllertaConfigs()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Impostazioni Allerte</button>
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
+            <div class="flex items-center space-x-2">
+                <input type="number" id="cfgDefaultDays" min="0" placeholder="Es. 7" class="w-24 p-2 border rounded-lg bg-slate-50 text-xs font-bold text-center">
+                <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
             </div>
         </div>
+
+        <!-- SEZIONE NUOVA: ANAGRAFICA FORNITORI IN IMPOSTAZIONI -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">🏢 Anagrafica Fornitori</h3>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Marchio / Fornitore</div>
+                <div class="space-y-2 text-xs">
+                    <input type="text" id="newFornitoreNome" placeholder="Ragione Sociale (Es. Qfort)" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
+                    <input type="text" id="newFornitoreProdotti" placeholder="Prodotti gestiti (Es. Serramenti, Zanzariere)" class="w-full bg-white border p-2.5 rounded-lg border-slate-300">
+                    <button onclick="salvaFornitoreInImpostazioni()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Fornitore</button>
+                </div>
+            </div>
+            <div id="settingsFornitoriList" class="space-y-2 pt-1 max-h-64 overflow-y-auto"></div>
+        </div>
+
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -268,6 +313,43 @@
         </div>
     </nav>
 
+    <!-- MODAL EDIT DATA ARRIVO MERCE (POST INSERIMENTO) -->
+    <div id="ordineEditDataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2 uppercase tracking-wider text-blue-600">📅 Aggiorna Dati Fornitura</h3>
+            <input type="hidden" id="modalEditOrdineId">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nuova Data Presunta Arrivo:</label>
+                    <input type="date" id="modalEditOrdineDataArrivo" class="w-full p-2 border rounded-xl bg-slate-50 font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Aggiorna Annotazioni:</label>
+                    <input type="text" id="modalEditOrdineNote" class="w-full p-2 border rounded-xl bg-slate-50">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-1 text-xs font-bold">
+                <button onclick="closeOrdineEditDataModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                <button onclick="salvaModificaDataOrdinePost()" class="flex-1 py-2 bg-green-600 text-white rounded-lg shadow">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIALOG PER PASSWORD AUTH CANCELLAZIONI -->
+    <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
+            <div class="text-red-600 text-2xl">🔒</div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Autenticazione Richiesta</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Inserisci la password amministratore per autorizzare la cancellazione permanente.</p>
+            <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center font-bold tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+            <div class="flex space-x-2 pt-1 text-xs font-bold">
+                <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                <button id="modalConfirmBtn" onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESTO DEI MODAL INVARIATI PER SPAZIO -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -337,88 +419,20 @@
         </div>
     </div>
 
-    <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
-            <div class="text-red-600 text-2xl">🔒</div>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Autenticazione Richiesta</h3>
-            <p class="text-xs text-slate-500 font-medium leading-relaxed">Inserisci la password amministratore per autorizzare la cancellazione permanente.</p>
-            <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center font-bold tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-            <div class="flex space-x-2 pt-1 text-xs font-bold">
-                <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
-                <button id="modalConfirmBtn" onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let allClients = [];
         let listLavoratori = [];
+        let listFornitori = []; // Array per contenere i marchi caricati dal db
         
         let currentClienteId = null;
         let currentCommessaId = null;
         let currentCommessa = null;
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
-        let activeFilter = 'all'; 
-
-        const subStatiOpzioni = {
-            'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
-            'PREVENTIVAZIONE': [
-                {val: 'SOPRALLUOGO', label: '📐 Sopralluogo Preventivo'},
-                {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
-                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire'},
-                {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
-                {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
-                {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
-            ],
-            'MISURE_ESECUTIVE': [
-                {val: 'ESECUTIVE', label: '📐 Misure Esecutive'},
-                {val: 'PRE_ORDINI', label: '🔍 Pre Ordini'},
-                {val: 'SVILUPPO_CONTRATTO', label: '📝 Sviluppo Contratto'},
-                {val: 'INVIATO_CONSEGNA', label: '📬 Contratto Inviato / Consegnato'},
-                {val: 'MODIFICHE_IN_CORSO', label: '🔧 Contratto Rifiutato'},
-                {val: 'FIRMATO_CONFERMATO', label: '✍️ Contratto Firmato'}
-            ],
-            'FATTURA_ACCONTO': [
-                {val: 'FATTURA_DA_MAKE', label: '⏳ Fattura Da Fare'},
-                {val: 'FATTURA_INVIATA', label: '📬 Fattura Acconto Inviata'},
-                {val: 'PAGATA', label: '💰 Acconto Pagato'}
-            ],
-            'ORDINI_FORNITORI': [
-                {val: 'SVILUPPO_ORDINE', label: '📐 Sviluppo Ordine'},
-                {val: 'INVIO_ORDINE', label: '📦 Invio Ordine'},
-                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Conferma d\'Ordine'},
-                {val: 'INVIO_CONFERMA', label: '📬 Invio Conferma d\'Ordine'},
-                {val: 'MERCE_ARRIVATA', label: '✅ Merce Arrivata'}
-            ],
-            'INSTALLAZIONE': [
-                {val: 'POSA', label: '🔧 Posa'},
-                {val: 'FINITURE', label: '✨ Finiture'},
-                {val: 'SISTEMAZIONI', label: '🛠️ Sistemazioni'}
-            ],
-            'SALDO_CONCLUSO': [
-                {val: 'SALDO_DA_FARE', label: '💵 Fattura Da Fare'},
-                {val: 'SALDO_INVIATO', label: '📬 Fattura Saldo Inviata'},
-                {val: 'CHIUSO', label: '🎉 Saldo Pagato'}
-            ],
-            'ASSISTENZA_POST': [
-                {val: 'REGISTRAZIONI', label: '🔧 Registrazioni / Sistemazioni'},
-                {val: 'RNC', label: '⚠️ RNC (Reclamo Non Conformità)'}
-            ]
-        };
-
-        const sottofasiFinanziamento = [
-            {val: 'INSERIMENTO_PRATICA', label: '📝 Inserimento pratica (domanda)'},
-            {val: 'VERIFICA_VERDE', label: '🟢 Verifica (Luce Verde)'},
-            {val: 'VERIFICA_ROSSA', label: '🔴 Verifica (Luce Rossa)'},
-            {val: 'DOCUMENTI_MANCANTI', label: '⚠️ Documenti mancanti'},
-            {val: 'FATTURA_INVIATA_FIN', label: '📬 Fattura Acconto Inviata'},
-            {val: 'PAGATA_FIN', label: '💰 Acconto Pagato'},
-            {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
-        ];
-
+        let temporaryOrderFileObj = null; // Buffer per contenere l'upload temporaneo dell'ordine
+        
         function formattaPeso(bytes) {
             if (!bytes) return '';
             if (bytes < 1024) return bytes + ' B';
@@ -428,53 +442,14 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        function inizializzaCalendarioOggi() {
-            const oggi = new Date();
-            const anno = oggi.getFullYear();
-            const mese = String(oggi.getMonth() + 1).padStart(2, '0');
-            const g = String(oggi.getDate()).padStart(2, '0');
-            const dataFormattata = `${anno}-${mese}-${g}`;
-            const inputData = document.getElementById('dataAttivitaInput');
-            if (inputData) {
-                inputData.value = dataFormattata;
-                inputData.max = dataFormattata; 
-            }
-        }
-
-        function navigateTo(screen) {
-            if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
-            if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
-            if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
-            if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
-            
-            const btnClienti = document.getElementById('navBtnClienti');
-            const btnSettings = document.getElementById('navBtnImpostazioni');
-            if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
-            if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
-
-            if (screen === 'main') {
-                if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
-                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-                fetchClienti();
-            } else if (screen === 'hub') {
-                if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
-                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-                renderClientHub();
-            } else if (screen === 'detail') {
-                if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
-                if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-            } else if (screen === 'settings') {
-                if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
-                if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-                renderSettingsPanel();
-            }
-        }
-
         async function initLists() {
             try {
-                let { data: w, error } = await db.from('lavoratori').select('*').order('nome', { ascending: true });
-                if (error) throw error;
+                let { data: w } = await db.from('lavoratori').select('*').order('nome', { ascending: true });
                 listLavoratori = w || [];
+                
+                let { data: f } = await db.from('fornitori').select('*').order('nome', { ascending: true });
+                listFornitori = f || [];
+
                 populateSelects();
             } catch (err) { console.error(err); }
         }
@@ -485,113 +460,29 @@
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
             });
+
+            // Selettore moduli ordini interni al cantiere
+            const fSel = document.getElementById('ordineFornitoreSelect');
+            if (fSel) {
+                fSel.innerHTML = `<option value="">-- Seleziona Fornitore --</option>` + listFornitori.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+            }
+        }
+
+        // AUTOCOMPILAZIONE INTELLIGENTE DEL PRODOTTO IN BASE AL MARCHIO SELEZIONATO
+        function autoCompilaProdottoFornitore(fornitoreId) {
+            const fObj = listFornitori.find(f => f.id === fornitoreId);
+            if (fObj && fObj.prodotti_gestiti) {
+                document.getElementById('ordineProdottoInput').value = fObj.prodotti_gestiti.split(',')[0].trim();
+            }
         }
 
         async function fetchClienti() {
             try {
-                const { data, error } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
+                const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
                 if (error) throw error;
                 allClients = data || [];
-                
-                aggiornaBadgeAlertFasi();
                 renderClientsList();
             } catch (err) { console.error(err); }
-        }
-
-        function aggiornaBadgeAlertFasi() {
-            const fasiConAlert = {
-                'PREVENTIVAZIONE': false,
-                'MISURE_ESECUTIVE': false,
-                'FATTURA_ACCONTO': false,
-                'SALDO_CONCLUSO': false
-            };
-
-            const oggi = new Date();
-            const defaultPrev = parseInt(localStorage.getItem('cfg_days_preventivi') || "7");
-            const defaultContr = parseInt(localStorage.getItem('cfg_days_contratti') || "7");
-            const defaultFatt = parseInt(localStorage.getItem('cfg_days_fatture') || "5");
-
-            allClients.forEach(c => {
-                if (!c.commesse) return;
-                c.commesse.forEach(com => {
-                    const macro = com.stato_macro;
-                    const sub = com.preventivo_stato;
-                    
-                    let targetSottofase = false;
-                    let giorniLimite = 7;
-
-                    if (macro === 'PREVENTIVAZIONE' && sub === 'INVIATO_CONSEGNATO') { targetSottofase = true; giorniLimite = defaultPrev; }
-                    else if (macro === 'MISURE_ESECUTIVE' && sub === 'INVIATO_CONSEGNA') { targetSottofase = true; giorniLimite = defaultContr; }
-                    else if (macro === 'FATTURA_ACCONTO' && (sub === 'FATTURA_INVIATA' || sub === 'FATTURA_INVIATA_FIN')) { targetSottofase = true; giorniLimite = defaultFatt; }
-                    else if (macro === 'SALDO_CONCLUSO' && sub === 'SALDO_INVIATO') { targetSottofase = true; giorniLimite = defaultFatt; }
-
-                    if (targetSottofase && com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                        const noteOrdinate = com.status_diario_attivita
-                            .filter(n => n.macro_fase === macro && n.sub_stato === sub)
-                            .sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
-
-                        if (noteOrdinate.length > 0) {
-                            const ultimaNota = noteOrdinate[0];
-                            if (ultimaNota.giorni_allerta !== null) {
-                                giorniLimite = ultimaNota.giorni_allerta;
-                            }
-
-                            const dataAttivita = new Date(ultimaNota.data_attivita);
-                            const diffTempo = Math.abs(oggi - dataAttivita);
-                            const giorniTrascorsi = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
-
-                            if (giorniTrascorsi > giorniLimite) {
-                                fasiConAlert[macro] = true;
-                            }
-                        }
-                    }
-                });
-            });
-
-            const etichetteBasi = {
-                'PRIMO_CONTATTO': '📞 Contatti',
-                'PREVENTIVAZIONE': '📄 Prev.',
-                'MISURE_ESECUTIVE': '📐 Misure',
-                'FATTURA_ACCONTO': '💰 Acconti',
-                'ORDINI_FORNITORI': '📦 Ordini',
-                'INSTALLAZIONE': '🔧 Posa',
-                'SALDO_CONCLUSO': '💵 Saldi',
-                'ASSISTENZA_POST': '🛠️ Post'
-            };
-
-            for (const [fase, haAlert] of Object.entries(fasiConAlert)) {
-                const btn = document.getElementById(`btnFilter-${fase}`);
-                if (btn) {
-                    btn.innerText = haAlert ? `🔴 ${etichetteBasi[fase]}` : etichetteBasi[fase];
-                }
-            }
-        }
-
-        function switchClientFilter(filterType) {
-            activeFilter = filterType;
-            
-            const allFilterIds = ['all', 'PRIMO_CONTATTO', 'PREVENTIVAZIONE', 'MISURE_ESECUTIVE', 'FATTURA_ACCONTO', 'ORDINI_FORNITORI', 'INSTALLAZIONE', 'SALDO_CONCLUSO', 'ASSISTENZA_POST'];
-            allFilterIds.forEach(id => {
-                const btn = document.getElementById(`btnFilter-${id}`);
-                if (btn) {
-                    if (id === 'all') {
-                        btn.className = "w-full py-1.5 text-center rounded-lg bg-slate-100 text-slate-700 transition-all";
-                    } else {
-                        btn.className = "py-1 text-center rounded-md bg-slate-100 text-slate-700 transition-all truncate";
-                    }
-                }
-            });
-
-            const currentBtn = document.getElementById(`btnFilter-${filterType}`);
-            if (currentBtn) {
-                if (filterType === 'all') {
-                    currentBtn.className = "w-full py-1.5 text-center rounded-lg bg-blue-600 text-white shadow-sm transition-all";
-                } else {
-                    currentBtn.className = "py-1 text-center rounded-md bg-blue-600 text-white shadow-sm transition-all truncate";
-                }
-            }
-
-            renderClientsList();
         }
 
         function renderClientsList() {
@@ -601,23 +492,7 @@
             container.classList.remove('hidden');
 
             const term = document.getElementById('searchClient').value.toLowerCase().trim();
-            
-            let listFiltrata = allClients;
-            if (activeFilter !== 'all') {
-                listFiltrata = allClients.filter(c => {
-                    if (!c.commesse || c.commesse.length === 0) return false;
-                    return c.commesse.some(com => com.stato_macro === activeFilter);
-                });
-            }
-
-            if (term.length > 0) {
-                listFiltrata = listFiltrata.filter(c => c.denominazione.toLowerCase().includes(term));
-            }
-
-            if (listFiltrata.length === 0) {
-                container.innerHTML = `<p class="text-xs p-4 text-center text-slate-400 italic">Nessun cliente trovato con i filtri inseriti.</p>`;
-                return;
-            }
+            let listFiltrata = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
 
             listFiltrata.forEach(cliente => {
                 const card = document.createElement('div');
@@ -681,7 +556,7 @@
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
-            const { data: timelineAttivita, error } = await db
+            const { data: timelineAttivita } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
                 .eq('commessa_id', currentCommessaId)
@@ -696,9 +571,7 @@
             if (timelineAttivita && timelineAttivita.length > 0) {
                 macroFaseImpostata = timelineAttivita[0].macro_fase;
                 subStatoImpostato = timelineAttivita[0].sub_stato;
-                if (timelineAttivita[0].operatore_id) {
-                    operatorePredefinito = timelineAttivita[0].operatore_id;
-                }
+                if (timelineAttivita[0].operatore_id) operatorePredefinito = timelineAttivita[0].operatore_id;
             }
 
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
@@ -714,25 +587,268 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
+            // LOGICA INTELLIGENTE DI ATTIVAZIONE BLOCCO ORDINI E FORNITORI (FASE 3 O 5 COMPRESE)
+            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
+            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
+            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+            
+            if (macroFaseImpostata === 'MISURE_ESECUTIVE' || macroFaseImpostata === 'ORDINI_FORNITORI' || workflowOrdered.indexOf(macroFaseImpostata) > 2) {
+                boxOrdini.classList.remove('hidden');
+                
+                // Configura i testi in base alla fase corrente
+                if (macroFaseImpostata === 'MISURE_ESECUTIVE') {
+                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
+                    boxDataArrivo.classList.add('opacity-40'); // Opaco perché l'ordine non ha ancora data arrivo certa
+                } else {
+                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
+                    boxDataArrivo.classList.remove('opacity-40');
+                }
+            } else {
+                boxOrdini.classList.add('hidden');
+            }
+
+            // Ripristina form ordine interno
+            document.getElementById('ordineFornitoreSelect').value = "";
+            document.getElementById('ordineProdottoInput').value = "";
+            document.getElementById('ordineNoteInput').value = "";
+            document.getElementById('nomeFileOrdineCaricatoText').classList.add('hidden');
+            temporaryOrderFileObj = null;
+
+            // Inizializza date default per l'ordine
+            const oggi = new Date().toISOString().split('T')[0];
+            document.getElementById('ordineDataInvioInput').value = oggi;
+            document.getElementById('ordineDataArrivoInput').value = "";
+
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
-            handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
+            fetchOrdiniFornitureDellaCommessa(); // Carica l'elenco dei materiali relazionali
             navigateTo('detail');
+        }
+
+        // GESTIONE INPUT FILE ORDINE IN REAL-TIME BUFFER
+        document.getElementById('fileOrdinePdfInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            temporaryOrderFileObj = file;
+            const textEl = document.getElementById('nomeFileOrdineCaricatoText');
+            textEl.innerText = `📄 File selezionato: ${file.name} (${formattaPeso(file.size)})`;
+            textEl.classList.remove('hidden');
+        });
+
+        // SALVATAGGIO NUOVO ORDINE/CONFERMA RELAZIONALE
+        async function salvaNuovoOrdineFornitoreRelazionale() {
+            const fornitoreId = document.getElementById('ordineFornitoreSelect').value;
+            const prodotto = document.getElementById('ordineProdottoInput').value.trim();
+            const dataInvio = document.getElementById('ordineDataInvioInput').value;
+            const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
+            const note = document.getElementById('ordineNoteInput').value.trim();
+            const operatoreId = document.getElementById('workerContattoSelect').value;
+            
+            const macroFaseCorrente = document.getElementById('commessaMacroSelect').value;
+            const tipoDoc = (macroFaseCorrente === 'MISURE_ESECUTIVE') ? 'ORDINE' : 'CONFERMA';
+
+            if (!fornitoreId || !prodotto || !dataInvio || !operatoreId) {
+                alert("Fornitore, Prodotto, Data Invio e Operatore Incaricato sono campi obbligatori!");
+                return;
+            }
+
+            let percorsoStoragePdf = null;
+
+            // Se è presente un file pdf nel buffer, esegui la sanificazione ed invia allo Storage
+            if (temporaryOrderFileObj) {
+                try {
+                    const nomeSanificato = temporaryOrderFileObj.name
+                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-zA-Z0-9.\-_ ]/g, "").replace(/\s+/g, "_");
+
+                    percorsoStoragePdf = `${currentCommessaId}/ordini_${Date.now()}_${nomeSanificato}`;
+                    const { error: errStorage } = await db.storage.from('documenti').upload(percorsoStoragePdf, temporaryOrderFileObj);
+                    if (errStorage) throw errStorage;
+                } catch(err) {
+                    alert("Errore caricamento file PDF ordine: " + err.message);
+                    return;
+                }
+            }
+
+            try {
+                const { error } = await db.from('ordini_fornitorie').insert([{
+                    commessa_id: currentCommessaId,
+                    fornitore_id: fornitoreId,
+                    prodotto: prodotto,
+                    tipo_documento: tipoDoc,
+                    data_invio: dataInvio,
+                    data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
+                    operatore_id: operatoreId,
+                    annotazioni: note,
+                    file_path_supabase: percorsoStoragePdf
+                }]);
+
+                if (error) throw error;
+                alert("✅ Materiale fornitore registrato correttamente nel cantiere!");
+                openCommessaWorkspace(currentCommessaId); // Rinfresca l'interfaccia
+            } catch(err) { alert("Errore inserimento: " + err.message); }
+        }
+
+        // CARICAMENTO ED ELENCO MATERIALI/ORDINI RELAZIONALI AGGANCIATI ALLA COMMESSA
+        async function fetchOrdiniFornitureDellaCommessa() {
+            const container = document.getElementById('listaOrdiniCommessaContainer');
+            if (!container) return; container.innerHTML = "";
+
+            try {
+                const { data, error } = await db
+                    .from('ordini_fornitorie')
+                    .select('*, fornitori(nome), lavoratori(nome)')
+                    .eq('commessa_id', currentCommessaId)
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-[11px] text-slate-400 italic">Nessun ordine o conferma inserita per questo cantiere.</p>`;
+                    return;
+                }
+
+                data.forEach(o => {
+                    const row = document.createElement('div');
+                    row.className = "bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2";
+                    
+                    const fParti = o.data_invio.split('-');
+                    const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
+
+                    let dataArrivoLeggibile = "<span class='text-slate-500'>Non comunicata</span>";
+                    if (o.data_presunta_arrivo) {
+                        const arrParti = o.data_presunta_arrivo.split('-');
+                        dataArrivoLeggibile = `<span class='text-amber-400 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                    }
+
+                    let btnPdfHtml = '';
+                    if (o.file_path_supabase) {
+                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
+                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-400 font-bold underline ml-2">Apri PDF</a>`;
+                    }
+
+                    row.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-1">
+                                <span class="px-1 py-0.2 bg-slate-700 text-[9px] font-bold rounded ${o.tipo_documento==='ORDINE'?'text-blue-300':'text-purple-300'}">${o.tipo_documento}</span>
+                                <strong class="text-white">${o.fornitori?.nome || 'N/D'}</strong> 
+                                <span class="text-slate-400">(${o.prodotto})</span>
+                            </div>
+                            <div class="text-slate-300 mt-1 text-[11px]">
+                                Invio: ${dataInvioLeggibile} | Arrivo: ${dataArrivoLeggibile} ${btnPdfHtml}
+                            </div>
+                            ${o.annotazioni ? `<p class="text-slate-400 italic text-[10px] mt-0.5 truncate">Note: ${o.annotazioni}</p>`:''}
+                        </div>
+                        <div class="flex space-x-1 shrink-0">
+                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-700 text-slate-300 rounded-lg" title="Aggiorna Consegna Arrivo">✏️</button>
+                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-950 text-red-400 rounded-lg font-bold">✕</button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            } catch(err) { console.error(err); }
+        }
+
+        // MODIFICA RAPIDA POST-INSERIMENTO DATA ARRIVO
+        function apriModalModificaDataOrdinePost(ordineId, dataArrivoAttuale, noteAttuali) {
+            document.getElementById('modalEditOrdineId').value = ordineId;
+            document.getElementById('modalEditOrdineDataArrivo').value = dataArrivoAttuale;
+            document.getElementById('modalEditOrdineNote').value = noteAttuali === "undefined" ? "" : noteAttuali;
+            document.getElementById('ordineEditDataModal').classList.remove('hidden');
+        }
+        function closeOrdineEditDataModal() { document.getElementById('ordineEditDataModal').classList.add('hidden'); }
+        
+        async function salvaModificaDataOrdinePost() {
+            const id = document.getElementById('modalEditOrdineId').value;
+            const dataArrivo = document.getElementById('modalEditOrdineDataArrivo').value;
+            const note = document.getElementById('modalEditOrdineNote').value.trim();
+
+            try {
+                await db.from('ordini_fornitorie').update({
+                    data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
+                    annotazioni: note
+                }).eq('id', id);
+                
+                closeOrdineEditDataModal();
+                alert("🟢 Informazioni fornitura aggiornate con successo!");
+                openCommessaWorkspace(currentCommessaId);
+            } catch(err) { alert(err.message); }
+        }
+
+        // CANCELLAZIONE FORNITURA
+        async function eliminaOrdineFornitoreRelazionale(id, filePath) {
+            if (!confirm("Eliminare questa riga di fornitura dal cantiere attuale?")) return;
+            try {
+                if (filePath && filePath !== "null") {
+                    await db.storage.from('documenti').remove([filePath]);
+                }
+                await db.from('ordini_fornitorie').delete().eq('id', id);
+                alert("🟢 Fornitura rimossa.");
+                openCommessaWorkspace(currentCommessaId);
+            } catch(err) { alert(err.message); }
+        }
+
+        // --- GESTIONE ANAGRAFICA FORNITORI NELLE IMPOSTAZIONI (⚙️) ---
+        async function salvaFornitoreInImpostazioni() {
+            const nome = document.getElementById('newFornitoreNome').value.trim();
+            const prodotti = document.getElementById('newFornitoreProdotti').value.trim();
+            if(!nome) { alert("Inserisci il nome del fornitore!"); return; }
+
+            try {
+                await db.from('fornitori').insert([{ nome: nome, prodotti_gestiti: prodotti }]);
+                document.getElementById('newFornitoreNome').value = "";
+                document.getElementById('newFornitoreProdotti').value = "";
+                alert("🟢 Fornitore mappato con successo!");
+                await initLists();
+                renderSettingsFornitoriList();
+            } catch(err) { alert(err.message); }
+        }
+
+        function renderSettingsFornitoriList() {
+            const container = document.getElementById('settingsFornitoriList'); if(!container) return; container.innerHTML = "";
+            listFornitori.forEach(f => {
+                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1 font-semibold";
+                r.innerHTML = `<div>🏢 <strong>${f.nome}</strong> <span class="text-slate-400 font-normal">(${f.prodotti_gestiti || 'Prodotti generici'})</span></div><div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button></div>`;
+                container.appendChild(r);
+            });
+        }
+
+        async function eliminaFornitoreDaImpostazioni(id) {
+            if (confirm("Rimuovere definitivamente questo fornitore dalle anagrafiche generali dell'azienda?")) {
+                await db.from('fornitori').delete().eq('id', id);
+                await initLists();
+                renderSettingsFornitoriList();
+            }
+        }
+
+        // Integrazione pannello impostazioni esteso
+        const oldRenderSettingsPanel = renderSettingsPanel;
+        renderSettingsPanel = function() {
+            oldRenderSettingsPanel();
+            renderSettingsFornitoriList();
+        }
+
+        // GESTIONE DEL DIARIO PRINCIPALE E DEI MODAL PRE-ESISTENTI
+        function handleFaseChange() {
+            const nuevaFase = document.getElementById('commessaMacroSelect').value;
+            popolaSubStatoMenu(nuevaFase, false);
+            adjustWorkerLabels(nuevaFase);
+            aggiornaSelettoreCategorie(nuevaFase); 
+            gestisciVisibilitaFinanziamentoBox(nuevaFase);
+            document.getElementById('checkFinanziamentoAttivo').checked = false;
         }
 
         function gestisciVisibilitaFinanziamentoBox(macroFase) {
             const box = document.getElementById('boxFinanziamentoFlag');
             if (macroFase === 'FATTURA_ACCONTO') box.classList.remove('hidden');
-            else box.classList.add('hidden');
+            else box.className = "hidden";
         }
 
         function toggleFinanziamentoFlusso(isChecked) {
             const macroFase = document.getElementById('commessaMacroSelect').value;
             popolaSubStatoMenu(macroFase, isChecked);
-            handleSubStatoChange();
         }
 
         function popolaSubStatoMenu(macroFase, isFinanziamento = false) {
@@ -743,80 +859,7 @@
             } else {
                 opzioni = subStatiOpzioni[macroFase] || [{val: 'GENERICO', label: 'In lavorazione'}];
             }
-            select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
-        }
-
-        function handleFaseChange() {
-            const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            popolaSubStatoMenu(nuevaFase, false);
-            adjustWorkerLabels(nuevaFase);
-            aggiornaSelettoreCategorie(nuevaFase); 
-            gestisciVisibilitaFinanziamentoBox(nuevaFase);
-            document.getElementById('checkFinanziamentoAttivo').checked = false;
-            handleSubStatoChange();
-        }
-
-        function handleSubStatoChange() {
-            const macroFase = document.getElementById('commessaMacroSelect').value;
-            const subStato = document.getElementById('subStatoAvanzamentoSelect').value;
-            const boxAllerta = document.getElementById('boxGiorniAllertaDinamici');
-            const inputAllerta = document.getElementById('giorniAllertaInput');
-            
-            let abilitato = false;
-            let valoreDefault = 7;
-
-            if (macroFase === 'PREVENTIVAZIONE' && subStato === 'INVIATO_CONSEGNATO') {
-                abilitato = true;
-                valoreDefault = localStorage.getItem('cfg_days_preventivi') || 7;
-            } else if (macroFase === 'MISURE_ESECUTIVE' && subStato === 'INVIATO_CONSEGNA') {
-                abilitato = true;
-                valoreDefault = localStorage.getItem('cfg_days_contratti') || 7;
-            } else if (macroFase === 'FATTURA_ACCONTO' && (subStato === 'FATTURA_INVIATA' || subStato === 'FATTURA_INVIATA_FIN')) {
-                abilitato = true;
-                valoreDefault = localStorage.getItem('cfg_days_fatture') || 5;
-            } else if (macroFase === 'SALDO_CONCLUSO' && subStato === 'SALDO_INVIATO') {
-                abilitato = true;
-                valoreDefault = localStorage.getItem('cfg_days_fatture') || 5;
-            }
-
-            if (abilitato) {
-                boxAllerta.classList.remove('hidden');
-                inputAllerta.value = valoreDefault;
-            } else {
-                boxAllerta.classList.add('hidden');
-                inputAllerta.value = "";
-            }
-        }
-
-        function adjustWorkerLabels(fase) {
-            const lbl = document.getElementById('lblWorkerContatto'); 
-            const box2 = document.getElementById('boxWorkerAssegnato');
-            if(fase==='PRIMO_CONTATTO') { 
-                if(lbl) lbl.innerText = "Contatto preso da: *"; 
-                if(box2) box2.classList.remove('hidden'); 
-            } else { 
-                if(lbl) lbl.innerText = "Incaricato / Operatore *"; 
-                if(box2) box2.classList.add('hidden'); 
-            }
-        }
-
-        function aggiornaSelettoreCategorie(fase) {
-            const select = document.getElementById('categoriaDriveInput');
-            if (!select) return;
-
-            let opzioni = [];
-            switch(fase) {
-                case 'PRIMO_CONTATTO': opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }]; break;
-                case 'PREVENTIVAZIONE': opzioni = [{ val: 'PREVENTIVO', label: '📄 Preventivo' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'MISURE_ESECUTIVE': opzioni = [{ val: 'CONTRATTO', label: '✍️ Contratto' }, { val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'FATTURA_ACCONTO': opzioni = [{ val: 'FATTURA', label: '💰 Fattura' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'ORDINI_FORNITORI': opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'INSTALLAZIONE': opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'SALDO_CONCLUSO': opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'ASSISTENZA_POST': opzioni = [{ val: 'FOTO', label: '📸 Foto Intervento' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                default: opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
-            }
-            select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
+            if (select) select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
         async function saveFaseLavorazioneConDati() {
@@ -827,9 +870,6 @@
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
             const dataSceltaRaw = document.getElementById('dataAttivitaInput').value;
             const isFinanziamentoAttivo = document.getElementById('checkFinanziamentoAttivo').checked;
-            
-            const giorniAllertaInput = document.getElementById('giorniAllertaInput').value;
-            let giorniSalvataggioDB = giorniAllertaInput !== "" ? parseInt(giorniAllertaInput) : null;
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
@@ -850,8 +890,7 @@
                     macro_fase: macroFaseScelta,
                     sub_stato: subStatoScelto,
                     operatore_id: op1Value,
-                    nota: annotazioni,
-                    giorni_allerta: giorniSalvataggioDB
+                    nota: annotazioni
                 }]);
 
                 if (errorDiario) throw errorDiario;
@@ -882,24 +921,10 @@
                 }).eq('id', currentCommessaId);
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
+                alert("🟢 Attività salvata correttamente nel Diario Global!");
                 openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore tecnico: " + err.message); }
-        }
-
-        async function fetchDiarioTimeline() {
-            try {
-                const { data: timeline, error } = await db
-                    .from('status_diario_attivita')
-                    .select('*, lavoratori(nome)')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('data_attivita', { ascending: false })
-                    .order('creato_il', { ascending: false });
-
-                if (error) throw error;
-                renderDiarioTimelineInterfaccia(timeline || []);
-            } catch(err) { console.error(err); }
         }
 
         function renderDiarioTimelineInterfaccia(arrayRecord) {
@@ -908,367 +933,37 @@
                 container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
                 return;
             }
-
             arrayRecord.forEach(rec => {
                 const r = document.createElement('div'); 
-                r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors";
-                
+                r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none";
                 const dParti = rec.data_attivita.split('-');
-                const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
-                const nomeOperatore = rec.lavoratori?.nome || 'Nessuno';
-                
-                let etichettaSottofase = rec.sub_stato;
-                const setOpzioni = subStatiOpzioni[rec.macro_fase] || [];
-                const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
-                if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
-
-                const tagAllertaLabel = rec.giorni_allerta ? ` [Allerta: ${rec.giorni_allerta} gg]` : '';
-
-                r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
-                
-                r.onclick = (e) => {
-                    if (e.detail === 3) {
-                        requestDeleteNoteGlobalRelazionale(rec.id, r.innerText);
-                    }
-                };
+                r.innerText = `[${dParti[2]}/${dParti[1]}/${dParti[0]}] - Fase: ${rec.macro_fase} | Nota: ${rec.nota || ''}`;
+                r.onclick = (e) => { if (e.detail === 3) requestDeleteNoteGlobalRelazionale(rec.id, r.innerText); };
                 container.appendChild(r);
             });
-        }
-
-        function requestDeleteNoteGlobalRelazionale(idRecordDiario, stringaTesto) {
-            if (!confirm(`Vuoi davvero eliminare permanentemente questa riga dal database relazionale?\n\n"${stringaTesto}"`)) return;
-            pendingDeleteAction = { type: 'NOTE_RELAZIONALE', data: idRecordDiario };
-            document.getElementById('adminPasswordHiddenInput').value = "";
-            document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
-        }
-
-        function requestDeleteCommessaCascade(commessaId, titolo) {
-            if (!confirm(`⚠️ ATTENZIONE:\n\nStai per eliminare la commessa "${titolo}". Verranno cancellati a cascata tutti gli allegati e i diari storici. Procedere?`)) return;
-            pendingDeleteAction = { type: 'COMMESSA', data: commessaId };
-            document.getElementById('adminPasswordHiddenInput').value = "";
-            document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
-        }
-
-        function deleteCurrentClientCascade() {
-            if (!confirm(`⚠️ PERICOLO PERMANENTE ⚠️\n\nStai eliminando definitivamente questo cliente e TUTTI i suoi cantieri, diari e documenti allegati.\nQuesta azione cancellerà tutto a cascata. Vuoi procedere?`)) return;
-            pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
-            document.getElementById('adminPasswordHiddenInput').value = "";
-            document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
         }
 
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
-            if (passValue !== "Fighette@69") {
-                alert("❌ Password amministratore errata.");
-                return;
-            }
+            if (passValue !== "Fighette@69") { alert("❌ Password errata."); return; }
             closePasswordAuthModal();
-            if (!pendingDeleteAction) return;
-
             try {
                 if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
-                    const idDaRimuovere = pendingDeleteAction.data;
-                    await db.from('status_diario_attivita').delete().eq('id', idDaRimuovere);
-                    alert("🗑️ Riga rimossa con successo dal Database relazionale.");
+                    await db.from('status_diario_attivita').delete().eq('id', pendingDeleteAction.data);
                     openCommessaWorkspace(currentCommessaId);
-                } 
-                else if (pendingDeleteAction.type === 'COMMESSA') {
-                    const commessaIdDaEliminare = pendingDeleteAction.data;
-                    await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
-                    await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
-                    const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
-                    if (error) throw error;
-                    alert("🗑️ Cantiere rimosso.");
-                    await fetchClienti(); renderClientHub(); 
+                } else if (pendingDeleteAction.type === 'COMMESSA') {
+                    await db.from('status_diario_attivita').delete().eq('commessa_id', pendingDeleteAction.data);
+                    await db.from('ordini_fornitorie').delete().eq('commessa_id', pendingDeleteAction.data);
+                    await db.from('commesse').delete().eq('id', pendingDeleteAction.data);
+                    await fetchClienti(); renderClientHub();
                 }
-                else if (pendingDeleteAction.type === 'CLIENTE') {
-                    // 1. Eliminiamo a cascata tutte le note dei cantieri del cliente
-                    const { data: coms } = await db.from('commesse').select('id').eq('cliente_id', pendingDeleteAction.data);
-                    if (coms && coms.length > 0) {
-                        const idsCommesse = coms.map(c => c.id);
-                        await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
-                        await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
-                    }
-                    // 2. Eliminiamo i cantieri fisici e l'anagrafica cliente
-                    await db.from('commesse').delete().eq('cliente_id', pendingDeleteAction.data);
-                    const { error } = await db.from('clienti').delete().eq('id', pendingDeleteAction.data);
-                    if (error) throw error;
-                    
-                    alert("🟢 Record cliente ed intero storico eliminati a cascata con successo.");
-                    currentClienteId = null; 
-                    navigateTo('main');
-                }
-            } catch (err) { alert("Errore: " + err.message); }
-            finally { pendingDeleteAction = null; }
+            } catch(err) { alert(err.message); }
         }
 
-        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
-        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
-        async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
-
-        function openNewCommessaModal() { document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
-        function openCommessaEditModalCurrent() { document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
-        function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
-        async function saveCommessaDati() {
-            const id = document.getElementById('modalCommessaId').value; const t = document.getElementById('modalTitoloInput').value.trim(); const c = document.getElementById('modalCantiereInput').value.trim();
-            if(!t || !c) return;
-            if(id) await db.from('commesse').update({ titolo_lavoro: t, indirizzo_cantiere: c }).eq('id', id);
-            else await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
-            closeCommessaModal(); await fetchClienti(); renderClientHub();
-        }
-
-        function openAnagraficaModal() {
-            const c = allClients.find(cl => cl.id === currentClienteId); if(!c) return;
-            document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || '';
-            document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || '';
-            document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || '';
-            document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden');
-        }
-        function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
-        async function updateAnagrafica() {
-            const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
-            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
-            closeAnagraficaModal(); await fetchClienti(); renderClientHub();
-        }
-        async function saveCliente() {
-            const d = document.getElementById('newDenominazione').value.trim();
-            const ind = document.getElementById('newIndirizzo').value.trim();
-            const tel = document.getElementById('newTelefono').value.trim();
-            const em = document.getElementById('newEmail').value.trim();
-            
-            if(!d) { alert("Il campo Nome / Ragione Sociale è obbligatorio!"); return; }
-            if(!ind) { alert("L'indirizzo di fatturazione è obbligatorio!"); return; }
-            if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
-            
-            const { data } = await db.from('clienti').insert([{ 
-                tipo_cliente: document.getElementById('newTipo').value, 
-                denominazione: d, 
-                indirizzo_fatturazione: ind, 
-                telefono: tel===""?null:tel, 
-                email: em===""?null:em, 
-                partita_iva: document.getElementById('newPartitaIva').value.trim(), 
-                codice_fiscale: document.getElementById('newCodiceFiscale').value.trim(), 
-                note_generali: document.getElementById('newNote').value.trim() 
-            }]).select();
-            
-            if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
-        }
-
-        function openNewClientModal() { 
-            document.getElementById('newTipo').value = "PRIVATO";
-            document.getElementById('newDenominazione').value = "";
-            document.getElementById('newIndirizzo').value = "";
-            document.getElementById('newTelefono').value = "";
-            document.getElementById('newEmail').value = "";
-            document.getElementById('newPartitaIva').value = "";
-            document.getElementById('newCodiceFiscale').value = "";
-            document.getElementById('newNote').value = "";
-            document.getElementById('omonimiaSuggestBox').classList.add('hidden');
-            document.getElementById('omonimiaListContainer').innerHTML = "";
-            document.getElementById('clientModal').classList.remove('hidden'); 
-        }
+        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); }
+        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
-
-        function renderSettingsPanel() { 
-            document.getElementById('cfgDaysPreventivi').value = localStorage.getItem('cfg_days_preventivi') || "7"; 
-            document.getElementById('cfgDaysContratti').value = localStorage.getItem('cfg_days_contratti') || "7"; 
-            document.getElementById('cfgDaysFatture').value = localStorage.getItem('cfg_days_fatture') || "5"; 
-            resetWorkerForm(); 
-            renderSettingsWorkersList(); 
-        }
-        
-        function saveAllertaConfigs() { 
-            localStorage.setItem('cfg_days_preventivi', document.getElementById('cfgDaysPreventivi').value.trim()); 
-            localStorage.setItem('cfg_days_contratti', document.getElementById('cfgDaysContratti').value.trim()); 
-            localStorage.setItem('cfg_days_fatture', document.getElementById('cfgDaysFatture').value.trim()); 
-            alert("🟢 Impostazioni scadenze salvate correttamente!"); 
-        }
-        
-        function renderSettingsWorkersList() {
-            const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
-            listLavoratori.forEach(w => {
-                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1 font-semibold";
-                r.innerHTML = `<div>👤 ${w.nome}</div><div><button onclick="startEditWorker('${w.id}','${escapeHtml(w.nome)}')" class="text-blue-600 mr-2">✏️</button><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button></div>`;
-                container.appendChild(r);
-            });
-        }
-        function startEditWorker(id, n) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
-        function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
-        
-        async function saveWorkerToDatabase() {
-            const id = document.getElementById('editingWorkerId').value; const n = document.getElementById('newWorkerName').value.trim();
-            if(!n) return;
-            const btn = document.getElementById('btnSaveWorkerDb');
-            try {
-                btn.disabled = true;
-                if(id) {
-                    const { error } = await db.from('lavoratori').update({ nome: n }).eq('id', id);
-                    if(error) throw error;
-                    alert("✅ Collaboratore aggiornato con successo!");
-                } else {
-                    const { error } = await db.from('lavoratori').insert([{ nome: n }]);
-                    if(error) throw error;
-                    alert("✅ Collaboratore aggiunto con successo!");
-                }
-                resetWorkerForm(); await initLists(); renderSettingsWorkersList();
-            } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
-        }
-        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamente questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
-
-        function checkOmonimiaDoppioni(valoreDigitato) {
-            clearTimeout(omonimiaTimeout);
-            const box = document.getElementById('omonimiaSuggestBox');
-            const listContainer = document.getElementById('omonimiaListContainer');
-            const termine = valoreDigitato.toLowerCase().trim();
-            if (termine.length < 3) { box.classList.add('hidden'); listContainer.innerHTML = ""; return; }
-
-            omonimiaTimeout = setTimeout(() => {
-                const parole = termine.split(/\s+/);
-                let duplicatiTrovati = allClients.filter(c => {
-                    const denominazioneLocale = c.denominazione.toLowerCase();
-                    return parole.every(p => denominazioneLocale.includes(p));
-                });
-                if (duplicatiTrovati.length === 0) { box.classList.add('hidden'); listContainer.innerHTML = ""; return; }
-                listContainer.innerHTML = "";
-                duplicatiTrovati.forEach(dup => {
-                    const d = document.createElement('div');
-                    d.className = "p-1.5 bg-white hover:bg-slate-100 rounded-lg border text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors flex flex-col";
-                    d.innerHTML = `<span>👤 ${dup.denominazione}</span> <span class="text-[9px] font-normal text-slate-400">📍 Indirizzo: ${dup.indirizzo_fatturazione || 'Non specificato'}</span>`;
-                    d.onclick = () => { closeModal(); currentClienteId = dup.id; navigateTo('hub'); };
-                    listContainer.appendChild(d);
-                });
-                box.classList.remove('hidden');
-            }, 350);
-        }
-
-        async function fetchAllegatiDrive() {
-            const container = document.getElementById('driveAllegatiList');
-            if (!container) return;
-            container.innerHTML = `<p class="text-xs text-slate-400">⏳ Caricamento documenti...</p>`;
-
-            try {
-                const { data, error } = await db
-                    .from('allegati_drive')
-                    .select('*')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('creato_il', { ascending: false });
-
-                if (error) throw error;
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-xs text-slate-400 italic">Nessun documento caricato.</p>`;
-                    return;
-                }
-
-                const categorie = { 'PREVENTIVO': [], 'CONTRATTO': [], 'FATTURA': [], 'ORDINE': [], 'FOTO': [], 'ALTRO': [] };
-                data.forEach(all => {
-                    if (categorie[all.categoria]) categorie[all.categoria].push(all);
-                    else categorie['ALTRO'].push(all);
-                });
-
-                container.innerHTML = "";
-
-                for (const [key, files] of Object.entries(categorie)) {
-                    if (files.length === 0) continue;
-
-                    const section = document.createElement('div');
-                    section.className = "space-y-1.5 mt-2";
-
-                    const badgeColors = {
-                        'PREVENTIVO': 'bg-green-100 text-green-800 border-green-200',
-                        'CONTRATTO': 'bg-amber-100 text-amber-800 border-amber-200',
-                        'FATTURA': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                        'ORDINE': 'bg-blue-100 text-blue-800 border-blue-200',
-                        'FOTO': 'bg-purple-100 text-purple-800 border-purple-200',
-                        'ALTRO': 'bg-slate-100 text-slate-800 border-slate-200'
-                    };
-
-                    section.innerHTML = `
-                        <div class="flex items-center">
-                            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeColors[key]}">
-                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : 
-                                  key === 'CONTRATTO' ? '✍️ Contratti' : 
-                                  key === 'FATTURA' ? '💰 Fatture' : 
-                                  key === 'ORDINE' ? '📦 Ordini / Fornitori' : 
-                                  key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
-                            </span>
-                        </div>
-                    `;
-
-                    const filesContainer = document.createElement('div');
-                    filesContainer.className = "space-y-1 pl-2 border-l-2 border-slate-200 ml-2 mt-1";
-
-                    files.forEach(all => {
-                        const item = document.createElement('div');
-                        item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
-                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
-
-                        const testoPeso = all.peso_bytes ? `<span class="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md font-bold ml-2 shrink-0">${formattaPeso(all.peso_bytes)}</span>` : '';
-
-                        item.innerHTML = `
-                            <div class="flex items-center space-x-2 truncate flex-1 min-w-0">
-                                <span>📄</span> 
-                                <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
-                                ${testoPeso}
-                            </div>
-                            <div class="flex space-x-3 shrink-0 pl-2">
-                                <a href="${publicUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
-                                <button onclick="deleteFileFromStorage('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
-                            </div>
-                        `;
-                        filesContainer.appendChild(item);
-                    });
-
-                    section.appendChild(filesContainer);
-                    container.appendChild(section);
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        async function uploadFileToStorage(inputElement) {
-            const file = inputElement.files[0];
-            if (!file) return;
-            const statusBox = document.getElementById('driveUploadStatus');
-            if (statusBox) statusBox.classList.remove('hidden');
-            const categoriaSelezionata = document.getElementById('categoriaDriveInput')?.value || 'ALTRO';
-        
-            try {
-                const nomeSanificato = file.name
-                    .normalize("NFD")                     
-                    .replace(/[\u0300-\u036f]/g, "")     
-                    .replace(/[^a-zA-Z0-9.\-_ ]/g, "")   
-                    .replace(/\s+/g, "_");               
-
-                const filePath = `${currentCommessaId}/${Date.now()}_${nomeSanificato}`;
-                const { error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
-                if (error) throw error;
-
-                await db.from('allegati_drive').insert([{
-                    commessa_id: currentCommessaId,
-                    nome_file: file.name, 
-                    categoria: categoriaSelezionata,
-                    google_drive_file_id: filePath,
-                    peso_bytes: file.size
-                }]);
-
-                alert("🟢 Documento salvato ed archiviato correttamente!");
-                fetchAllegatiDrive();
-            } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
-        }
-
-        async function deleteFileFromStorage(idSupabase, filePath) {
-            if(!confirm("Vuoi eliminare permanentemente questo documento dallo Storage?")) return;
-            try {
-                await db.storage.from('documenti').remove([filePath]);
-                await db.from('allegati_drive').delete().eq('id', idSupabase);
-                alert("🟢 Documento rimosso.");
-                fetchAllegatiDrive();
-            } catch (err) { alert(err.message); }
-        }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
