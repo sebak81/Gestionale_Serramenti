@@ -133,7 +133,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
-                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
@@ -148,9 +148,15 @@
                 </div>
             </div>
 
-            <div class="border-t pt-3">
-                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (Default Oggi - No future)</label>
-                <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
+            <div class="border-t pt-3 grid grid-cols-3 gap-2">
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (No future)</label>
+                    <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div id="boxGiorniAllertaDinamici" class="hidden">
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">⏱️ Giorni Allerta</label>
+                    <input type="number" id="giorniAllertaInput" min="0" placeholder="GG" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-center text-red-600 focus:ring-2 focus:ring-red-500">
+                </div>
             </div>
 
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
@@ -203,10 +209,21 @@
     <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">Promemoria Scadenze Preventivi</h3>
-            <div class="flex items-center space-x-2">
-                <input type="number" id="cfgDefaultDays" min="0" placeholder="Es. 7" class="w-24 p-2 border rounded-lg bg-slate-50 text-xs font-bold text-center">
-                <button onclick="saveDefaultDaysConfig()" class="bg-blue-600 text-white px-3 py-2 text-xs font-bold rounded-lg shadow">Salva Valore</button>
+            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">⏱️ Scadenze e Allerte Fasi (Giorni di tolleranza)</h3>
+            <div class="space-y-2 text-xs font-semibold">
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
+                    <span>📄 Allerta Invio Preventivi:</span>
+                    <input type="number" id="cfgDaysPreventivi" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
+                </div>
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
+                    <span>✍️ Allerta Invio Contratti / Contratti Firmati:</span>
+                    <input type="number" id="cfgDaysContratti" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
+                </div>
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
+                    <span>💰 Allerta Fatture (Acconto e Saldo):</span>
+                    <input type="number" id="cfgDaysFatture" min="0" placeholder="Es. 5" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
+                </div>
+                <button onclick="saveAllertaConfigs()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Impostazioni Allerte</button>
             </div>
         </div>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
@@ -328,8 +345,6 @@
         let currentCommessa = null;
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
-        
-        const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
@@ -350,14 +365,14 @@
                 {val: 'FIRMATO_CONFERMATO', label: '✍️ Contratto Firmato'}
             ],
             'FATTURA_ACCONTO': [
-                {val: 'FATTURA_DA_FARE', label: '⏳ Fattura Da Fare'},
+                {val: 'FATTURA_DA_MAKE', label: '⏳ Fattura Da Fare'},
                 {val: 'FATTURA_INVIATA', label: '📬 Fattura Acconto Inviata'},
                 {val: 'PAGATA', label: '💰 Acconto Pagato'}
             ],
             'ORDINI_FORNITORI': [
                 {val: 'SVILUPPO_ORDINE', label: '📐 Sviluppo Ordine'},
                 {val: 'INVIO_ORDINE', label: '📦 Invio Ordine'},
-                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Confirmazione d\'Ordine'},
+                {val: 'MODIFICA_CONFERMA', label: '🔧 Modifica Conferma d\'Ordine'},
                 {val: 'INVIO_CONFERMA', label: '📬 Invio Conferma d\'Ordine'},
                 {val: 'MERCE_ARRIVATA', label: '✅ Merce Arrivata'}
             ],
@@ -387,7 +402,6 @@
             {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
         ];
 
-        // Funzione per convertire i byte in un formato leggibile (KB o MB)
         function formattaPeso(bytes) {
             if (!bytes) return '';
             if (bytes < 1024) return bytes + ' B';
@@ -572,6 +586,7 @@
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
+            handleSubStatoChange(); // Calcola e visualizza i giorni di allerta di default a schermo
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             navigateTo('detail');
@@ -586,6 +601,7 @@
         function toggleFinanziamentoFlusso(isChecked) {
             const macroFase = document.getElementById('commessaMacroSelect').value;
             popolaSubStatoMenu(macroFase, isChecked);
+            handleSubStatoChange();
         }
 
         function popolaSubStatoMenu(macroFase, isFinanziamento = false) {
@@ -606,6 +622,41 @@
             aggiornaSelettoreCategorie(nuevaFase); 
             gestisciVisibilitaFinanziamentoBox(nuevaFase);
             document.getElementById('checkFinanziamentoAttivo').checked = false;
+            handleSubStatoChange();
+        }
+
+        // LOGICA DINAMICA PER RETRAGUARDO DEI GIORNI DI ALLERTA NELL'INTERFACCIA
+        function handleSubStatoChange() {
+            const macroFase = document.getElementById('commessaMacroSelect').value;
+            const subStato = document.getElementById('subStatoAvanzamentoSelect').value;
+            const boxAllerta = document.getElementById('boxGiorniAllertaDinamici');
+            const inputAllerta = document.getElementById('giorniAllertaInput');
+            
+            let abilitato = false;
+            let valoreDefault = 7;
+
+            // Intercettiamo le sottofasi "Calde" stabilite
+            if (macroFase === 'PREVENTIVAZIONE' && subStato === 'INVIATO_CONSEGNATO') {
+                abilitato = true;
+                valoreDefault = localStorage.getItem('cfg_days_preventivi') || 7;
+            } else if (macroFase === 'MISURE_ESECUTIVE' && subStato === 'INVIATO_CONSEGNA') {
+                abilitato = true;
+                valoreDefault = localStorage.getItem('cfg_days_contratti') || 7;
+            } else if (macroFase === 'FATTURA_ACCONTO' && (subStato === 'FATTURA_INVIATA' || subStato === 'FATTURA_INVIATA_FIN')) {
+                abilitato = true;
+                valoreDefault = localStorage.getItem('cfg_days_fatture') || 5;
+            } else if (macroFase === 'SALDO_CONCLUSO' && subStato === 'SALDO_INVIATO') {
+                abilitato = true;
+                valoreDefault = localStorage.getItem('cfg_days_fatture') || 5;
+            }
+
+            if (abilitato) {
+                boxAllerta.classList.remove('hidden');
+                inputAllerta.value = valoreDefault;
+            } else {
+                boxAllerta.classList.add('hidden');
+                inputAllerta.value = "";
+            }
         }
 
         function adjustWorkerLabels(fase) {
@@ -647,6 +698,9 @@
             const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
             const dataSceltaRaw = document.getElementById('dataAttivitaInput').value;
             const isFinanziamentoAttivo = document.getElementById('checkFinanziamentoAttivo').checked;
+            
+            const giorniAllertaInput = document.getElementById('giorniAllertaInput').value;
+            let giorniSalvataggioDB = giorniAllertaInput !== "" ? parseInt(giorniAllertaInput) : null;
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
@@ -661,13 +715,15 @@
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
+                // SALVATAGGIO REALE NELLA TABELLA RELAZIONALE CON I GIORNI PERSONALIZZATI
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
                     commessa_id: currentCommessaId,
                     data_attivita: dataSceltaRaw,
                     macro_fase: macroFaseScelta,
                     sub_stato: subStatoScelto,
                     operatore_id: op1Value,
-                    nota: annotazioni
+                    nota: annotazioni,
+                    giorni_allerta: giorniSalvataggioDB
                 }]);
 
                 if (errorDiario) throw errorDiario;
@@ -691,7 +747,7 @@
 
                 await db.from('commesse').update({ 
                     stato_macro: macroFaseFinaleDaImpostare,
-                    preventivo_stato: subStatoFinaleDaImpostare,
+                    preventivo_stato: subStatoFinaleDaImsetare = subStatoFinaleDaImpostare,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     descrizione_lavoro: valoreFinanziamentoDB
@@ -738,7 +794,10 @@
                 const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
                 if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
 
-                r.innerText = `[${dataLeggibile}] - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
+                // Mostriamo il peso specifico dei giorni impostati se presenti
+                const tagAllertaLabel = rec.giorni_allerta ? ` [Allerta: ${rec.giorni_allerta} gg]` : '';
+
+                r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
                 
                 r.onclick = (e) => {
                     if (e.detail === 3) {
@@ -868,8 +927,21 @@
         }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
-        function renderSettingsPanel() { document.getElementById('cfgDefaultDays').value = localStorage.getItem('cfg_days_default') || ""; resetWorkerForm(); renderSettingsWorkersList(); }
-        function saveDefaultDaysConfig() { localStorage.setItem('cfg_days_default', document.getElementById('cfgDefaultDays').value.trim()); alert("Valore salvato!"); }
+        // RENDERING DEL PANNELLO DELLE IMPOSTAZIONI DELLE ALLERTE DIVISE
+        function renderSettingsPanel() { 
+            document.getElementById('cfgDaysPreventivi').value = localStorage.getItem('cfg_days_preventivi') || "7"; 
+            document.getElementById('cfgDaysContratti').value = localStorage.getItem('cfg_days_contratti') || "7"; 
+            document.getElementById('cfgDaysFatture').value = localStorage.getItem('cfg_days_fatture') || "5"; 
+            resetWorkerForm(); 
+            renderSettingsWorkersList(); 
+        }
+        
+        function saveAllertaConfigs() { 
+            localStorage.setItem('cfg_days_preventivi', document.getElementById('cfgDaysPreventivi').value.trim()); 
+            localStorage.setItem('cfg_days_contratti', document.getElementById('cfgDaysContratti').value.trim()); 
+            localStorage.setItem('cfg_days_fatture', document.getElementById('cfgDaysFatture').value.trim()); 
+            alert("🟢 Impostazioni scadenze salvate correttamente!"); 
+        }
         
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
