@@ -462,7 +462,6 @@
             {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
         ];
 
-        // GESTIONE SCHERMATE E NAVIGAZIONE COMPLETA
         function navigateTo(screen) {
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('clientHubScreen').classList.add('hidden');
@@ -548,7 +547,7 @@
 
             listFiltrata.forEach(cliente => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl shadow-sm border mt-2 cursor-pointer text-sm font-semibold flex justify-between items-center";
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 mt-2 cursor-pointer text-sm font-semibold flex justify-between items-center";
                 card.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
                 card.innerHTML = `<div>👤 ${cliente.denominazione}<p class="text-xs font-normal text-slate-400 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Non indicato'}</p></div>`;
                 container.appendChild(card);
@@ -567,7 +566,7 @@
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm cursor-pointer";
                 div.onclick = () => openCommessaWorkspace(com.id);
-                div.innerHTML = `<div><span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span><h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Cantiere'}</h4><p class="text-[11px] text-slate-400 mt-0.5">📍 ${com.indirizzo_cantiere}</p></div>`;
+                div.innerHTML = `<div class="text-left"><span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span><h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Cantiere'}</h4><p class="text-[11px] text-slate-400 mt-0.5">📍 ${com.indirizzo_cantiere}</p></div>`;
                 listContainer.appendChild(div);
             });
         }
@@ -607,6 +606,12 @@
                 boxOrdini.classList.add('hidden');
             }
 
+            document.getElementById('ordineFornitoreSelect').value = "";
+            document.getElementById('ordineProdottoInput').value = "";
+            document.getElementById('ordineNoteInput').value = "";
+            document.getElementById('nomeFileOrdineCaricatoText').classList.add('hidden');
+            temporaryOrderFileObj = null;
+
             inizializzaCalendarioOggi();
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
@@ -621,7 +626,7 @@
             const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
             const operatoreId = document.getElementById('workerContattoSelect').value;
-            const tipoDoc = document.getElementById('badgeTipoDocOrdine').innerText === "PRE-ORDINE (FASE 3)" ? "ORDINE" : "CONFERMA";
+            const tipoDoc = document.getElementById('badgeTipoDocOrdine').innerText;
 
             if (!fornitoreId || !prodotto || !dataInvio || !operatoreId) { alert("Compila i campi obbligatori!"); return; }
             let percorsoStoragePdf = null;
@@ -669,11 +674,11 @@
         }
 
         async function salvaFornitoreInImpostazioni() {
-            const n = document.getElementById('newFornitoreNome').value.trim();
-            const p = document.getElementById('newFornitoreProdotti').value.trim();
-            if(!n) return;
+            const nome = document.getElementById('newFornitoreNome').value.trim();
+            const prodotti = document.getElementById('newFornitoreProdotti').value.trim();
+            if(!nome) return;
             try {
-                await db.from('fornitori').insert([{ nome: n, prodotti_gestiti: p }]);
+                await db.from('fornitori').insert([{ nome: nome, prodotti_gestiti: prodotti }]);
                 document.getElementById('newFornitoreNome').value = ""; document.getElementById('newFornitoreProdotti').value = "";
                 await initLists(); renderSettingsFornitoriList();
             } catch(e) { alert(e.message); }
@@ -682,17 +687,43 @@
         function renderSettingsFornitoriList() {
             const container = document.getElementById('settingsFornitoriList'); if(!container) return; container.innerHTML = "";
             listFornitori.forEach(f => {
-                const r = document.createElement('div'); r.className = "flex justify-between p-2 bg-slate-100 mt-1 border text-xs rounded font-semibold";
-                r.innerHTML = `<div>🏢 ${f.nome} <span class="font-normal text-slate-400">(${f.prodotti_gestiti || ''})</span></div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button>`;
+                const r = document.createElement('div'); r.className = "flex justify-between p-2 bg-slate-100 mt-1 border text-xs rounded font-semibold text-left";
+                r.innerHTML = `<div>🏢 <strong>${f.nome}</strong> <span class="font-normal text-slate-400">(${f.prodotti_gestiti || ''})</span></div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button>`;
                 container.appendChild(r);
             });
         }
-        async function eliminaFornitoreDaImpostazioni(id) { if(confirm("Eliminare?")) { await db.from('fornitori').delete().eq('id', id); await initLists(); renderSettingsFornitoriList(); } }
+        async function部署FornitoreDaImpostazioni(id) {}
+        async function eliminaFornitoreDaImpostazioni(id) { if(confirm("Eliminare Marchio?")) { await db.from('fornitori').delete().eq('id', id); await initLists(); renderSettingsFornitoriList(); } }
 
         function renderSettingsPanel() { 
             resetWorkerForm(); 
             renderSettingsWorkersList();
             renderSettingsFornitoriList();
+        }
+
+        function autoCompilaProdottoFornitore(fornitoreId) {
+            const fObj = listFornitori.find(f => f.id === fornitoreId);
+            if (fObj && fObj.prodotti_gestiti) document.getElementById('ordineProdottoInput').value = fObj.prodotti_gestiti.split(',')[0].trim();
+        }
+
+        function handleFaseChange() {
+            const nuevaFase = document.getElementById('commessaMacroSelect').value;
+            popolaSubStatoMenu(nuevaFase, false);
+            adjustWorkerLabels(nuevaFase);
+            aggiornaSelettoreCategorie(nuevaFase); 
+            gestisciVisibilitaFinanziamentoBox(nuevaFase);
+        }
+
+        function gestisciVisibilitaFinanziamentoBox(fase) {
+            document.getElementById('boxFinanziamentoFlag').className = fase === 'FATTURA_ACCONTO' ? "block" : "hidden";
+        }
+        function toggleFinanziamentoFlusso(isChecked) {
+            const macroFase = document.getElementById('commessaMacroSelect').value;
+            popolaSubStatoMenu(macroFase, isChecked);
+        }
+        function popolaSubStatoMenu(fase, fin) {
+            const s = document.getElementById('subStatoAvanzamentoSelect');
+            if(s) s.innerHTML = (fin ? sottofasiFinanziamento : (subStatiOpzioni[fase] || [])).map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
         function adjustWorkerLabels(fase) {
@@ -765,7 +796,7 @@
             const container = document.getElementById('driveAllegatiList'); if(!container) return; container.innerHTML = "";
             try {
                 const { data } = await db.from('allegati_drive').select('*').eq('commessa_id', currentCommessaId).order('creato_il', { ascending: false });
-                if (!data || data.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 italic">Nessun allegato.</p>`; return; }
+                if (!data || data.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 italic text-left">Nessun allegato.</p> `; return; }
                 data.forEach(all => {
                     const item = document.createElement('div'); item.className = "bg-white p-2 rounded-xl border text-xs flex justify-between mt-1 font-semibold";
                     const peso = all.peso_bytes ? `<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded ml-1">${formattaPeso(all.peso_bytes)}</span>` : '';
@@ -786,6 +817,65 @@
             } catch (err) { alert(err.message); }
         }
 
+        async function saveFaseLavorazioneConDati() {
+            const macroFaseScelta = document.getElementById('commessaMacroSelect').value;
+            const subStatoScelto = document.getElementById('subStatoAvanzamentoSelect').value;
+            const op1Select = document.getElementById('workerContattoSelect');
+            const op2Select = document.getElementById('workerAssegnatoSelect');
+            const annotazioni = document.getElementById('faseAnnotazioniInput').value.trim();
+            const dataSceltaRaw = document.getElementById('dataAttivitaInput').value;
+            const isFinanziamentoAttivo = document.getElementById('checkFinanziamentoAttivo').checked;
+
+            if(!op1Select.value || !annotazioni) { alert("Operatore e Annotazioni obbligatori!"); return; }
+            if(!dataSceltaRaw) { alert("Data non valida!"); return; }
+
+            try {
+                await db.from('status_diario_attivita').insert([{ commessa_id: currentCommessaId, data_attivita: dataSceltaRaw, macro_fase: macroFaseScelta, sub_stato: subStatoScelto, operatore_id: op1Select.value, nota: annotazioni }]);
+                await db.from('commesse').update({ stato_macro: macroFaseScelta, preventivo_stato: subStatoScelto, contatto_gestito_da: op1Select.value, preventivo_assegnato_a: op2Select.value || null, descrizione_lavoro: (macroFaseScelta === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null }).eq('id', currentCommessaId);
+                alert("🟢 Modifiche salvate!");
+                openCommessaWorkspace(currentCommessaId);
+            } catch(e) { alert(e.message); }
+        }
+
+        function renderDiarioTimelineInterfaccia(arrayRecord) {
+            const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
+            if(arrayRecord.length === 0) { container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic text-left">Nessuna nota.</p>`; return; }
+            arrayRecord.forEach(rec => {
+                const r = document.createElement('div'); r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm text-left";
+                const dParti = rec.data_attivita.split('-');
+                r.innerText = `[${dParti[2]}/${dParti[1]}/${dParti[0]}] - Fase: ${rec.macro_fase} | Incaricato: ${rec.lavoratori?.nome || 'Nessuno'} | Nota: ${rec.nota || ''}`;
+                r.onclick = (e) => { if (e.detail === 3) requestDeleteNoteGlobalRelazionale(rec.id, r.innerText); };
+                container.appendChild(r);
+            });
+        }
+
+        function requestDeleteNoteGlobalRelazionale(idRecordDiario, stringaTesto) {
+            if (!confirm(`Eliminare riga diario?\n\n"${stringaTesto}"`)) return;
+            pendingDeleteAction = { type: 'NOTE_RELAZIONALE', data: idRecordDiario };
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+        }
+
+        async function submitAdminPasswordFlow() {
+            const passValue = document.getElementById('adminPasswordHiddenInput').value;
+            if (passValue !== "Fighette@69") { alert("❌ Password errata."); return; }
+            closePasswordAuthModal();
+            try {
+                if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
+                    await db.from('status_diario_attivita').delete().eq('id', pendingDeleteAction.data);
+                    openCommessaWorkspace(currentCommessaId);
+                } else if (pendingDeleteAction.type === 'COMMESSA') {
+                    await db.from('status_diario_attivita').delete().eq('commessa_id', pendingDeleteAction.data);
+                    await db.from('ordini_fornitori').delete().eq('commessa_id', pendingDeleteAction.data);
+                    await db.from('commesse').delete().eq('id', pendingDeleteAction.data);
+                    await fetchClienti(); renderClientHub();
+                } else if (pendingDeleteAction.type === 'CLIENTE') {
+                    await db.from('clienti').delete().eq('id', pendingDeleteAction.data);
+                    fetchClienti(); navigateTo('main');
+                }
+            } catch(err) { alert(err.message); }
+        }
+
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
             listLavoratori.forEach(w => {
@@ -801,10 +891,8 @@
         }
         async function deleteWorkerDatabase(id) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); }
 
-        function inizializzaCalendarioOggi() {
-            const inputData = document.getElementById('dataAttivitaInput');
-            if (inputData) inputData.value = new Date().toISOString().split('T')[0];
-        }
+        function openNewClientModal() { document.getElementById('clientModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
         function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
