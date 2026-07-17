@@ -38,7 +38,7 @@
         </a>
     </header>
 
-    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20">
+    <main id="mainScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-3 mb-20">
         <div class="space-y-2">
             <div class="flex space-x-2">
                 <div class="relative flex-1">
@@ -51,10 +51,26 @@
                 </button>
             </div>
 
-            <div class="flex bg-slate-200 p-1 rounded-xl text-[11px] font-bold text-slate-600">
-                <button id="subTabClientiAll" onclick="switchClientSubTab('all')" class="flex-1 py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
-                <button id="subTabClientiInCorso" onclick="switchClientSubTab('incorso')" class="flex-1 py-1.5 text-center rounded-lg transition-all">In Corso</button>
-                <button id="subTabClientiConclusi" onclick="switchClientSubTab('conclusi')" class="flex-1 py-1.5 text-center rounded-lg transition-all">Completati</button>
+            <!-- Griglia di Filtri Avanzati Compattata per Smartphone -->
+            <div class="flex flex-col space-y-1 bg-slate-200/80 p-1.5 rounded-xl text-[10px] font-bold text-slate-600 shadow-inner">
+                <!-- Riga 1: Tutti -->
+                <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
+                
+                <!-- Riga 2: Stati 1-4 -->
+                <div class="grid grid-cols-4 gap-1">
+                    <button id="btnFilter-PRIMO_CONTATTO" onclick="switchClientFilter('PRIMO_CONTATTO')" class="py-1 text-center rounded-md transition-all truncate">📞 Contatti</button>
+                    <button id="btnFilter-PREVENTIVAZIONE" onclick="switchClientFilter('PREVENTIVAZIONE')" class="py-1 text-center rounded-md transition-all truncate">📄 Prev.</button>
+                    <button id="btnFilter-MISURE_ESECUTIVE" onclick="switchClientFilter('MISURE_ESECUTIVE')" class="py-1 text-center rounded-md transition-all truncate">📐 Misure</button>
+                    <button id="btnFilter-FATTURA_ACCONTO" onclick="switchClientFilter('FATTURA_ACCONTO')" class="py-1 text-center rounded-md transition-all truncate">💰 Acconti</button>
+                </div>
+
+                <!-- Riga 3: Stati 5-8 -->
+                <div class="grid grid-cols-4 gap-1">
+                    <button id="btnFilter-ORDINI_FORNITORI" onclick="switchClientFilter('ORDINI_FORNITORI')" class="py-1 text-center rounded-md transition-all truncate">📦 Ordini</button>
+                    <button id="btnFilter-INSTALLAZIONE" onclick="switchClientFilter('INSTALLAZIONE')" class="py-1 text-center rounded-md transition-all truncate">🔧 Posa</button>
+                    <button id="btnFilter-SALDO_CONCLUSO" onclick="switchClientFilter('SALDO_CONCLUSO')" class="py-1 text-center rounded-md transition-all truncate">💵 Saldi</button>
+                    <button id="btnFilter-ASSISTENZA_POST" onclick="switchClientFilter('ASSISTENZA_POST')" class="py-1 text-center rounded-md transition-all truncate">🛠️ Post</button>
+                </div>
             </div>
         </div>
 
@@ -206,41 +222,6 @@
         </div>
     </main>
 
-    <main id="settingsScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider px-1">⚙️ Impostazioni Gestione</h2>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">⏱️ Scadenze e Allerte Fasi (Giorni di tolleranza)</h3>
-            <div class="space-y-2 text-xs font-semibold">
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>📄 Allerta Invio Preventivi:</span>
-                    <input type="number" id="cfgDaysPreventivi" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>✍️ Allerta Invio Contratti / Contratti Firmati:</span>
-                    <input type="number" id="cfgDaysContratti" min="0" placeholder="Es. 7" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border">
-                    <span>💰 Allerta Fatture (Acconto e Saldo):</span>
-                    <input type="number" id="cfgDaysFatture" min="0" placeholder="Es. 5" class="w-20 p-1.5 border rounded-lg bg-white text-center font-bold">
-                </div>
-                <button onclick="saveAllertaConfigs()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Impostazioni Allerte</button>
-            </div>
-        </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <div id="workerFormTitle" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Nuovo Collaboratore</div>
-                <input type="hidden" id="editingWorkerId" value="">
-                <div class="space-y-2 text-xs">
-                    <div><input type="text" id="newWorkerName" placeholder="Es. Mario Rossi" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300"></div>
-                    <button id="btnSaveWorkerDb" onclick="saveWorkerToDatabase()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Collaboratore</button>
-                    <button id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="w-full text-center text-[11px] text-slate-500 underline hidden">Annulla Modifica</button>
-                </div>
-            </div>
-            <div id="settingsWorkerList" class="space-y-2 pt-1 max-h-64 overflow-y-auto"></div>
-        </div>
-    </main>
-
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
@@ -345,6 +326,7 @@
         let currentCommessa = null;
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
+        let activeFilter = 'all'; 
 
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
@@ -472,11 +454,116 @@
 
         async function fetchClienti() {
             try {
-                const { data, error } = await db.from('clienti').select('*, commesse(*)').order('denominazione', { ascending: true });
+                // Recuperiamo i dati completi con lo storico per calcolare le scadenze reali
+                const { data, error } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (error) throw error;
                 allClients = data || [];
+                
+                // Aggiorniamo la presenza visiva dei pallini rossi (badge 🔴) sulla griglia dei bottoni
+                aggiornaBadgeAlertFasi();
+                
                 renderClientsList();
             } catch (err) { console.error(err); }
+        }
+
+        // MOTORE DI CALCOLO DINAMICO PER ACCENDERE I PALLINI ROSSI SULLA BARRA FILTRI
+        function aggiornaBadgeAlertFasi() {
+            const fasiConAlert = {
+                'PREVENTIVAZIONE': false,
+                'MISURE_ESECUTIVE': false,
+                'FATTURA_ACCONTO': false,
+                'SALDO_CONCLUSO': false
+            };
+
+            const oggi = new Date();
+            const defaultPrev = parseInt(localStorage.getItem('cfg_days_preventivi') || "7");
+            const defaultContr = parseInt(localStorage.getItem('cfg_days_contratti') || "7");
+            const defaultFatt = parseInt(localStorage.getItem('cfg_days_fatture') || "5");
+
+            allClients.forEach(c => {
+                if (!c.commesse) return;
+                c.commesse.forEach(com => {
+                    const macro = com.stato_macro;
+                    const sub = com.preventivo_stato;
+                    
+                    let targetSottofase = false;
+                    let giorniLimite = 7;
+
+                    if (macro === 'PREVENTIVAZIONE' && sub === 'INVIATO_CONSEGNATO') { targetSottofase = true; giorniLimite = defaultPrev; }
+                    else if (macro === 'MISURE_ESECUTIVE' && sub === 'INVIATO_CONSEGNA') { targetSottofase = true; giorniLimite = defaultContr; }
+                    else if (macro === 'FATTURA_ACCONTO' && (sub === 'FATTURA_INVIATA' || sub === 'FATTURA_INVIATA_FIN')) { targetSottofase = true; giorniLimite = defaultFatt; }
+                    else if (macro === 'SALDO_CONCLUSO' && sub === 'SALDO_INVIATO') { targetSottofase = true; giorniLimite = defaultFatt; }
+
+                    if (targetSottofase && com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                        // Ordiniamo le note per trovare la più recente legata allo stato attuale
+                        const noteOrdinate = com.status_diario_attivita
+                            .filter(n => n.macro_fase === macro && n.sub_stato === sub)
+                            .sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
+
+                        if (noteOrdinate.length > 0) {
+                            const ultimaNota = noteOrdinate[0];
+                            // Se l'utente ha personalizzato i giorni sul singolo cliente, vince quel valore
+                            if (ultimaNota.giorni_allerta !== null) {
+                                giorniLimite = ultimaNota.giorni_allerta;
+                            }
+
+                            const dataAttivita = new Date(ultimaNota.data_attivita);
+                            const diffTempo = Math.abs(oggi - dataAttivita);
+                            const giorniTrascorsi = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+
+                            if (giorniTrascorsi > giorniLimite) {
+                                fasiConAlert[macro] = true;
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Stampiamo graficamente i pallini rossi o ripristiniamo le scritte standard pulite
+            const etichetteBasi = {
+                'PRIMO_CONTATTO': '📞 Contatti',
+                'PREVENTIVAZIONE': '📄 Prev.',
+                'MISURE_ESECUTIVE': '📐 Misure',
+                'FATTURA_ACCONTO': '💰 Acconti',
+                'ORDINI_FORNITORI': '📦 Ordini',
+                'INSTALLAZIONE': '🔧 Posa',
+                'SALDO_CONCLUSO': '💵 Saldi',
+                'ASSISTENZA_POST': '🛠️ Post'
+            };
+
+            for (const [fase, haAlert] of Object.entries(fasiConAlert)) {
+                const btn = document.getElementById(`btnFilter-${fase}`);
+                if (btn) {
+                    btn.innerText = haAlert ? `🔴 ${etichetteBasi[fase]}` : etichetteBasi[fase];
+                }
+            }
+        }
+
+        function switchClientFilter(filterType) {
+            activeFilter = filterType;
+            
+            const allFilterIds = ['all', 'PRIMO_CONTATTO', 'PREVENTIVAZIONE', 'MISURE_ESECUTIVE', 'FATTURA_ACCONTO', 'ORDINI_FORNITORI', 'INSTALLAZIONE', 'SALDO_CONCLUSO', 'ASSISTENZA_POST'];
+            allFilterIds.forEach(id => {
+                const btn = document.getElementById(`btnFilter-${id}`);
+                if (btn) {
+                    if (id === 'all') {
+                        btn.className = "w-full py-1.5 text-center rounded-lg bg-slate-100 text-slate-700 transition-all";
+                    } else {
+                        btn.className = "py-1 text-center rounded-md bg-slate-100 text-slate-700 transition-all truncate";
+                    }
+                }
+            });
+
+            const currentBtn = document.getElementById(`btnFilter-${filterType}`);
+            if (currentBtn) {
+                if (filterType === 'all') {
+                    currentBtn.className = "w-full py-1.5 text-center rounded-lg bg-blue-600 text-white shadow-sm transition-all";
+                } else {
+                    currentBtn.className = "py-1 text-center rounded-md bg-blue-600 text-white shadow-sm transition-all truncate";
+                }
+            }
+
+            renderClientsList();
         }
 
         function renderClientsList() {
@@ -486,7 +573,23 @@
             container.classList.remove('hidden');
 
             const term = document.getElementById('searchClient').value.toLowerCase().trim();
-            let listFiltrata = allClients.filter(c => c.denominazione.toLowerCase().includes(term));
+            
+            let listFiltrata = allClients;
+            if (activeFilter !== 'all') {
+                listFiltrata = allClients.filter(c => {
+                    if (!c.commesse || c.commesse.length === 0) return false;
+                    return c.commesse.some(com => com.stato_macro === activeFilter);
+                });
+            }
+
+            if (term.length > 0) {
+                listFiltrata = listFiltrata.filter(c => c.denominazione.toLowerCase().includes(term));
+            }
+
+            if (listFiltrata.length === 0) {
+                container.innerHTML = `<p class="text-xs p-4 text-center text-slate-400 italic">Nessun cliente trovato con i filtri inseriti.</p>`;
+                return;
+            }
 
             listFiltrata.forEach(cliente => {
                 const card = document.createElement('div');
@@ -586,7 +689,7 @@
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
-            handleSubStatoChange(); // Calcola e visualizza i giorni di allerta di default a schermo
+            handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             navigateTo('detail');
@@ -625,7 +728,6 @@
             handleSubStatoChange();
         }
 
-        // LOGICA DINAMICA PER RETRAGUARDO DEI GIORNI DI ALLERTA NELL'INTERFACCIA
         function handleSubStatoChange() {
             const macroFase = document.getElementById('commessaMacroSelect').value;
             const subStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -635,7 +737,6 @@
             let abilitato = false;
             let valoreDefault = 7;
 
-            // Intercettiamo le sottofasi "Calde" stabilite
             if (macroFase === 'PREVENTIVAZIONE' && subStato === 'INVIATO_CONSEGNATO') {
                 abilitato = true;
                 valoreDefault = localStorage.getItem('cfg_days_preventivi') || 7;
@@ -715,7 +816,6 @@
             if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
-                // SALVATAGGIO REALE NELLA TABELLA RELAZIONALE CON I GIORNI PERSONALIZZATI
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
                     commessa_id: currentCommessaId,
                     data_attivita: dataSceltaRaw,
@@ -747,7 +847,7 @@
 
                 await db.from('commesse').update({ 
                     stato_macro: macroFaseFinaleDaImpostare,
-                    preventivo_stato: subStatoFinaleDaImsetare = subStatoFinaleDaImpostare,
+                    preventivo_stato: subStatoFinaleDaImpostare,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     descrizione_lavoro: valoreFinanziamentoDB
@@ -794,7 +894,6 @@
                 const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
                 if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
 
-                // Mostriamo il peso specifico dei giorni impostati se presenti
                 const tagAllertaLabel = rec.giorni_allerta ? ` [Allerta: ${rec.giorni_allerta} gg]` : '';
 
                 r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
@@ -927,7 +1026,6 @@
         }
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
 
-        // RENDERING DEL PANNELLO DELLE IMPOSTAZIONI DELLE ALLERTE DIVISE
         function renderSettingsPanel() { 
             document.getElementById('cfgDaysPreventivi').value = localStorage.getItem('cfg_days_preventivi') || "7"; 
             document.getElementById('cfgDaysContratti').value = localStorage.getItem('cfg_days_contratti') || "7"; 
@@ -941,7 +1039,7 @@
             localStorage.setItem('cfg_days_contratti', document.getElementById('cfgDaysContratti').value.trim()); 
             localStorage.setItem('cfg_days_fatture', document.getElementById('cfgDaysFatture').value.trim()); 
             alert("🟢 Impostazioni scadenze salvate correttamente!"); 
-        }
+        End Function
         
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
