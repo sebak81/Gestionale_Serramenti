@@ -951,6 +951,14 @@
             document.getElementById('adminPasswordHiddenInput').focus();
         }
 
+        function deleteCurrentClientCascade() {
+            if (!confirm(`⚠️ PERICOLO PERMANENTE ⚠️\n\nStai eliminando definitivamente questo cliente e TUTTI i suoi cantieri, diari e documenti allegati.\nQuesta azione cancellerà tutto a cascata. Vuoi procedere?`)) return;
+            pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
+            document.getElementById('adminPasswordHiddenInput').value = "";
+            document.getElementById('passwordAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordHiddenInput').focus();
+        }
+
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
             if (passValue !== "Fighette@69") {
@@ -977,11 +985,21 @@
                     await fetchClienti(); renderClientHub(); 
                 }
                 else if (pendingDeleteAction.type === 'CLIENTE') {
-                    const { error: errorCommesse } = await db.from('commesse').delete().eq('cliente_id', currentClienteId);
-                    if (errorCommesse) throw errorCommesse;
-                    await db.from('clienti').delete().eq('id', currentClienteId);
-                    alert("🟢 Record cliente rimosso.");
-                    currentClienteId = null; navigateTo('main');
+                    // 1. Eliminiamo a cascata tutte le note dei cantieri del cliente
+                    const { data: coms } = await db.from('commesse').select('id').eq('cliente_id', pendingDeleteAction.data);
+                    if (coms && coms.length > 0) {
+                        const idsCommesse = coms.map(c => c.id);
+                        await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
+                        await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
+                    }
+                    // 2. Eliminiamo i cantieri fisici e l'anagrafica cliente
+                    await db.from('commesse').delete().eq('cliente_id', pendingDeleteAction.data);
+                    const { error } = await db.from('clienti').delete().eq('id', pendingDeleteAction.data);
+                    if (error) throw error;
+                    
+                    alert("🟢 Record cliente ed intero storico eliminati a cascata con successo.");
+                    currentClienteId = null; 
+                    navigateTo('main');
                 }
             } catch (err) { alert("Errore: " + err.message); }
             finally { pendingDeleteAction = null; }
