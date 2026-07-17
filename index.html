@@ -110,6 +110,7 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            
             <div>
                 <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
@@ -227,7 +228,7 @@
                     </div>
                 </div>
                 <div id="driveUploadStatus" class="text-[11px] text-blue-600 font-bold hidden animate-pulse">⏳ Invio file e archiviazione in corso...</div>
-                <div id="driveAllegatiList" class="space-y-2 max-h-48 overflow-y-auto"><p class="text-xs text-slate-400 italic">Nessun documento caricato.</p></div>
+                <div id="driveAllegatiList" class="space-y-2 max-h-48 overflow-y-auto"></div>
             </div>
 
             <div class="pt-2">
@@ -239,7 +240,7 @@
         
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
             </div>
             <div id="diarioTimeline" class="space-y-2"></div>
         </div>
@@ -251,9 +252,10 @@
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">🏢 Anagrafica Fornitori</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Marchio / Fornitore</div>
                 <div class="space-y-2 text-xs">
-                    <input type="text" id="newFornitoreNome" placeholder="Ragione Sociale (Es. Qfort)" class="w-full bg-white border p-2.5 rounded-lg border-slate-300">
-                    <input type="text" id="newFornitoreProdotti" placeholder="Prodotti gestiti (Es. Serramenti)" class="w-full bg-white border p-2.5 rounded-lg border-slate-300">
+                    <input type="text" id="newFornitoreNome" placeholder="Ragione Sociale (Es. Qfort)" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
+                    <input type="text" id="newFornitoreProdotti" placeholder="Prodotti gestiti (Es. Serramenti, Zanzariere)" class="w-full bg-white border p-2.5 rounded-lg border-slate-300">
                     <button onclick="salvaFornitoreInImpostazioni()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Fornitore</button>
                 </div>
             </div>
@@ -283,14 +285,20 @@
         </div>
     </nav>
 
-    <!-- TOUTI I MODAL PRINCIPALI DI DIALOG -->
+    <!-- MODAL EDIT DATA ARRIVO MERCE -->
     <div id="ordineEditDataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4">
-            <h3 class="text-sm font-bold text-slate-900 border-b pb-2 uppercase tracking-wider text-blue-600">📅 Aggiorna Dati</h3>
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2 uppercase tracking-wider text-blue-600">📅 Aggiorna Dati Fornitura</h3>
             <input type="hidden" id="modalEditOrdineId">
             <div class="space-y-3 text-xs">
-                <input type="date" id="modalEditOrdineDataArrivo" class="w-full p-2 border rounded-xl bg-slate-50 font-bold">
-                <input type="text" id="modalEditOrdineNote" class="w-full p-2 border rounded-xl bg-slate-50">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nuova Data Presunta Arrivo:</label>
+                    <input type="date" id="modalEditOrdineDataArrivo" class="w-full p-2 border rounded-xl bg-slate-50 font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Aggiorna Annotazioni:</label>
+                    <input type="text" id="modalEditOrdineNote" class="w-full p-2 border rounded-xl bg-slate-50">
+                </div>
             </div>
             <div class="flex space-x-2 pt-1 text-xs font-bold">
                 <button onclick="closeOrdineEditDataModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
@@ -299,36 +307,85 @@
         </div>
     </div>
 
+    <!-- DIALOG PER PASSWORD AUTH CANCELLAZIONI -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
-            <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border rounded-xl bg-slate-50 text-center text-sm">
+            <div class="text-red-600 text-2xl">🔒</div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Autenticazione Richiesta</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Inserisci la password amministratore per autorizzare la cancellazione permanente.</p>
+            <input type="password" id="adminPasswordHiddenInput" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 text-center font-bold tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
             <div class="flex space-x-2 pt-1 text-xs font-bold">
-                <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100">Annulla</button>
-                <button onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white shadow">Conferma</button>
+                <button onclick="closePasswordAuthModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                <button id="modalConfirmBtn" onclick="submitAdminPasswordFlow()" class="flex-1 py-2 bg-red-600 text-white rounded-lg shadow">Conferma</button>
             </div>
         </div>
     </div>
 
+    <!-- MODAL CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 text-xs">
-            <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" placeholder="Nome / Ragione Sociale *" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
-            <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border rounded-xl hidden"><div id="omonimiaListContainer" class="space-y-1"></div></div>
-            <input type="text" id="newIndirizzo" placeholder="Indirizzo Fatturazione *" class="w-full p-2 border rounded-lg bg-slate-50">
-            <input type="text" id="newTelefono" placeholder="Telefono" class="w-full p-2 border rounded-lg bg-slate-50">
-            <input type="email" id="newEmail" placeholder="Email" class="w-full p-2 border rounded-lg bg-slate-50">
-            <input type="text" id="newPartitaIva" placeholder="P.IVA" class="w-full p-2 border rounded-lg bg-slate-50">
-            <input type="text" id="newCodiceFiscale" placeholder="Codice Fiscale" class="w-full p-2 border rounded-lg bg-slate-50">
-            <textarea id="newNote" placeholder="Note Generali" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
-            <div class="flex space-x-2 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100">Annulla</button><button onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white font-bold">Salva</button></div>
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
+                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                    <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
+                        <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
+                        <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione *</label>
+                    <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="newTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="newEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="newPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="newCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label>
+                    <textarea id="newNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
         </div>
     </div>
 
+    <!-- MODAL ANAGRAFICA -->
+    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label><input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold"></div>
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                </div>
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label><textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea></div>
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 text-xs">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
+            <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
             <input type="hidden" id="modalCommessaId">
-            <input type="text" id="modalTitoloInput" placeholder="Titolo Lavoro *" class="w-full p-2.5 border rounded-lg bg-slate-50">
-            <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
-            <div class="flex space-x-2 pt-2"><button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100">Annulla</button><button onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white font-bold">Salva</button></div>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="modalTitoloInput" placeholder="Titolo Lavoro *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCommessa" onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva</button></div>
         </div>
     </div>
 
@@ -405,7 +462,7 @@
             {val: 'LIQUIDAZIONE_FIN', label: '🏦 Liquidazione da parte della Finanziaria'}
         ];
 
-        // FUNZIONE CRITICA DI NAVIGAZIONE COMPLETA RIPRISTINATA
+        // GESTIONE SCHERMATE E NAVIGAZIONE COMPLETA
         function navigateTo(screen) {
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('clientHubScreen').classList.add('hidden');
@@ -431,8 +488,7 @@
             } else if (screen === 'settings') {
                 document.getElementById('settingsScreen').classList.remove('hidden');
                 btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-                renderSettingsFornitoriList();
-                renderSettingsWorkersList();
+                renderSettingsPanel();
             }
         }
 
@@ -466,11 +522,6 @@
             });
             const fSel = document.getElementById('ordineFornitoreSelect');
             if (fSel) fSel.innerHTML = `<option value="">-- Seleziona Fornitore --</option>` + listFornitori.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-        }
-
-        function autoCompilaProdottoFornitore(fornitoreId) {
-            const fObj = listFornitori.find(f => f.id === fornitoreId);
-            if (fObj && fObj.prodotti_gestiti) document.getElementById('ordineProdottoInput').value = fObj.prodotti_gestiti.split(',')[0].trim();
         }
 
         async function fetchClienti() {
@@ -508,6 +559,7 @@
             const cliente = allClients.find(c => c.id === currentClienteId); if (!cliente) return;
             document.getElementById('hubClientName').innerText = cliente.denominazione;
             document.getElementById('hubClientInfo').innerText = `📞 ${cliente.telefono || 'N/D'} | ✉️ ${cliente.email || 'N/D'}`;
+            document.getElementById('hubClientFiscale').innerText = `P.IVA: ${cliente.partita_iva || 'N/D'} | C.F.: ${cliente.codice_fiscale || 'N/D'}`;
             
             const listContainer = document.getElementById('hubCommesseList'); listContainer.innerHTML = "";
             if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa attiva.</p>`; return; }
@@ -515,7 +567,7 @@
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm cursor-pointer";
                 div.onclick = () => openCommessaWorkspace(com.id);
-                div.innerHTML = `<div><span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span><h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Cantiere'}</h4></div>`;
+                div.innerHTML = `<div><span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro}</span><h4 class="font-bold text-blue-600 mt-1">${com.titolo_lavoro || 'Cantiere'}</h4><p class="text-[11px] text-slate-400 mt-0.5">📍 ${com.indirizzo_cantiere}</p></div>`;
                 listContainer.appendChild(div);
             });
         }
@@ -529,7 +581,7 @@
             document.getElementById('commessaCantiere').innerText = `📍 Cantiere: ${currentCommessa.indirizzo_cantiere}`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro;
             
-            const { data: timelineAttivita } = await db.from('status_diario_attivita').select('*, lavoratori(nome)').eq('commessa_id', currentCommessaId).order('data_attivita', { ascending: false });
+            const { data: timelineAttivita } = await db.from('status_diario_attivita').select('*, lavoratori(nome)').eq('commessa_id', currentCommessaId).order('data_attivita', { ascending: false }).order('creato_il', { ascending: false });
 
             let macroFaseImpostata = currentCommessa.stato_macro;
             let subStatoImpostato = currentCommessa.preventivo_stato;
@@ -569,110 +621,176 @@
             const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
             const operatoreId = document.getElementById('workerContattoSelect').value;
-            const tipoDoc = document.getElementById('badgeTipoDocOrdine').innerText;
+            const tipoDoc = document.getElementById('badgeTipoDocOrdine').innerText === "PRE-ORDINE (FASE 3)" ? "ORDINE" : "CONFERMA";
 
             if (!fornitoreId || !prodotto || !dataInvio || !operatoreId) { alert("Compila i campi obbligatori!"); return; }
             let percorsoStoragePdf = null;
 
             if (temporaryOrderFileObj) {
-                const filePath = `${currentCommessaId}/ordini_${Date.now()}_${temporaryOrderFileObj.name.replace(/\s+/g, "_")}`;
-                await db.storage.from('documenti').upload(filePath, temporaryOrderFileObj);
-                percorsoStoragePdf = filePath;
+                try {
+                    const filePath = `${currentCommessaId}/ordini_${Date.now()}_${temporaryOrderFileObj.name.replace(/\s+/g, "_")}`;
+                    await db.storage.from('documenti').upload(filePath, temporaryOrderFileObj);
+                    percorsoStoragePdf = filePath;
+                } catch(e) { console.error(e); }
             }
 
-            await db.from('ordini_fornitori').insert([{
-                commessa_id: currentCommessaId, fornitore_id: fornitoreId, prodotto: prodotto,
-                tipo_documento: tipoDoc, data_invio: dataInvio, data_presunta_arrivo: dataArrivo===""?null:dataArrivo,
-                operatore_id: operatoreId, annotazioni: note, file_path_supabase: percorsoStoragePdf
-            }]);
-            
-            alert("✅ Fornitura salvata!");
-            openCommessaWorkspace(currentCommessaId);
+            try {
+                await db.from('ordini_fornitori').insert([{
+                    commessa_id: currentCommessaId, fornitore_id: fornitoreId, prodotto: prodotto,
+                    tipo_documento: tipoDoc, data_invio: dataInvio, data_presunta_arrivo: dataArrivo===""?null:dataArrivo,
+                    operatore_id: operatoreId, annotazioni: note, file_path_supabase: percorsoStoragePdf
+                }]);
+                alert("✅ Fornitura salvata!");
+                openCommessaWorkspace(currentCommessaId);
+            } catch(err) { alert(err.message); }
         }
 
         async function fetchOrdiniFornitureDellaCommessa() {
             const container = document.getElementById('listaOrdiniCommessaContainer'); if (!container) return; container.innerHTML = "";
-            const { data } = await db.from('ordini_fornitori').select('*, fornitori(nome)').eq('commessa_id', currentCommessaId);
-            if(!data || data.length===0) { container.innerHTML = "<p class='text-slate-400 italic text-[11px]'>Nessun ordine.</p>"; return; }
-            
-            data.forEach(o => {
-                const d = document.createElement('div'); d.className = "bg-slate-800 p-2 rounded border border-slate-700 text-[11px] mt-1 text-left";
-                d.innerHTML = `<span class="text-blue-400 font-bold">[${o.tipo_documento}]</span> <strong class="text-white">${o.fornitori?.nome || 'Fornitore'}</strong> - ${o.prodotto} <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}')" class="text-red-400 font-bold float-right">✕</button>`;
-                container.appendChild(d);
-            });
+            try {
+                const { data } = await db.from('ordini_fornitori').select('*, fornitori(nome)').eq('commessa_id', currentCommessaId);
+                if(!data || data.length===0) { container.innerHTML = "<p class='text-slate-400 italic text-[11px] text-left'>Nessun ordine.</p>"; return; }
+                
+                data.forEach(o => {
+                    const d = document.createElement('div'); d.className = "bg-slate-800 p-2 rounded border border-slate-700 text-[11px] mt-1 text-left flex justify-between items-center";
+                    let linkHtml = o.file_path_supabase ? `<a href="${db.storage.from('documenti').getPublicUrl(o.file_path_supabase).data.publicUrl}" target="_blank" class="text-blue-400 font-bold underline ml-1">Apri</a>` : '';
+                    d.innerHTML = `<div><span class="text-blue-400 font-bold">[${o.tipo_documento}]</span> <strong class="text-white">${o.fornitori?.nome || 'Fornitore'}</strong> - ${o.prodotto} ${linkHtml}</div><button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase}')" class="text-red-400 font-bold">✕</button>`;
+                    container.appendChild(d);
+                });
+            } catch(e) { console.error(e); }
         }
 
-        async function eliminaOrdineFornitoreRelazionale(id) {
-            if(confirm("Eliminare?")) { await db.from('ordini_fornitori').delete().eq('id', id); openCommessaWorkspace(currentCommessaId); }
+        async function eliminaOrdineFornitoreRelazionale(id, filePath) {
+            if(confirm("Eliminare questa fornitura?")) { 
+                if(filePath && filePath !== "null" && filePath !== "undefined") await db.storage.from('documenti').remove([filePath]);
+                await db.from('ordini_fornitori').delete().eq('id', id); 
+                openCommessaWorkspace(currentCommessaId); 
+            }
         }
 
         async function salvaFornitoreInImpostazioni() {
             const n = document.getElementById('newFornitoreNome').value.trim();
             const p = document.getElementById('newFornitoreProdotti').value.trim();
             if(!n) return;
-            await db.from('fornitori').insert([{ nome: n, prodotti_gestiti: p }]);
-            document.getElementById('newFornitoreNome').value = ""; document.getElementById('newFornitoreProdotti').value = "";
-            await initLists(); renderSettingsFornitoriList();
+            try {
+                await db.from('fornitori').insert([{ nome: n, prodotti_gestiti: p }]);
+                document.getElementById('newFornitoreNome').value = ""; document.getElementById('newFornitoreProdotti').value = "";
+                await initLists(); renderSettingsFornitoriList();
+            } catch(e) { alert(e.message); }
         }
 
         function renderSettingsFornitoriList() {
             const container = document.getElementById('settingsFornitoriList'); if(!container) return; container.innerHTML = "";
             listFornitori.forEach(f => {
                 const r = document.createElement('div'); r.className = "flex justify-between p-2 bg-slate-100 mt-1 border text-xs rounded font-semibold";
-                r.innerHTML = `<div>🏢 ${f.nome}</div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button>`;
+                r.innerHTML = `<div>🏢 ${f.nome} <span class="font-normal text-slate-400">(${f.prodotti_gestiti || ''})</span></div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button>`;
                 container.appendChild(r);
             });
         }
         async function eliminaFornitoreDaImpostazioni(id) { if(confirm("Eliminare?")) { await db.from('fornitori').delete().eq('id', id); await initLists(); renderSettingsFornitoriList(); } }
 
-        function handleFaseChange() {
-            const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            popolaSubStatoMenu(nuevaFase, false);
+        function renderSettingsPanel() { 
+            resetWorkerForm(); 
+            renderSettingsWorkersList();
+            renderSettingsFornitoriList();
         }
-        function gestisciVisibilitaFinanziamentoBox(fase) {
-            document.getElementById('boxFinanziamentoFlag').className = fase === 'FATTURA_ACCONTO' ? "block" : "hidden";
+
+        function adjustWorkerLabels(fase) {
+            const lbl = document.getElementById('lblWorkerContatto'); 
+            const box2 = document.getElementById('boxWorkerAssegnato');
+            if(fase==='PRIMO_CONTATTO') { 
+                if(lbl) lbl.innerText = "Contatto preso da: *"; 
+                if(box2) box2.classList.remove('hidden'); 
+            } else { 
+                if(lbl) lbl.innerText = "Incaricato / Operatore *"; 
+                if(box2) box2.classList.add('hidden'); 
+            }
         }
-        function popolaSubStatoMenu(fase, fin) {
-            const s = document.getElementById('subStatoAvanzamentoSelect');
-            if(s) s.innerHTML = (subStatiOpzioni[fase] || []).map(o => `<option value="${o.val}">${o.label}</option>`).join('');
+
+        function aggiornaSelettoreCategorie(fase) {
+            const select = document.getElementById('categoriaDriveInput'); if (!select) return;
+            let opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
+            select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
         async function saveCliente() {
             const d = document.getElementById('newDenominazione').value.trim();
             const ind = document.getElementById('newIndirizzo').value.trim();
-            if(!d || !ind) { alert("Campi mancanti!"); return; }
-            await db.from('clienti').insert([{ denominazione: d, indirizzo_fatturazione: ind, telefono: document.getElementById('newTelefono').value, email: document.getElementById('newEmail').value }]);
-            closeModal(); fetchClienti();
+            if(!d || !ind) { alert("Campi obbligatori!"); return; }
+            try {
+                await db.from('clienti').insert([{ denominazione: d, indirizzo_fatturazione: ind, telefono: document.getElementById('newTelefono').value, email: document.getElementById('newEmail').value }]);
+                closeModal(); fetchClienti();
+            } catch(e) { alert(e.message); }
         }
 
         async function saveCommessaDati() {
             const t = document.getElementById('modalTitoloInput').value.trim();
             const c = document.getElementById('modalCantiereInput').value.trim();
-            await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
-            closeCommessaModal(); fetchClienti();
+            if(!t || !c) return;
+            try {
+                await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
+                closeCommessaModal(); fetchClienti();
+            } catch(e) { alert(e.message); }
         }
 
         function openNewCommessaModal() { document.getElementById('commessaModal').classList.remove('hidden'); }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
-        function openAnagraficaModal() {}
-        function closeAnagraficaModal() {}
-        function deleteCurrentClientCascade() {}
-        function closePasswordAuthModal() {}
-        function submitAdminPasswordFlow() {}
+        function openAnagraficaModal() {
+            const c = allClients.find(cl => cl.id === currentClienteId); if(!c) return;
+            document.getElementById('editDenominazione').value = c.denominazione || ''; document.getElementById('editIndirizzo').value = c.indirizzo_fatturazione || '';
+            document.getElementById('editTelefono').value = c.telefono || ''; document.getElementById('editEmail').value = c.email || '';
+            document.getElementById('editPartitaIva').value = c.partita_iva || ''; document.getElementById('editCodiceFiscale').value = c.codice_fiscale || '';
+            document.getElementById('editNote').value = c.note_generali || ''; document.getElementById('anagraficaModal').classList.remove('hidden');
+        }
+        function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
+        async function updateAnagrafica() {
+            const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
+            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
+            closeAnagraficaModal(); await fetchClienti(); renderClientHub();
+        }
+
+        async function deleteCurrentClientCascade() {
+            if (confirm("Rimuovere permanentemente questo cliente?")) {
+                pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
+                document.getElementById('adminPasswordHiddenInput').value = "";
+                document.getElementById('passwordAuthModal').classList.remove('hidden');
+            }
+        }
+        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); }
+        function openCommessaEditModalCurrent() { document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
         function checkOmonimiaDoppioni() {}
-        function toggleFinanziamentoFlusso() {}
-        function openCommessaEditModalCurrent() {}
+        function resetWorkerForm() {}
 
         async function fetchAllegatiDrive() {
-            const container = document.getElementById('driveAllegatiList'); if(container) container.innerHTML = "<p class='text-slate-400 italic text-xs'>Nessun allegato.</p>";
+            const container = document.getElementById('driveAllegatiList'); if(!container) return; container.innerHTML = "";
+            try {
+                const { data } = await db.from('allegati_drive').select('*').eq('commessa_id', currentCommessaId).order('creato_il', { ascending: false });
+                if (!data || data.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 italic">Nessun allegato.</p>`; return; }
+                data.forEach(all => {
+                    const item = document.createElement('div'); item.className = "bg-white p-2 rounded-xl border text-xs flex justify-between mt-1 font-semibold";
+                    const peso = all.peso_bytes ? `<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded ml-1">${formattaPeso(all.peso_bytes)}</span>` : '';
+                    item.innerHTML = `<div>📄 ${all.nome_file} ${peso}</div><a href="${db.storage.from('documenti').getPublicUrl(all.google_drive_file_id).data.publicUrl}" target="_blank" class="text-blue-600 font-bold">Apri</a>`;
+                    container.appendChild(item);
+                });
+            } catch(e) { console.error(e); }
         }
-        async function uploadFileToStorage() {}
+
+        async function uploadFileToStorage(inputElement) {
+            const file = inputElement.files[0]; if (!file) return;
+            try {
+                const nomeSanificato = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9.\-_ ]/g, "").replace(/\s+/g, "_");
+                const filePath = `${currentCommessaId}/${Date.now()}_${nomeSanificato}`;
+                await db.storage.from('documenti').upload(filePath, file);
+                await db.from('allegati_drive').insert([{ commessa_id: currentCommessaId, nome_file: file.name, categoria: 'ALTRO', google_drive_file_id: filePath, peso_bytes: file.size }]);
+                fetchAllegatiDrive();
+            } catch (err) { alert(err.message); }
+        }
 
         function renderSettingsWorkersList() {
             const container = document.getElementById('settingsWorkerList'); if(!container) return; container.innerHTML = "";
             listLavoratori.forEach(w => {
                 const r = document.createElement('div'); r.className = "flex justify-between p-2 bg-slate-100 mt-1 text-xs border rounded font-semibold";
-                r.innerHTML = `<div>👤 ${w.nome}</div><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500">✕</button>`;
+                r.innerHTML = `<div>👤 ${w.nome}</div><button onclick="deleteWorkerDatabase('${w.id}')" class="text-red-500 font-bold">✕</button>`;
                 container.appendChild(r);
             });
         }
@@ -687,6 +805,7 @@
             const inputData = document.getElementById('dataAttivitaInput');
             if (inputData) inputData.value = new Date().toISOString().split('T')[0];
         }
+        function updateCharCounter(input) { document.getElementById('charCounter').innerText = `${input.value.length} / 150`; }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
