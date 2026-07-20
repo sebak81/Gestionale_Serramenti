@@ -178,7 +178,7 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
-            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI - AZZURRO PASTELLO TRASPARENTE -->
+            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
             <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-900 p-4 rounded-2xl border border-sky-200 space-y-3">
                 <div class="border-b border-sky-200/80 pb-1.5 flex justify-between items-center">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">📦 Gestione Ordini ai Fornitori</h3>
@@ -322,7 +322,6 @@
         </div>
     </main>
 
-    <!-- NAVIGATION BAR NAVIGAZIONE RAPIDA: AGGIUNTO IL TASTO HOME -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnHome" onclick="navigateTo('main')" class="flex flex-col items-center text-slate-400 flex-1">
@@ -770,20 +769,27 @@
             if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa attiva.</p>`; return; }
             
             cliente.commesse.forEach(com => {
+                // 🌟 LOGICA DI LETTURA REALE DAL DIARIO STORICO PER IL BADGE DELLA LISTA HUB
+                let faseRealeRegistrata = com.stato_macro || 'PRIMO_CONTATTO';
+                if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                    const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
+                    faseRealeRegistrata = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
+                }
+
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
                 const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 div.innerHTML = `
                 <div class="flex-1 min-w-0 cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro === 'ASSISTENZA_POST' ? 'POST-VENDITA' : com.stato_macro}</span>
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${faseRealeRegistrata}">${faseRealeRegistrata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : faseRealeRegistrata.replace('_', ' ')}</span>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
                         📍 Cantiere: ${com.indirizzo_cantiere}
                     </p>
                 </div>
                 <div class="flex items-center space-x-2 shrink-0 pl-2">
-                    <a href="${mapsUrl}" target="_blank" onclick="event.stopPropagation();" class="p-2 bg-slate-50 border rounded-lg text-center" title="Mappa">🗺️</a>
-                    <button onclick="event.stopPropagation(); requestDeleteCommessaCascade('${com.id}', '${escapeHtml(com.titolo_lavoro)}')" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-100 font-bold" title="Elimina cantiere">🗑️</button>
+                    <a href="${mapsUrl}" target="_blank" class="p-2 bg-slate-50 border rounded-lg text-center" title="Mappa">🗺️</a>
+                    <button onclick="requestDeleteCommessaCascade('${com.id}', '${escapeHtml(com.titolo_lavoro)}')" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-100 font-bold" title="Elimina cantiere">🗑️</button>
                 </div>`;
                 listContainer.appendChild(div);
             });
@@ -872,7 +878,7 @@
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
-            handleSubStatoChange(); // 🌟 Innesca il controllo corretto sulla visibilità della tabella ordini
+            handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             fetchOrdiniFornituresDellaCommessa();
@@ -928,7 +934,7 @@
                 const { error } = await db.from('ordini_fornitori').insert([{
                     commessa_id: currentCommessaId,
                     fornitore_id: fornitoreId,
-                    prodotto: producto,
+                    prodotto: prodotto,
                     tipo_documento: tipoDoc,
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
@@ -1125,7 +1131,7 @@
                 inputAllerta.value = "";
             }
 
-            // 🌟 CONTROLLO RIGIDO VISIBILITÀ TABELLA ORDINI CONDIVISA
+            // CONTROLLO RIGIDO VISIBILITÀ TABELLA ORDINI CONDIVISA
             const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
             const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
             const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
@@ -1474,7 +1480,7 @@
                 resetWorkerForm(); await initLists(); renderSettingsWorkersList();
             } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
         }
-        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamente questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
+        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamento questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
 
         function checkOmonimiaDoppioni(valoreDigitato) {
