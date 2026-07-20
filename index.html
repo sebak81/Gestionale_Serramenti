@@ -882,7 +882,7 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
-            // 🌟 CORREZIONE INCONGRUENTI: Prendi lo stato REALE della commessa dal DB, non l'ipotesi del diario
+            // Prendi lo stato REALE della commessa dal DB
             let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
             let subStatoImpostato = currentCommessa.preventivo_stato || '';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
@@ -896,7 +896,7 @@
             // Popoliamo il sotto-menu basandoci sullo stato reale
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
             
-            // Se lo stato memorizzato esiste nella tendina lo impostiamo, altrimenti mettiamo il primo disponibile
+            // Controllo ed impostazione del sotto-stato (corretto l'oggetto globale subStatiOpzioni)
             if (subStatoImpostato) {
                 document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato;
             } else {
