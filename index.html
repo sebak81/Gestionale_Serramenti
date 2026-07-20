@@ -870,14 +870,11 @@
             currentCommessaId = commessaId;
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
-            
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
-            document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank" class="hover:text-blue-800 transition-colors">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
+            const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
+            document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
-            const sedeTrovata = listSedi.find(s => s.id === currentCommessa.sede_id);
-            document.getElementById('commessaSedeAssegnata').innerText = sedeTrovata ? `🏢 Sede: ${sedeTrovata.nome}` : '🏢 Sede: Non Assegnata';
-
+            // Scarichiamo la timeline solo per mostrarla sotto
             const { data: timelineAttivita, error } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
@@ -885,51 +882,25 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
-            // 1. Estrai la macro-fase consolidata direttamente dal record della commessa
+            // 🌟 CORREZIONE INCONGRUENTI: Prendi lo stato REALE della commessa dal DB, non l'ipotesi del diario
             let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
+            let subStatoImpostato = currentCommessa.preventivo_stato || '';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
-            // Calcola il default in base alle opzioni disponibili
-            let arrayOpzioniSottofase = isFinanz ? sottofasiFinanziamento : (subStatiOpzioni[macroFaseImpostata] || []);
-            let defaultSottofaseIniziale = arrayOpzioniSottofase.length > 0 ? arrayOpzioniSottofase[0].val : 'GENERICO';
-            
-            // 2. Determina la sottofase esatta calcolando la priorità del record
-            let subStatoImpostato = currentCommessa.preventivo_stato || defaultSottofaseIniziale;
-
-            if (timelineAttivita && timelineAttivita.length > 0) {
-                // Se siamo nella macro-fase dell'ultimo log del diario, carichiamo la sottofase registrata o quella successiva già elaborata
-                if (currentCommessa.stato_macro === timelineAttivita[0].macro_fase) {
-                    subStatoImpostato = currentCommessa.preventivo_stato || timelineAttivita[0].sub_stato || defaultSottofaseIniziale;
-                }
-                if (timelineAttivita[0].operatore_id) {
-                    operatorePredefinito = timelineAttivita[0].operatore_id;
-                }
-            }
-
-            // 3. Forza l'aggiornamento immediato del badge a schermo
-            const badgeFaseWorkspace = document.getElementById('commessaBadgeStato');
-            if(badgeFaseWorkspace) {
-                badgeFaseWorkspace.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata;
-                badgeFaseWorkspace.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseImpostata}`;
-            }
-
-            // 4. Esegui il binding dei campi select nell'esatto ordine cronologico del DOM
+            // Se la tendina principale non è sincronizzata, la forziamo sul valore esatto
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
-            // Rigenera le opzioni prima di forzare la selezione
+            // Popoliamo il sotto-menu basandoci sullo stato reale
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
             
-            // Fallback di sicurezza: se il valore salvato non esiste nel menu, aggancia il primo elemento
-            const menuSottofaseHTML = document.getElementById('subStatoAvanzamentoSelect');
-            if (menuSottofaseHTML) {
-                menuSottofaseHTML.value = subStatoImpostato;
-                if (menuSottofaseHTML.value !== subStatoImpostato && menuSottofaseHTML.options.length > 0) {
-                    menuSottofaseHTML.selectedIndex = 0;
-                    subStatoImpostato = menuSottofaseHTML.value;
-                }
+            // Se lo stato memorizzato esiste nella tendina lo impostiamo, altrimenti mettiamo il primo disponibile
+            if (subStatoImpostato) {
+                document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato;
+            } else {
+                document.getElementById('subStatoAvanzamentoSelect').value = isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val;
             }
             
             document.getElementById('workerContattoSelect').value = operatorePredefinito;
@@ -938,9 +909,25 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            // Sincronizza i box dipendenti dallo stato
-            gestisciVisibilitaTabellaOrdini(macroFaseImpostata, subStatoImpostato);
+            // LOGICA DI ATTIVAZIONE BOX FORNITORI E AUTOPREIMPOSTAZIONE
+            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
+            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
+            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+            
+            if (macroFaseImpostata === 'MISURE_ESECUTIVE' || macroFaseImpostata === 'ORDINI_FORNITORI' || workflowOrdered.indexOf(macroFaseImpostata) > 2) {
+                boxOrdini.classList.remove('hidden');
+                if (macroFaseImpostata === 'MISURE_ESECUTIVE') {
+                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
+                    boxDataArrivo.classList.add('opacity-40'); 
+                } else {
+                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
+                    boxDataArrivo.classList.remove('opacity-40');
+                }
+            } else {
+                boxOrdini.classList.add('hidden');
+            }
 
+            // Svuota i campi del form ordini interno
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
@@ -957,10 +944,9 @@
             handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
-            fetchOrdiniFornituresDellaCommessa();
+            fetchOrdiniFornitureDellaCommessa();
             navigateTo('detail');
         }
-
         function gestisciVisibilitaTabellaOrdini(macroFase, subStato) {
             const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
             const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
