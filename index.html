@@ -792,16 +792,22 @@
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
+            // 🌟 LOGICA DI SINCRONIZZAZIONE RIPRISTINATA DAL DIARIO CON ORDINAMENTO REALE (creato_il)
             const { data: timelineAttivita, error } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
                 .eq('commessa_id', currentCommessaId)
-                .order('data_attivita', { ascending: false })
-                .order('creato_il', { ascending: false });
+                .order('creato_il', { ascending: false })
+                .order('data_attivita', { ascending: false });
 
-            // Sincronizzazione impeccabile basata sullo stato nativo della tabella commesse
-            let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
-            let subStatoImpostato = currentCommessa.preventivo_stato || '';
+            let macroFaseImpostata = 'PRIMO_CONTATTO';
+            let subStatoImpostato = '';
+            
+            if (timelineAttivita && timelineAttivita.length > 0) {
+                macroFaseImpostata = timelineAttivita[0].macro_fase || 'PRIMO_CONTATTO';
+                subStatoImpostato = timelineAttivita[0].sub_stato || '';
+            }
+
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
@@ -857,7 +863,7 @@
             handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
-            fetchOrdiniFornitureDellaCommessa();
+            fetchOrdiniFornituresDellaCommessa();
             navigateTo('detail');
         }
 
@@ -925,7 +931,7 @@
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        async function fetchOrdiniFornitureDellaCommessa() {
+        async function fetchOrdiniFornituresDellaCommessa() {
             const container = document.getElementById('listaOrdiniCommessaContainer');
             if (!container) return; container.innerHTML = "";
 
@@ -1041,14 +1047,6 @@
                 r.innerHTML = `<div>🏢 <strong>${f.nome}</strong> <span class="text-slate-400 font-normal">(${f.prodotti_gestiti || 'Prodotti generici'})</span></div><div><button onclick="eliminaFornitoreDaImpostazioni('${f.id}')" class="text-red-500 font-bold">✕</button></div>`;
                 container.appendChild(r);
             });
-        }
-
-        async function eliminaFornitoreDaImpostazioni(id) {
-            if (confirm("Rimuovere definitivamente questo fornitore?")) {
-                await db.from('fornitori').delete().eq('id', id);
-                await initLists();
-                renderSettingsFornitoriList();
-            }
         }
 
         function gestisciVisibilitaFinanziamentoBox(macroFase) {
@@ -1197,7 +1195,6 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
                 
-                // Forza un ricaricamento pulito dei dati client per aggiornare l'array locale
                 await fetchClienti();
                 openCommessaWorkspace(currentCommessaId); 
                 
