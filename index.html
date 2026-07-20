@@ -338,7 +338,6 @@
         </div>
     </main>
 
-    <!-- NAVBAR AGGIORNATA CON ICONA HOME (CASETTA) A SINISTRA -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
             <button id="navBtnHome" onclick="resetToHomeDashboard()" class="flex flex-col items-center text-slate-400 flex-1">
@@ -490,7 +489,6 @@
 
         const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
-        // AGGIORNATO: Sostituito "Pronto da spedire" con "Da Controllare"
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
@@ -577,7 +575,6 @@
             }
         }
 
-        // AGGIORNATO: Funzione della casetta per tornare alla dashboard principale resettando tutto
         function resetToHomeDashboard() {
             activeFilter = 'all';
             const searchInput = document.getElementById('searchClient');
@@ -686,8 +683,14 @@
             allClients.forEach(c => {
                 if (!c.commesse) return;
                 c.commesse.forEach(com => {
-                    const macro = com.stato_macro;
-                    const sub = com.preventivo_stato;
+                    let macro = com.stato_macro;
+                    let sub = com.preventivo_stato;
+
+                    if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                        const storiciOrdinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
+                        macro = storiciOrdinati[0].macro_fase;
+                        sub = storiciOrdinati[0].sub_stato;
+                    }
                     
                     let targetSottofase = false;
                     let giorniLimite = 7;
@@ -778,7 +781,14 @@
             if (activeFilter !== 'all') {
                 listFiltrata = allClients.filter(c => {
                     if (!c.commesse || c.commesse.length === 0) return false;
-                    return c.commesse.some(com => com.stato_macro === activeFilter);
+                    return c.commesse.some(com => {
+                        let macro = com.stato_macro;
+                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                            const ordinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
+                            macro = ordinati[0].macro_fase;
+                        }
+                        return macro === activeFilter;
+                    });
                 });
             }
 
@@ -813,6 +823,7 @@
 
         function filterClients() { renderClientsList(); }
 
+        // GESTIONE HUB FIXED: Calcola dinamicamente l'ultima fase della commessa per aggiornare il badge
         function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -825,16 +836,21 @@
             
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
-                
-                // AGGIORNATO: Assicurato link maps assoluto per bloccare errori 404 relativi
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 const sedeTrovata = listSedi.find(s => s.id === com.sede_id);
                 const stringaSede = sedeTrovata ? ` 🏢 ${sedeTrovata.name || sedeTrovata.nome}` : '';
 
+                // FIX LOGICO-GRAFICO: Estrae la macro-fase aggiornata dallo storico attività per valorizzare il badge dell'Hub
+                let macroFaseVisualizzata = com.stato_macro;
+                if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                    const ordinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
+                    macroFaseVisualizzata = ordinati[0].macro_fase;
+                }
+
                 div.innerHTML = `
                 <div class="flex-1 min-w-0 cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro === 'ASSISTENZA_POST' ? 'POST-VENDITA' : com.stato_macro}</span>
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseVisualizzata}">${macroFaseVisualizzata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseVisualizzata}</span>
                     <span class="text-[9px] font-bold text-slate-500 bg-slate-100 border px-1 rounded ml-1">${stringaSede || 'Sede Non Spec.'}</span>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
@@ -856,7 +872,6 @@
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             
-            // AGGIORNATO: Assicurato link maps assoluto per bloccare errori 404 relativi
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank" class="hover:text-blue-800 transition-colors">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
@@ -882,6 +897,13 @@
                 if (timelineAttivita[0].operatore_id) {
                     operatorePredefinito = timelineAttivita[0].operatore_id;
                 }
+            }
+
+            // Forza l'aggiornamento grafico del badge della scheda Workspace
+            const badgeFaseWorkspace = document.getElementById('commessaBadgeStato');
+            if(badgeFaseWorkspace) {
+                badgeFaseWorkspace.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata;
+                badgeFaseWorkspace.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseImpostata}`;
             }
 
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
@@ -997,7 +1019,7 @@
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        async function fetchOrdiniFornitureDellaCommessa() {
+        async function fetchOrdiniFornituresDellaCommessa() {
             const container = document.getElementById('listaOrdiniCommessaContainer');
             if (!container) return; container.innerHTML = "";
 
@@ -1074,7 +1096,7 @@
                 }).eq('id', id);
                 
                 closeOrdineEditDataModal();
-                alert("🟢 Informazioni consegna aggiornate con successo!");
+                alert("🔒 Informazioni consegna aggiornate con successo!");
                 openCommessaWorkspace(currentCommessaId);
             } catch(err) { alert(err.message); }
         }
@@ -1275,7 +1297,6 @@
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
 
             try {
-                // 1. Inserimento dello storico sul diario
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
                     commessa_id: currentCommessaId,
                     data_attivita: dataSceltaRaw,
@@ -1288,7 +1309,6 @@
 
                 if (errorDiario) throw errorDiario;
 
-                // 2. LOGICA AUTOMATICA DI AVANZAMENTO STATO DI LAVORAZIONE
                 let prossimaMacroFase = macroFaseScelta;
                 let prossimoSubStato = subStatoScelto;
 
@@ -1299,14 +1319,11 @@
                 const indiceSottofaseAttuale = elencoSottofasiCorrenti.findIndex(o => o.val === subStatoScelto);
 
                 if (indiceSottofaseAttuale !== -1 && indiceSottofaseAttuale < elencoSottofasiCorrenti.length - 1) {
-                    // C'è una sottofase successiva nella stessa macro-fase
                     prossimoSubStato = elencoSottofasiCorrenti[indiceSottofaseAttuale + 1].val;
                 } else {
-                    // Sottofasi finite, passiamo alla macro-fase successiva
                     const indiceMacroAttuale = workflowOrdered.indexOf(macroFaseScelta);
                     if (indiceMacroAttuale !== -1 && indiceMacroAttuale < workflowOrdered.length - 1) {
                         prossimaMacroFase = workflowOrdered[indiceMacroAttuale + 1];
-                        // Prendiamo la prima sottofase del nuovo blocco
                         const sottofasiNuove = subStatiOpzioni[prossimaMacroFase] || [];
                         prossimoSubStato = sottofasiNuove.length > 0 ? sottofasiNuove[0].val : 'GENERICO';
                     }
@@ -1314,7 +1331,6 @@
 
                 let valoreFinanziamentoDB = (prossimaMacroFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
-                // 3. Aggiornamento sul database dello stato principale della Commessa avanzato
                 await db.from('commesse').update({ 
                     stato_macro: prossimaMacroFase,
                     preventivo_stato: prossimoSubStato,
@@ -1326,7 +1342,10 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
                 
-                // Ricarica la scheda riallineando l'interfaccia allo step successivo
+                // Forza l'aggiornamento della cache globale dei clienti prima di riaprire
+                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
+                if (dataAggiornata) allClients = dataAggiornata;
+
                 openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore tecnico: " + err.message); }
@@ -1411,7 +1430,7 @@
             }
             
             if (!pendingDeleteAction) {
-                alert("⚠️ Nessuna azione di cancellazione pendente trouvata.");
+                alert("⚠️ Nessuna azione di cancellazione pendente trovata.");
                 return;
             }
 
@@ -1771,6 +1790,11 @@
                 }]);
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
+                
+                // Ricarica la cache locale
+                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
+                if (dataAggiornata) allClients = dataAggiornata;
+
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
             finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
@@ -1782,6 +1806,10 @@
                 await db.storage.from('documenti').remove([filePath]);
                 await db.from('allegati_drive').delete().eq('id', idSupabase);
                 alert("🟢 Documento rimosso.");
+                
+                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
+                if (dataAggiornata) allClients = dataAggiornata;
+
                 fetchAllegatiDrive();
             } catch (err) { alert(err.message); }
         }
