@@ -162,7 +162,7 @@
 
             <div class="border-t pt-3 grid grid-cols-3 gap-2">
                 <div class="col-span-2">
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (No future)</label>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività</label>
                     <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div id="boxGiorniAllertaDinamici" class="hidden">
@@ -234,15 +234,16 @@
                 </div>
             </div>
 
+            <!-- SEZIONE 4 CON FIX STRUTTURALE DELL'OVERFLOW PER SMARTPHONE -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
+                <div class="border-b pb-2 space-y-2">
                     <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
                     
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <select id="categoriaDriveInput" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-bold w-full sm:w-44">
+                    <div class="flex flex-col space-y-2">
+                        <select id="categoriaDriveInput" class="w-full bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500 font-bold">
                         </select>
                         
-                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
+                        <label class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-lg shadow cursor-pointer transition-colors text-center block">
                             ➕ Carica File
                             <input type="file" id="fileDriveInput" onchange="uploadFileToStorage(this)" class="hidden">
                         </label>
@@ -430,7 +431,7 @@
         </div>
     </div>
 
-    <!-- MODAL COMMESSA (CON SELETTORE SEDE OPERATIVA) -->
+    <!-- MODAL COMMESSA -->
     <div id="commessaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4">
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
@@ -560,7 +561,7 @@
             const inputData = document.getElementById('dataAttivitaInput');
             if (inputData) {
                 inputData.value = dataFormattata;
-                inputData.max = dataFormattata; 
+                inputData.removeAttribute('max'); // Rimosso il limite "no future"
             }
         }
 
@@ -1246,9 +1247,6 @@
             }
 
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
-            const dataScelta = new Date(dataSceltaRaw);
-            const oggi = new Date(); oggi.setHours(23,59,59,999);
-            if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
