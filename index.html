@@ -1043,7 +1043,7 @@
             });
         }
 
-        async function物理eliminaFornitoreDaImpostazioni(id) {
+        async function eliminaFornitoreDaImpostazioni(id) {
             if (confirm("Rimuovere definitivamente questo fornitore?")) {
                 await db.from('fornitori').delete().eq('id', id);
                 await initLists();
