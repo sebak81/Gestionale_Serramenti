@@ -42,7 +42,7 @@
         <div class="space-y-2">
             <div class="flex space-x-2">
                 <div class="relative flex-1">
-                    <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente o appunti..." 
+                    <input type="text" id="searchClient" oninput="filterClients()" placeholder="Cerca cliente, commessa o appunti..." 
                            class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
                 </div>
@@ -105,8 +105,8 @@
     </main>
 
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
-            <span>⬅️</span> <span>Torna al Cantiere</span>
+        <button onclick="if(activeFilter === 'all') { navigateTo('hub'); } else { navigateTo('main'); }" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
+            <span>⬅️</span> <span>Torna indietro</span>
         </button>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
@@ -610,7 +610,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // 🌟 SISTEMA DINAMICO DI CALCOLO DEL NUMERO DI RECORD E STATO ALLERTE
         function aggiornaBadgeEConteggiFasi() {
             const fasiConAlert = {
                 'PREVENTIVAZIONE': false,
@@ -619,7 +618,6 @@
                 'SALDO_CONCLUSO': false
             };
 
-            // Mappatura contatori real-time basati sull'ultimo diario di ogni commessa
             const contatoriFasi = {
                 'PRIMO_CONTATTO': 0,
                 'PREVENTIVAZIONE': 0,
@@ -639,7 +637,6 @@
             allClients.forEach(c => {
                 if (!c.commesse || c.commesse.length === 0) return;
                 
-                // Mappa per tracciare le fasi univoche attive su questo singolo cliente
                 const fasiTrovatePerCliente = new Set();
 
                 c.commesse.forEach(com => {
@@ -684,7 +681,6 @@
                     }
                 });
 
-                // Aggiunge 1 al contatore della fase per ogni cantiere che si trova in quello stato
                 fasiTrovatePerCliente.forEach(f => {
                     if (contatoriFasi[f] !== undefined) contatoriFasi[f]++;
                 });
@@ -701,11 +697,9 @@
                 'ASSISTENZA_POST': '🛠️ Post'
             };
 
-            // Aggiorna la label globale superiore (Tutti i Clienti)
             const btnAll = document.getElementById('btnFilter-all');
             if (btnAll) btnAll.innerText = `Tutti i Clienti (${allClients.length})`;
 
-            // Aggiorna le singole griglie dei filtri con il numero esatto (X)
             for (const [fase, quantita] of Object.entries(contatoriFasi)) {
                 const btn = document.getElementById(`btnFilter-${fase}`);
                 if (btn) {
@@ -743,6 +737,7 @@
             renderClientsList();
         }
 
+        // 🌟 LOGICA DI VISTA INTELLIGENTE: CLIENTI (VISTA GENERALE) vs COMMESSE (VISTA FILTRATA)
         function renderClientsList() {
             const container = document.getElementById('clientList'); 
             if (!container) return; container.innerHTML = "";
@@ -751,49 +746,99 @@
 
             const term = document.getElementById('searchClient').value.toLowerCase().trim();
             
-            let listFiltrata = allClients;
-            if (activeFilter !== 'all') {
-                listFiltrata = allClients.filter(c => {
-                    if (!c.commesse || c.commesse.length === 0) return false;
+            // SE IL FILTRO È "ALL", MOSTRIAMO I NORMALI RECORD DEI CLIENTI
+            if (activeFilter === 'all') {
+                let listFiltrata = allClients;
+                if (term.length > 0) {
+                    listFiltrata = listFiltrata.filter(c => c.denominazione.toLowerCase().includes(term));
+                }
+
+                if (listFiltrata.length === 0) {
+                    container.innerHTML = `<p class="text-xs p-4 text-center text-slate-400 italic">Nessun cliente trovato.</p>`;
+                    return;
+                }
+
+                listFiltrata.forEach(cliente => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer text-sm font-semibold flex justify-between items-center";
                     
-                    return c.commesse.some(com => {
+                    const mainClickable = document.createElement('div');
+                    mainClickable.className = "flex-1";
+                    mainClickable.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
+                    mainClickable.innerHTML = `👤 ${cliente.denominazione}<p class="text-xs font-normal text-slate-400 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Non indicato'}</p>`;
+                    
+                    const act = document.createElement('div');
+                    act.className = "flex items-center space-x-2";
+                    if(cliente.telefono) {
+                        const b = document.createElement('button'); b.className = "p-2 bg-slate-50 border rounded-xl text-xs"; b.innerText = "📞";
+                        b.onclick = (e) => { e.stopPropagation(); if(confirm(`Chiamare il contatto selezionato?`)) window.location.href=`tel:${cliente.telefono}`; };
+                        act.appendChild(b);
+                    }
+                    card.appendChild(mainClickable); card.appendChild(act); container.appendChild(card);
+                });
+            } 
+            // SE C'È UN FILTRO ATTIVO, MOSTRIAMO LE SINGOLE COMMESSE NELLA SCHERMATA INIZIALE
+            else {
+                let commesseFiltrate = [];
+
+                allClients.forEach(c => {
+                    if (!c.commesse) return;
+                    c.commesse.forEach(com => {
                         let faseReale = com.stato_macro || 'PRIMO_CONTATTO';
-                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                        if (com.status_diactivity || (com.status_diario_attivita && com.status_diario_attivita.length > 0)) {
                             const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
                             faseReale = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
                         }
-                        return faseReale === activeFilter;
+
+                        if (faseReale === activeFilter) {
+                            // Controllo della stringa di ricerca sia su Cliente che su Titolo Commessa
+                            const matchTerm = term.length === 0 || 
+                                              c.denominazione.toLowerCase().includes(term) || 
+                                              (com.titolo_lavoro && com.titolo_lavoro.toLowerCase().includes(term));
+                            
+                            if (matchTerm) {
+                                commesseFiltrate.push({
+                                    clienteId: c.id,
+                                    clienteNome: c.denominazione,
+                                    commessaId: com.id,
+                                    titolo: com.titolo_lavoro || 'Senza Titolo',
+                                    cantiere: com.indirizzo_cantiere || 'N/D',
+                                    fase: faseReale
+                                });
+                            }
+                        }
                     });
                 });
-            }
 
-            if (term.length > 0) {
-                listFiltrata = listFiltrata.filter(c => c.denominazione.toLowerCase().includes(term));
-            }
-
-            if (listFiltrata.length === 0) {
-                container.innerHTML = `<p class="text-xs p-4 text-center text-slate-400 italic">Nessun cliente trovato con i filtri inseriti.</p>`;
-                return;
-            }
-
-            listFiltrata.forEach(cliente => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer text-sm font-semibold flex justify-between items-center";
-                
-                const mainClickable = document.createElement('div');
-                mainClickable.className = "flex-1";
-                mainClickable.onclick = () => { currentClienteId = cliente.id; navigateTo('hub'); };
-                mainClickable.innerHTML = `👤 ${cliente.denominazione}<p class="text-xs font-normal text-slate-400 mt-1">📍 ${cliente.indirizzo_fatturazione || 'Non indicato'}</p>`;
-                
-                const act = document.createElement('div');
-                act.className = "flex items-center space-x-2";
-                if(cliente.telefono) {
-                    const b = document.createElement('button'); b.className = "p-2 bg-slate-50 border rounded-xl text-xs"; b.innerText = "📞";
-                    b.onclick = (e) => { e.stopPropagation(); if(confirm(`Chiamare il contatto selezionato?`)) window.location.href=`tel:${cliente.telefono}`; };
-                    act.appendChild(b);
+                if (commesseFiltrate.length === 0) {
+                    container.innerHTML = `<p class="text-xs p-4 text-center text-slate-400 italic">Nessuna commessa trovata in questa fase.</p>`;
+                    return;
                 }
-                card.appendChild(mainClickable); card.appendChild(act); container.appendChild(card);
-            });
+
+                commesseFiltrate.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer text-sm font-semibold flex justify-between items-center hover:border-blue-300 transition-colors";
+                    
+                    const mainClickable = document.createElement('div');
+                    mainClickable.className = "flex-1 min-w-0 text-left";
+                    // Click Diretto: Imposta le variabili globali del contesto e salta direttamente al workspace
+                    mainClickable.onclick = () => { 
+                        currentClienteId = item.clienteId; 
+                        openCommessaWorkspace(item.commessaId); 
+                    };
+                    
+                    mainClickable.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded w-max macro-${item.fase}">${item.fase.replace('_', ' ')}</span>
+                            <div class="text-slate-900 font-bold mt-1 truncate">
+                                👤 ${item.clienteNome} - <span class="text-blue-600">🚪 ${item.titolo}</span>
+                            </div>
+                            <p class="text-xs font-normal text-slate-400 mt-0.5 truncate">📍 Cantiere: ${item.cantiere}</p>
+                        </div>
+                    `;
+                    card.appendChild(mainClickable); container.appendChild(card);
+                });
+            }
         }
 
         function filterClients() { renderClientsList(); }
@@ -904,10 +949,8 @@
 
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
-            aggiornaSelettoreCategorie(macroFaseImpostata); 
             handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
-            fetchAllegatiDrive(); 
             navigateTo('detail');
         }
 
@@ -1159,7 +1202,6 @@
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
             popolaSubStatoMenu(nuevaFase, false);
             adjustWorkerLabels(nuevaFase);
-            aggiornaSelettoreCategorie(nuevaFase); 
             gestisciVisibilitaFinanziamentoBox(nuevaFase);
             document.getElementById('checkFinanziamentoAttivo').checked = false;
             handleSubStatoChange();
@@ -1214,25 +1256,6 @@
                 if(lbl) lbl.innerText = "Incaricato / Operatore *"; 
                 if(box2) box2.classList.add('hidden'); 
             }
-        }
-
-        function aggiornaSelettoreCategorie(fase) {
-            const select = document.getElementById('categoriaDriveInput');
-            if (!select) return;
-
-            let opzioni = [];
-            switch(fase) {
-                case 'PRIMO_CONTATTO': opzioni = [{ val: 'ALTRO', label: '📎 Altro / Documenti Generali' }]; break;
-                case 'PREVENTIVAZIONE': opzioni = [{ val: 'PREVENTIVO', label: '📄 Preventivo' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'MISURE_ESECUTIVE': opzioni = [{ val: 'CONTRATTO', label: '✍️ Contratto' }, { val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'FATTURA_ACCONTO': opzioni = [{ val: 'FATTURA', label: '💰 Fattura' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'ORDINI_FORNITORI': opzioni = [{ val: 'ORDINE', label: '📦 Ordine / Commessa' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'INSTALLAZIONE': opzioni = [{ val: 'FOTO', label: '📸 Foto Cantiere' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'SALDO_CONCLUSO': opzioni = [{ val: 'FATTURA', label: '💰 Fatture' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                case 'ASSISTENZA_POST': opzioni = [{ val: 'FOTO', label: '📸 Foto Intervento' }, { val: 'ALTRO', label: '📎 Altro' }]; break;
-                default: opzioni = [{ val: 'ALTRO', label: '📎 Altro' }];
-            }
-            select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
         async function saveFaseLavorazioneConDati() {
@@ -1565,135 +1588,6 @@
                 });
                 box.classList.remove('hidden');
             }, 350);
-        }
-
-        async function fetchAllegatiDrive() {
-            const container = document.getElementById('driveAllegatiList');
-            if (!container) return;
-            container.innerHTML = `<p class="text-xs text-slate-400">⏳ Caricamento documenti...</p>`;
-
-            try {
-                const { data, error } = await db
-                    .from('allegati_drive')
-                    .select('*')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('creato_il', { ascending: false });
-
-                if (error) throw error;
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-xs text-slate-400 italic text-left">Nessun documento caricato.</p>`;
-                    return;
-                }
-
-                const categorie = { 'PREVENTIVO': [], 'CONTRATTO': [], 'FATTURA': [], 'ORDINE': [], 'FOTO': [], 'ALTRO': [] };
-                data.forEach(all => {
-                    if (categorie[all.categoria]) categorie[all.categoria].push(all);
-                    else categorie['ALTRO'].push(all);
-                });
-
-                container.innerHTML = "";
-
-                for (const [key, files] of Object.entries(categorie)) {
-                    if (files.length === 0) continue;
-
-                    const section = document.createElement('div');
-                    section.className = "space-y-1.5 mt-2";
-
-                    const badgeColors = {
-                        'PREVENTIVO': 'bg-green-100 text-green-800 border-green-200',
-                        'CONTRATTO': 'bg-amber-100 text-amber-800 border-amber-200',
-                        'FATTURA': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                        'ORDINE': 'bg-blue-100 text-blue-800 border-blue-200',
-                        'FOTO': 'bg-purple-100 text-purple-800 border-purple-200',
-                        'ALTRO': 'bg-slate-100 text-slate-800 border-slate-200'
-                    };
-
-                    section.innerHTML = `
-                        <div class="flex items-center">
-                            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeColors[key]}">
-                                ${key === 'PREVENTIVO' ? '📄 Preventivi' : 
-                                  key === 'CONTRATTO' ? '✍️ Contratti' : 
-                                  key === 'FATTURA' ? '💰 Fatture' : 
-                                  key === 'ORDINE' ? '📦 Ordini / Fornitori' : 
-                                  key === 'FOTO' ? '📸 Foto Cantiere' : '📎 Altro'}
-                            </span>
-                        </div>
-                    `;
-
-                    const filesContainer = document.createElement('div');
-                    filesContainer.className = "space-y-1 pl-2 border-l-2 border-slate-200 ml-2 mt-1";
-
-                    files.forEach(all => {
-                        const item = document.createElement('div');
-                        item.className = "flex justify-between items-center bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm transition-colors";
-                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(all.google_drive_file_id);
-
-                        const testoPeso = all.peso_bytes ? `<span class="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md font-bold ml-2 shrink-0">${formattaPeso(all.peso_bytes)}</span>` : '';
-
-                        item.innerHTML = `
-                            <div class="flex items-center space-x-2 truncate flex-1 min-w-0 text-left">
-                                <span>📄</span> 
-                                <span class="truncate text-slate-700" title="${all.nome_file}">${all.nome_file}</span>
-                                ${testoPeso}
-                            </div>
-                            <div class="flex space-x-3 shrink-0 pl-2">
-                                <a href="${publicUrl}" target="_blank" class="text-blue-600 hover:text-blue-800">Apri</a>
-                                <button onclick="deleteFileFromStorage('${all.id}', '${all.google_drive_file_id}')" class="text-red-500 hover:text-red-700 font-bold">✕</button>
-                            </div>
-                        `;
-                        filesContainer.appendChild(item);
-                    });
-
-                    section.appendChild(filesContainer);
-                    container.appendChild(section);
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        async function uploadFileToStorage(inputElement) {
-            const file = inputElement.files[0];
-            if (!file) return;
-            const statusBox = document.getElementById('driveUploadStatus');
-            if (statusBox) statusBox.classList.remove('hidden');
-            const categoriaSelezionata = document.getElementById('categoriaDriveInput')?.value || 'ALTRO';
-        
-            try {
-                const nomeSanificato = file.name
-                    .normalize("NFD")                     
-                    .replace(/[\u0300-\u036f]/g, "")     
-                    .replace(/[^a-zA-Z0-9.\-_ ]/g, "")   
-                    .replace(/\s+/g, "_");               
-
-                const filePath = `${currentCommessaId}/${Date.now()}_${nomeSanificato}`;
-                const { error } = await db.storage.from('documenti').upload(filePath, file, { cacheControl: '3600', upsert: true });
-                if (error) throw error;
-
-                await db.from('allegati_drive').insert([{
-                    commessa_id: currentCommessaId,
-                    nome_file: file.name, 
-                    categoria: categoriaSelezionata,
-                    google_drive_file_id: filePath,
-                    peso_bytes: file.size
-                }]);
-
-                alert("🟢 Documento salvato ed archiviato correttamente!");
-                fetchAllegatiDrive();
-            } catch (err) { alert("❌ Errore: " + err.message); }
-            finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
-        }
-
-        async function deleteFileFromStorage(idSupabase, filePath) {
-            if(!confirm("Vuoi eliminare permanentemente questo documento dallo Storage?")) return;
-            try {
-                await db.storage.from('documenti').remove([filePath]);
-                await db.from('allegati_drive').delete().eq('id', idSupabase);
-                alert("🟢 Documento rimosso.");
-                fetchAllegatiDrive();
-            } catch (err) { alert(err.message); }
-        }
-
-        function updateCharCounter(el) {
-            document.getElementById('charCounter').innerText = `${el.value.length} / 150`;
         }
 
         async function eliminaFornitoreDaImpostazioni(id) {
