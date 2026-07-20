@@ -117,7 +117,6 @@
                 </div>
                 <h2 id="commessaClientName" class="text-base font-bold text-slate-900 mt-1">Nome Cliente</h2>
                 <p id="commessaCantiere" class="text-xs text-blue-600 hover:underline mt-0.5 font-medium cursor-pointer"></p>
-                <p id="commessaSedeAssegnata" class="text-[11px] text-slate-500 mt-0.5 font-semibold bg-slate-100 px-2 py-0.5 rounded inline-block"></p>
             </div>
             <button onclick="openCommessaEditModalCurrent()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">⚙️ Opzioni</button>
         </div>
@@ -145,7 +144,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
-                <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
@@ -162,7 +161,7 @@
 
             <div class="border-t pt-3 grid grid-cols-3 gap-2">
                 <div class="col-span-2">
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività</label>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (No future)</label>
                     <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div id="boxGiorniAllertaDinamici" class="hidden">
@@ -173,76 +172,76 @@
 
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    <label id="lblAnnotazioniTitolo">3. Annotazioni *</label>
+                    <label>3. Annotazioni del passaggio *</label>
                     <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                 </div>
-                <textarea id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" rows="2" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium resize-none overflow-y-auto"></textarea>
+                <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
             <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
-            <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-800 p-4 rounded-2xl border border-sky-200 shadow-sm space-y-3">
-                <div class="border-b border-sky-200 pb-1.5 flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-700">📦 Gestione Ordini ai Fornitori</h3>
-                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600 text-white">STATO</span>
+            <div id="boxSezioneOrdiniFornitori" class="hidden bg-slate-900 text-white p-4 rounded-2xl border border-slate-700 space-y-3">
+                <div class="border-b border-slate-700 pb-1.5 flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">📦 Gestione Ordini ai Fornitori</h3>
+                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200">STATO</span>
                 </div>
                 
                 <div class="space-y-2 text-xs">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
-                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-400 focus:outline-none"></select>
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Fornitore *</label>
+                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-semibold"></select>
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
-                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Materiale / Prodotto *</label>
+                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
-                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Data Invio Doc *</label>
+                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
                         </div>
                         <div id="boxDataArrivoPresunta">
-                            <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
-                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            <label class="block font-bold text-amber-300 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
-                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                        <label class="block font-bold text-slate-300 text-[10px] mb-1">Note Ordine / Fornitore</label>
+                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white">
                     </div>
 
-                    <div class="bg-white/80 p-2.5 rounded-xl border border-sky-200 flex justify-between items-center">
-                        <div class="text-[10px] text-slate-600 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                        <div class="text-[10px] text-slate-400 font-semibold">Allegato PDF Ordine/Conferma:</div>
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
                             📎 Carica PDF
                             <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
                         </label>
                     </div>
-                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-700 font-bold italic hidden"></div>
+                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-400 font-bold italic hidden"></div>
 
-                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow-sm">
+                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl font-bold tracking-wide transition-colors">
                         ➕ Registra Fornitura nel Cantiere
                     </button>
                 </div>
 
-                <div class="space-y-1.5 pt-2 border-t border-sky-200">
-                    <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Fornitures collegate a questa commessa:</div>
+                <div class="space-y-1.5 pt-2 border-t border-slate-700">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
                     <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
                 </div>
             </div>
 
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
-                <div class="border-b pb-2 space-y-2">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                     <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
                     
-                    <div class="flex flex-col space-y-2">
-                        <select id="categoriaDriveInput" class="w-full bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500 font-bold">
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <select id="categoriaDriveInput" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-bold w-full sm:w-44">
                         </select>
                         
-                        <label class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-lg shadow cursor-pointer transition-colors text-center block">
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
                             ➕ Carica File
                             <input type="file" id="fileDriveInput" onchange="uploadFileToStorage(this)" class="hidden">
                         </label>
@@ -295,20 +294,6 @@
             </div>
         </div>
 
-        <!-- ANAGRAFICA SEDI OPERATIVE -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h3 class="text-sm font-bold text-slate-800 border-b pb-1">📍 Sedi Operative Aziendali</h3>
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Aggiungi Nuova Sede</div>
-                <div class="space-y-2 text-xs">
-                    <input type="text" id="newSedeNome" placeholder="Nome Sede (Es. Sede Milano, Filiale Nord)" class="w-full bg-white border p-2.5 rounded-lg font-semibold border-slate-300">
-                    <button onclick="salvaSedeInImpostazioni()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow">Salva Sede</button>
-                </div>
-            </div>
-            <div id="settingsSediList" class="space-y-2 pt-1 max-h-48 overflow-y-auto"></div>
-        </div>
-
-        <!-- ANAGRAFICA FORNITORI -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">🏢 Anagrafica Fornitori</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -322,7 +307,6 @@
             <div id="settingsFornitoriList" class="space-y-2 pt-1 max-h-64 overflow-y-auto"></div>
         </div>
 
-        <!-- ELENCO PERSONALE -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <h3 class="text-sm font-bold text-slate-800 border-b pb-1">👥 Elenco Personale</h3>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -340,11 +324,8 @@
 
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
-            <button id="navBtnHome" onclick="resetToHomeDashboard()" class="flex flex-col items-center text-slate-400 flex-1">
-                <span class="text-lg">🏠</span><span>Home</span>
-            </button>
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
-                <span class="text-lg">👥</span><span>Contatti</span>
+                <span class="text-lg">👥</span><span>Clienti</span>
             </button>
             <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
                 <span class="text-lg">⚙️</span><span>Impostazioni</span>
@@ -374,7 +355,7 @@
         </div>
     </div>
 
-    <!-- MODAL CLIENTE -->
+    <!-- MODAL ADD CLIENTE -->
     <div id="clientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Aggiungi Cliente</h3><button onclick="closeModal()" class="text-slate-400">✕</button></div>
@@ -392,7 +373,7 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label>
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione *</label>
                     <input type="text" id="newIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -412,7 +393,7 @@
         </div>
     </div>
 
-    <!-- MODAL MODIFICA ANAGRAFICA -->
+    <!-- MODAL EDIT ANAGRAFICA -->
     <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
@@ -439,25 +420,14 @@
             <h3 id="commessaModalTitle" class="text-base font-bold text-slate-900 border-b pb-2 uppercase">Gestione Commessa</h3>
             <input type="hidden" id="modalCommessaId">
             <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Sede Operativa Competente *</label>
-                    <select id="modalSedeSelect" class="w-full p-2.5 border rounded-lg bg-slate-50 font-semibold text-slate-800">
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Titolo Lavoro *</label>
-                    <input type="text" id="modalTitoloInput" placeholder="Es. Sostituzione Infissi PVC" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[10px]">Indirizzo Cantiere *</label>
-                    <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                </div>
+                <input type="text" id="modalTitoloInput" placeholder="Titolo Lavoro *" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                <input type="text" id="modalCantiereInput" placeholder="Indirizzo Cantiere *" class="w-full p-2.5 border rounded-lg bg-slate-50">
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeCommessaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs">Annulla</button><button id="btnSaveCommessa" onclick="saveCommessaDati()" class="flex-1 py-2 bg-blue-600 text-white rounded text-xs font-bold">Salva</button></div>
         </div>
     </div>
 
-    <!-- MODAL AUTENTICAZIONE PASSWORD -->
+    <!-- MODAL PASSWORD AUTHENTICATION -->
     <div id="passwordAuthModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4 text-center">
             <div class="text-red-600 text-2xl">🔒</div>
@@ -477,7 +447,6 @@
         let allClients = [];
         let listLavoratori = [];
         let listFornitori = []; 
-        let listSedi = [];
         let temporaryOrderFileObj = null; 
         
         let currentClienteId = null;
@@ -492,9 +461,9 @@
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
-                {val: 'SOPRALLUOGO', label: '📐 Misure'},
+                {val: 'SOPRALLUOGO', label: '📐 Sopralluogo Preventivo'},
                 {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
-                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Da Controllare'},
+                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire'},
                 {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
                 {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
                 {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
@@ -554,14 +523,6 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        function updateCharCounter(textareaElement) {
-            const currentLength = textareaElement.value.length;
-            const counterSpan = document.getElementById('charCounter');
-            if (counterSpan) {
-                counterSpan.innerText = `${currentLength} / 150`;
-            }
-        }
-
         function inizializzaCalendarioOggi() {
             const oggi = new Date();
             const anno = oggi.getFullYear();
@@ -571,16 +532,8 @@
             const inputData = document.getElementById('dataAttivitaInput');
             if (inputData) {
                 inputData.value = dataFormattata;
-                inputData.removeAttribute('max');
+                inputData.max = dataFormattata; 
             }
-        }
-
-        function resetToHomeDashboard() {
-            activeFilter = 'all';
-            const searchInput = document.getElementById('searchClient');
-            if (searchInput) searchInput.value = "";
-            switchClientFilter('all');
-            navigateTo('main');
         }
 
         function navigateTo(screen) {
@@ -589,11 +542,8 @@
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
             if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
-            const btnHome = document.getElementById('navBtnHome');
             const btnClienti = document.getElementById('navBtnClienti');
             const btnSettings = document.getElementById('navBtnImpostazioni');
-            
-            if(btnHome) btnHome.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
 
@@ -623,9 +573,6 @@
                 
                 let { data: f } = await db.from('fornitori').select('*').order('nome', { ascending: true });
                 listFornitori = f || [];
-
-                let { data: s } = await db.from('sedi_operative').select('*').order('nome', { ascending: true });
-                listSedi = s || [];
                 
                 populateSelects();
             } catch (err) { console.error(err); }
@@ -641,11 +588,6 @@
             const fSel = document.getElementById('ordineFornitoreSelect');
             if (fSel) {
                 fSel.innerHTML = `<option value="">-- Seleziona Fornitore --</option>` + listFornitori.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-            }
-
-            const modSede = document.getElementById('modalSedeSelect');
-            if (modSede) {
-                modSede.innerHTML = `<option value="">-- Nessuna Sede Assegnata --</option>` + listSedi.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
             }
         }
 
@@ -683,14 +625,8 @@
             allClients.forEach(c => {
                 if (!c.commesse) return;
                 c.commesse.forEach(com => {
-                    let macro = com.stato_macro;
-                    let sub = com.preventivo_stato;
-
-                    if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                        const storiciOrdinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
-                        macro = storiciOrdinati[0].macro_fase;
-                        sub = storiciOrdinati[0].sub_stato;
-                    }
+                    const macro = com.stato_macro;
+                    const sub = com.preventivo_stato;
                     
                     let targetSottofase = false;
                     let giorniLimite = 7;
@@ -781,14 +717,7 @@
             if (activeFilter !== 'all') {
                 listFiltrata = allClients.filter(c => {
                     if (!c.commesse || c.commesse.length === 0) return false;
-                    return c.commesse.some(com => {
-                        let macro = com.stato_macro;
-                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                            const ordinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
-                            macro = ordinati[0].macro_fase;
-                        }
-                        return macro === activeFilter;
-                    });
+                    return c.commesse.some(com => com.stato_macro === activeFilter);
                 });
             }
 
@@ -835,21 +764,11 @@
             
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(com.indirizzo_cantiere)}`;
+                const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
-                const sedeTrovata = listSedi.find(s => s.id === com.sede_id);
-                const stringaSede = sedeTrovata ? ` 🏢 ${sedeTrovata.name || sedeTrovata.nome}` : '';
-
-                let macroFaseVisualizzata = com.stato_macro;
-                if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                    const ordinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
-                    macroFaseVisualizzata = ordinati[0].macro_fase;
-                }
-
                 div.innerHTML = `
                 <div class="flex-1 min-w-0 cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseVisualizzata}">${macroFaseVisualizzata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseVisualizzata}</span>
-                    <span class="text-[9px] font-bold text-slate-500 bg-slate-100 border px-1 rounded ml-1">${stringaSede || 'Sede Non Spec.'}</span>
+                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro === 'ASSISTENZA_POST' ? 'POST-VENDITA' : com.stato_macro}</span>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
                         📍 Cantiere: ${com.indirizzo_cantiere}
@@ -863,7 +782,6 @@
             });
         }
 
-        // FIXED CRITICO: Logica di allineamento e sincronizzazione forzata dei menu a cascata all'apertura del Workspace
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -874,7 +792,6 @@
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
-            // Scarichiamo la timeline solo per mostrarla sotto
             const { data: timelineAttivita, error } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
@@ -882,21 +799,18 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
-            // Prendi lo stato REALE della commessa dal DB
+            // Sincronizzazione impeccabile basata sullo stato nativo della tabella commesse
             let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
             let subStatoImpostato = currentCommessa.preventivo_stato || '';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
-            // Se la tendina principale non è sincronizzata, la forziamo sul valore esatto
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
-            // Popoliamo il sotto-menu basandoci sullo stato reale
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
             
-            // Controllo ed impostazione del sotto-stato (corretto l'oggetto globale subStatiOpzioni)
             if (subStatoImpostato) {
                 document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato;
             } else {
@@ -909,7 +823,7 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            // LOGICA DI ATTIVAZIONE BOX FORNITORI E AUTOPREIMPOSTAZIONE
+            // Attivazione Box Ordini
             const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
             const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
             const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
@@ -927,7 +841,6 @@
                 boxOrdini.classList.add('hidden');
             }
 
-            // Svuota i campi del form ordini interno
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
@@ -947,23 +860,8 @@
             fetchOrdiniFornitureDellaCommessa();
             navigateTo('detail');
         }
-        function gestisciVisibilitaTabellaOrdini(macroFase, subStato) {
-            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
-            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
-            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
-            const lblAnnotazioni = document.getElementById('lblAnnotazioniTitolo');
 
-            if (subStato === 'PRE_ORDINI') {
-                boxOrdini.classList.remove('hidden');
-                badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
-                boxDataArrivo.classList.add('opacity-40');
-                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni";
-            } else {
-                boxOrdini.classList.add('hidden');
-                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni *";
-            }
-        }
-
+        // Listener PDF Ordine
         setTimeout(() => {
             document.getElementById('fileOrdinePdfInput')?.addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -1027,7 +925,7 @@
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        async function fetchOrdiniFornituresDellaCommessa() {
+        async function fetchOrdiniFornitureDellaCommessa() {
             const container = document.getElementById('listaOrdiniCommessaContainer');
             if (!container) return; container.innerHTML = "";
 
@@ -1040,43 +938,43 @@
 
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato.</p>`;
+                    container.innerHTML = `<p class="text-[11px] text-slate-400 italic text-left">Nessun ordine o materiale registrato.</p>`;
                     return;
                 }
 
                 data.forEach(o => {
                     const row = document.createElement('div');
-                    row.className = "bg-white border border-sky-200 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1 text-slate-700 shadow-sm";
+                    row.className = "bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1";
                     
                     const fParti = o.data_invio.split('-');
                     const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
 
-                    let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
+                    let dataArrivoLeggibile = "<span class='text-slate-500'>Non comunicata</span>";
                     if (o.data_presunta_arrivo) {
                         const arrParti = o.data_presunta_arrivo.split('-');
-                        dataArrivoLeggibile = `<span class='text-amber-700 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                        dataArrivoLeggibile = `<span class='text-amber-400 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
                     }
 
                     let btnPdfHtml = '';
                     if (o.file_path_supabase) {
                         const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-2">Vedi PDF</a>`;
+                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-400 font-bold underline ml-2">Vedi PDF</a>`;
                     }
 
                     row.innerHTML = `
                         <div class="flex-1 min-w-0 text-left">
                             <div class="flex items-center space-x-1">
-                                <span class="px-1 py-0.2 bg-blue-600 text-[9px] font-bold text-white rounded">${o.tipo_documento}</span>
-                                <strong class="text-slate-800">${o.fornitori?.nome || 'N/D'}</strong> 
-                                <span class="text-slate-500">(${o.prodotto})</span>
+                                <span class="px-1 py-0.2 bg-slate-700 text-[9px] font-bold rounded ${o.tipo_documento==='ORDINE'?'text-blue-300':'text-purple-300'}">${o.tipo_documento}</span>
+                                <strong class="text-white">${o.fornitori?.nome || 'N/D'}</strong> 
+                                <span class="text-slate-400">(${o.prodotto})</span>
                             </div>
-                            <div class="text-slate-600 mt-1 text-[11px]">
+                            <div class="text-slate-300 mt-1 text-[11px]">
                                 Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
                             </div>
                         </div>
                         <div class="flex space-x-1 shrink-0">
-                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 border text-slate-600 rounded-lg">✏️</button>
-                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold">✕</button>
+                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-700 text-slate-300 rounded-lg">✏️</button>
+                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-950 text-red-400 rounded-lg font-bold">✕</button>
                         </div>
                     `;
                     container.appendChild(row);
@@ -1121,40 +1019,6 @@
             } catch(err) { alert(err.message); }
         }
 
-        /* GESTIONE SEDI IN IMPOSTAZIONI */
-        async function salvaSedeInImpostazioni() {
-            const nome = document.getElementById('newSedeNome').value.trim();
-            if(!nome) { alert("Inserisci il nome della sede!"); return; }
-            try {
-                const { error } = await db.from('sedi_operative').insert([{ nome: nome }]);
-                if (error) throw error;
-                document.getElementById('newSedeNome').value = "";
-                alert("🟢 Sede operativa registrata!");
-                await initLists();
-                renderSettingsSediList();
-            } catch(err) { alert(err.message); }
-        }
-
-        function renderSettingsSediList() {
-            const container = document.getElementById('settingsSediList'); if(!container) return; container.innerHTML = "";
-            listSedi.forEach(s => {
-                const r = document.createElement('div'); r.className = "flex justify-between items-center bg-slate-100 p-2.5 rounded-lg text-xs border mt-1 font-semibold text-left";
-                r.innerHTML = `<div>📍 <strong>${s.nome}</strong></div><div><button onclick="eliminaSedeDaImpostazioni('${s.id}')" class="text-red-500 font-bold">✕</button></div>`;
-                container.appendChild(r);
-            });
-        }
-
-        async function eliminaSedeDaImpostazioni(id) {
-            if (confirm("Rimuovere definitivamente questa sede operativa? I cantieri collegati rimarranno senza sede assegnata.")) {
-                try {
-                    const { error } = await db.from('sedi_operative').delete().eq('id', id);
-                    if (error) throw error;
-                    await initLists();
-                    renderSettingsSediList();
-                } catch(err) { alert(err.message); }
-            }
-        }
-
         async function salvaFornitoreInImpostazioni() {
             const nome = document.getElementById('newFornitoreNome').value.trim();
             const prodotti = document.getElementById('newFornitoreProdotti').value.trim();
@@ -1179,7 +1043,7 @@
             });
         }
 
-        async function eliminaFornitoreDaImpostazioni(id) {
+        async function物理eliminaFornitoreDaImpostazioni(id) {
             if (confirm("Rimuovere definitivamente questo fornitore?")) {
                 await db.from('fornitori').delete().eq('id', id);
                 await initLists();
@@ -1226,8 +1090,6 @@
             const boxAllerta = document.getElementById('boxGiorniAllertaDinamici');
             const inputAllerta = document.getElementById('giorniAllertaInput');
             
-            gestisciVisibilitaTabellaOrdini(macroFase, subStato);
-
             let abilitato = false;
             let valoreDefault = 7;
 
@@ -1299,17 +1161,15 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            if(!op1Value) {
-                alert("L'operatore incaricato è un campo obbligatorio!");
-                return;
-            }
-
-            if(subStatoScelto !== 'PRE_ORDINI' && !annotazioni) { 
-                alert("Le annotazioni sono obbligatorie per registrare l'attività!"); 
+            if(!op1Value || !annotazioni) { 
+                alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
                 return; 
             }
 
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
+            const dataScelta = new Date(dataSceltaRaw);
+            const oggi = new Date(); oggi.setHours(23,59,59,999);
+            if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
@@ -1318,65 +1178,30 @@
                     macro_fase: macroFaseScelta,
                     sub_stato: subStatoScelto,
                     operatore_id: op1Value,
-                    nota: annotazioni || 'Avanzamento di stato senza note.',
+                    nota: annotazioni,
                     giorni_allerta: giorniSalvataggioDB
                 }]);
 
                 if (errorDiario) throw errorDiario;
 
-                let prossimaMacroFase = macroFaseScelta;
-                let prossimoSubStato = subStatoScelto;
-
-                const elencoSottofasiCorrenti = isFinanziamentoAttivo && macroFaseScelta === 'FATTURA_ACCONTO' 
-                    ? sottofasiFinanziamento 
-                    : (subStatiOpzioni[macroFaseScelta] || []);
-                
-                const indiceSottofaseAttuale = elencoSottofasiCorrenti.findIndex(o => o.val === subStatoScelto);
-
-                if (indiceSottofaseAttuale !== -1 && indiceSottofaseAttuale < elencoSottofasiCorrenti.length - 1) {
-                    prossimoSubStato = elencoSottofasiCorrenti[indiceSottofaseAttuale + 1].val;
-                } else {
-                    const indiceMacroAttuale = workflowOrdered.indexOf(macroFaseScelta);
-                    if (indiceMacroAttuale !== -1 && indiceMacroAttuale < workflowOrdered.length - 1) {
-                        prossimaMacroFase = workflowOrdered[indiceMacroAttuale + 1];
-                        const sottofasiNuove = subStatiOpzioni[prossimaMacroFase] || [];
-                        prossimoSubStato = sottofasiNuove.length > 0 ? sottofasiNuove[0].val : 'GENERICO';
-                    }
-                }
-
-                let valoreFinanziamentoDB = (prossimaMacroFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
+                let valoreFinanziamentoDB = (macroFaseScelta === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
                 await db.from('commesse').update({ 
-                    stato_macro: prossimaMacroFase,
-                    preventivo_stato: prossimoSubStato,
+                    stato_macro: macroFaseScelta,
+                    preventivo_stato: subStatoScelto,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     descrizione_lavoro: valoreFinanziamentoDB
                 }).eq('id', currentCommessaId);
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
+                alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
                 
-                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
-                if (dataAggiornata) allClients = dataAggiornata;
-
+                // Forza un ricaricamento pulito dei dati client per aggiornare l'array locale
+                await fetchClienti();
                 openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore tecnico: " + err.message); }
-        }
-
-        async function fetchDiarioTimeline() {
-            try {
-                const { data: timeline, error } = await db
-                    .from('status_diario_attivita')
-                    .select('*, lavoratori(nome)')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('data_attivita', { ascending: false })
-                    .order('creato_il', { ascending: false });
-
-                if (error) throw error;
-                renderDiarioTimelineInterfaccia(timeline || []);
-            } catch(err) { console.error(err); }
         }
 
         function renderDiarioTimelineInterfaccia(arrayRecord) {
@@ -1436,6 +1261,10 @@
             setTimeout(() => document.getElementById('adminPasswordHiddenInput').focus(), 50);
         }
 
+        function closePasswordAuthModal() { 
+            document.getElementById('passwordAuthModal').classList.add('hidden'); 
+        }
+
         async function submitAdminPasswordFlow() {
             const passValue = document.getElementById('adminPasswordHiddenInput').value;
             if (passValue !== "Fighette@69") {
@@ -1461,9 +1290,12 @@
                 else if (pendingDeleteAction.type === 'COMMESSA') {
                     const commessaIdDaEliminare = pendingDeleteAction.data;
                     
-                    await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
-                    await db.from('ordini_fornitori').delete().eq('commessa_id', commessaIdDaEliminare);
-                    await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
+                    const { error: err1 } = await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
+                    if (err1) throw err1;
+                    const { error: err2 } = await db.from('ordini_fornitori').delete().eq('commessa_id', commessaIdDaEliminare);
+                    if (err2) throw err2;
+                    const { error: err3 } = await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
+                    if (err3) throw err3;
                     
                     const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
                     if (error) throw error;
@@ -1480,12 +1312,17 @@
                     if (coms && coms.length > 0) {
                         const idsCommesse = coms.map(c => c.id);
                         
-                        await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
-                        await db.from('ordini_fornitori').delete().in('commessa_id', idsCommesse);
-                        await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
+                        const { error: errDelDiario } = await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
+                        if (errDelDiario) throw errDelDiario;
+                        const { error: errDelOrdini } = await db.from('ordini_fornitori').delete().in('commessa_id', idsCommesse);
+                        if (errDelOrdini) throw errDelOrdini;
+                        const { error: errDelDrive } = await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
+                        if (errDelDrive) throw errDelDrive;
                     }
                     
-                    await db.from('commesse').delete().eq('cliente_id', clienteIdDaEliminare);
+                    const { error: errDelCom } = await db.from('commesse').delete().eq('cliente_id', clienteIdDaEliminare);
+                    if (errDelCom) throw errDelCom;
+                    
                     const { error: errDelCli } = await db.from('clienti').delete().eq('id', clienteIdDaEliminare);
                     if (errDelCli) throw errDelCli;
                     
@@ -1494,63 +1331,21 @@
                     navigateTo('main');
                 }
             } catch (err) { 
-                alert("❌ Bloccato da Supabase: " + err.message); 
+                alert("❌ Errore durante la cancellazione: " + err.message); 
             }
-            finally { 
-                pendingDeleteAction = null; 
-            }
+            finally { pendingDeleteAction = null; }
         }
 
-        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); }
-        async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
-
-        function openNewCommessaModal() { 
-            populateSelects();
-            document.getElementById('modalCommessaId').value = ""; 
-            document.getElementById('modalSedeSelect').value = ""; 
-            document.getElementById('modalTitoloInput').value = ""; 
-            document.getElementById('modalCantiereInput').value = ""; 
-            document.getElementById('commessaModal').classList.remove('hidden'); 
-        }
-
-        function openCommessaEditModalCurrent() { 
-            populateSelects();
-            document.getElementById('modalCommessaId').value = currentCommessaId; 
-            document.getElementById('modalSedeSelect').value = currentCommessa.sede_id || ""; 
-            document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; 
-            document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; 
-            document.getElementById('commessaModal').classList.remove('hidden'); 
-        }
-
+        function openNewCommessaModal() { document.getElementById('modalCommessaId').value = ""; document.getElementById('modalTitoloInput').value = ""; document.getElementById('modalCantiereInput').value = ""; document.getElementById('commessaModal').classList.remove('hidden'); }
+        function openCommessaEditModalCurrent() { document.getElementById('modalCommessaId').value = currentCommessaId; document.getElementById('modalTitoloInput').value = currentCommessa.titolo_lavoro; document.getElementById('modalCantiereInput').value = currentCommessa.indirizzo_cantiere; document.getElementById('commessaModal').classList.remove('hidden'); }
         function closeCommessaModal() { document.getElementById('commessaModal').classList.add('hidden'); }
         
         async function saveCommessaDati() {
-            const id = document.getElementById('modalCommessaId').value; 
-            const sedeId = document.getElementById('modalSedeSelect').value; 
-            const t = document.getElementById('modalTitoloInput').value.trim(); 
-            const c = document.getElementById('modalCantiereInput').value.trim();
-            
-            if(!t || !c) { alert("Titolo Lavoro e Indirizzo Cantiere sono obbligatori!"); return; }
-            
-            const datiCommessa = {
-                titolo_lavoro: t,
-                indirizzo_cantiere: c,
-                sede_id: sedeId === "" ? null : sedeId
-            };
-
-            try {
-                if(id) {
-                    await db.from('commesse').update(datiCommessa).eq('id', id);
-                } else {
-                    datiCommessa.cliente_id = currentClienteId;
-                    datiCommessa.stato_macro = 'PRIMO_CONTATTO';
-                    datiCommessa.preventivo_stato = 'INFO'; 
-                    await db.from('commesse').insert([datiCommessa]);
-                }
-                closeCommessaModal(); 
-                await fetchClienti(); 
-                renderClientHub();
-            } catch (err) { alert(err.message); }
+            const id = document.getElementById('modalCommessaId').value; const t = document.getElementById('modalTitoloInput').value.trim(); const c = document.getElementById('modalCantiereInput').value.trim();
+            if(!t || !c) return;
+            if(id) await db.from('commesse').update({ titolo_lavoro: t, indirizzo_cantiere: c }).eq('id', id);
+            else await db.from('commesse').insert([{ cliente_id: currentClienteId, titolo_lavoro: t, indirizzo_cantiere: c, stato_macro: 'PRIMO_CONTATTO' }]);
+            closeCommessaModal(); await fetchClienti(); renderClientHub();
         }
 
         function openAnagraficaModal() {
@@ -1563,24 +1358,11 @@
         function closeAnagraficaModal() { document.getElementById('anagraficaModal').classList.add('hidden'); }
         
         async function updateAnagrafica() {
-            const d = document.getElementById('editDenominazione').value.trim(); 
-            const tel = document.getElementById('editTelefono').value.trim();
-            const em = document.getElementById('editEmail').value.trim();
-            if(!d) return;
-            if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
-
-            await db.from('clienti').update({ 
-                denominazione: d, 
-                indirizzo_fatturazione: document.getElementById('editIndirizzo').value, 
-                telefono: tel===""?null:tel, 
-                email: em===""?null:em, 
-                partita_iva: document.getElementById('editPartitaIva').value, 
-                codice_fiscale: document.getElementById('editCodiceFiscale').value, 
-                note_generali: document.getElementById('editNote').value 
-            }).eq('id', currentClienteId);
+            const d = document.getElementById('editDenominazione').value.trim(); if(!d) return;
+            await db.from('clienti').update({ denominazione: d, indirizzo_fatturazione: document.getElementById('editIndirizzo').value, telefono: document.getElementById('editTelefono').value, email: document.getElementById('editEmail').value, partita_iva: document.getElementById('editPartitaIva').value, codice_fiscale: document.getElementById('editCodiceFiscale').value, note_generali: document.getElementById('editNote').value }).eq('id', currentClienteId);
             closeAnagraficaModal(); await fetchClienti(); renderClientHub();
         }
-
+        
         async function saveCliente() {
             const d = document.getElementById('newDenominazione').value.trim();
             const ind = document.getElementById('newIndirizzo').value.trim();
@@ -1588,21 +1370,21 @@
             const em = document.getElementById('newEmail').value.trim();
             
             if(!d) { alert("Il campo Nome / Ragione Sociale è obbligatorio!"); return; }
+            if(!ind) { alert("L'indirizzo di fatturazione è obbligatorio!"); return; }
             if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
             
-            const { data, error } = await db.from('clienti').insert([{ 
+            const { data } = await db.from('clienti').insert([{ 
                 tipo_cliente: document.getElementById('newTipo').value, 
                 denominazione: d, 
-                indirizzo_fatturazione: ind === "" ? null : ind, 
-                telefono: tel === "" ? null : tel, 
-                email: em === "" ? null : em, 
+                indirizzo_fatturazione: ind, 
+                telefono: tel===""?null:tel, 
+                email: em===""?null:em, 
                 partita_iva: document.getElementById('newPartitaIva').value.trim(), 
                 codice_fiscale: document.getElementById('newCodiceFiscale').value.trim(), 
                 note_generali: document.getElementById('newNote').value.trim() 
             }]).select();
             
-            if (error) { alert("Errore inserimento: " + error.message); return; }
-            if(data && data.length > 0) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
+            if(data) { closeModal(); await fetchClienti(); currentClienteId = data[0].id; navigateTo('hub'); }
         }
 
         function openNewClientModal() { 
@@ -1627,7 +1409,6 @@
             resetWorkerForm(); 
             renderSettingsWorkersList(); 
             renderSettingsFornitoriList();
-            renderSettingsSediList();
         }
         
         function saveAllertaConfigs() { 
@@ -1805,10 +1586,6 @@
                 }]);
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
-                
-                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
-                if (dataAggiornata) allClients = dataAggiornata;
-
                 fetchAllegatiDrive();
             } catch (err) { alert("❌ Errore: " + err.message); }
             finally { if (statusBox) statusBox.classList.add('hidden'); inputElement.value = ""; }
@@ -1820,12 +1597,20 @@
                 await db.storage.from('documenti').remove([filePath]);
                 await db.from('allegati_drive').delete().eq('id', idSupabase);
                 alert("🟢 Documento rimosso.");
-                
-                const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
-                if (dataAggiornata) allClients = dataAggiornata;
-
                 fetchAllegatiDrive();
             } catch (err) { alert(err.message); }
+        }
+
+        function updateCharCounter(el) {
+            document.getElementById('charCounter').innerText = `${el.value.length} / 150`;
+        }
+
+        async function eliminaFornitoreDaImpostazioni(id) {
+            if (confirm("Rimuovere definitivamente questo fornitore?")) {
+                await db.from('fornitori').delete().eq('id', id);
+                await initLists();
+                renderSettingsFornitoriList();
+            }
         }
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
