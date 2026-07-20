@@ -51,7 +51,7 @@
                 </button>
             </div>
 
-            <!-- Griglia di Filtri Avanzati Compattata per Smartphone -->
+            <!-- Griglia di Filtri Avanzati -->
             <div class="flex flex-col space-y-1 bg-slate-200/80 p-1.5 rounded-xl text-[10px] font-bold text-slate-600 shadow-inner">
                 <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
                 <div class="grid grid-cols-4 gap-1">
@@ -106,7 +106,7 @@
 
     <main id="detailScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <button onclick="navigateTo('hub')" class="text-sm font-semibold text-blue-600 flex items-center space-x-1 py-1">
-            <span>⬅️</span> <span>Torna al Cliente</span>
+            <span>⬅️</span> <span>Torna al Cantiere</span>
         </button>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
@@ -161,7 +161,7 @@
 
             <div class="border-t pt-3 grid grid-cols-3 gap-2">
                 <div class="col-span-2">
-                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività (No future)</label>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività</label>
                     <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div id="boxGiorniAllertaDinamici" class="hidden">
@@ -172,89 +172,10 @@
 
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    <label>3. Annotazioni del passaggio *</label>
+                    <label id="lblAnnotazioniObbligatorieta">3. Annotazioni del passaggio *</label>
                     <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                 </div>
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
-            </div>
-
-            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
-            <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-900 p-4 rounded-2xl border border-sky-200 space-y-3">
-                <div class="border-b border-sky-200/80 pb-1.5 flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">📦 Gestione Ordini ai Fornitori</h3>
-                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-200 text-sky-800">STATO</span>
-                </div>
-                
-                <div class="space-y-2 text-xs">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
-                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold"></select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
-                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
-                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
-                        </div>
-                        <div id="boxDataArrivoPresunta">
-                            <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
-                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
-                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800">
-                    </div>
-
-                    <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine/Conferma:</div>
-                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
-                            📎 Carica PDF
-                            <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
-                        </label>
-                    </div>
-                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
-
-                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow">
-                        ➕ Registra Fornitura nel Cantiere
-                    </button>
-                </div>
-
-                <div class="space-y-1.5 pt-2 border-t border-sky-200/80">
-                    <div class="text-[10px] font-bold text-sky-800 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
-                    <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
-                </div>
-            </div>
-
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
-                    <h3 class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">4. Documenti e Allegati Cantiere</h3>
-                    
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <select id="categoriaDriveInput" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-1.5 focus:ring-blue-500 focus:border-blue-500 font-bold w-full sm:w-44">
-                        </select>
-                        
-                        <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer transition-colors shrink-0">
-                            ➕ Carica File
-                            <input type="file" id="fileDriveInput" onchange="uploadFileToStorage(this)" class="hidden">
-                        </label>
-                    </div>
-                </div>
-                
-                <div id="driveUploadStatus" class="text-[11px] text-blue-600 font-bold hidden animate-pulse">
-                    ⏳ Invio file e archiviazione in corso...
-                </div>
-
-                <div id="driveAllegatiList" class="space-y-2 max-h-48 overflow-y-auto">
-                    <p class="text-xs text-slate-400 italic">Nessun documento caricato.</p>
-                </div>
             </div>
 
             <div class="pt-2">
@@ -269,6 +190,70 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
             </div>
             <div id="diarioTimeline" class="space-y-2"></div>
+        </div>
+    </main>
+
+    <!-- NUOVA SCHERMATA ORDINI E FORNITORI SEPARATA -->
+    <main id="ordersScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div>
+                <span class="text-[9px] bg-blue-100 text-blue-800 font-bold uppercase px-1.5 py-0.5 rounded">SCHERMATA ORDINI</span>
+                <h2 id="ordersCommessaTitle" class="text-base font-bold text-slate-900 mt-1">Nessuna Commessa Selezionata</h2>
+            </div>
+        </div>
+
+        <div id="boxSezioneOrdiniFornitori" class="bg-sky-100/70 text-slate-900 p-4 rounded-2xl border border-sky-200 space-y-3">
+            <div class="border-b border-sky-200/80 pb-1.5 flex justify-between items-center">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">📦 Gestione Ordini ai Fornitori</h3>
+                <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-200 text-sky-800">STATO</span>
+            </div>
+            
+            <div class="space-y-2 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
+                        <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold"></select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
+                        <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
+                        <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
+                    </div>
+                    <div id="boxDataArrivoPresunta">
+                        <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                        <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
+                    <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800">
+                </div>
+
+                <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                    <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
+                        📎 Carica PDF
+                        <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
+                    </label>
+                </div>
+                <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
+
+                <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow">
+                    ➕ Registra Fornitura nel Cantiere
+                </button>
+            </div>
+
+            <div class="space-y-1.5 pt-2 border-t border-sky-200/80">
+                <div class="text-[10px] font-bold text-sky-800 uppercase tracking-wide">Fornitures collegate a questa commessa:</div>
+                <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
+            </div>
         </div>
     </main>
 
@@ -329,6 +314,9 @@
             </button>
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
                 <span class="text-lg">👥</span><span>Clienti</span>
+            </button>
+            <button id="navBtnOrdini" onclick="navigateTo('orders')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">📦</span><span>Ordini</span>
             </button>
             <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
                 <span class="text-lg">⚙️</span><span>Impostazioni</span>
@@ -535,7 +523,6 @@
             const inputData = document.getElementById('dataAttivitaInput');
             if (inputData) {
                 inputData.value = dataFormattata;
-                inputData.max = dataFormattata; 
             }
         }
 
@@ -543,13 +530,17 @@
             if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
             if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
+            if(document.getElementById('ordersScreen')) document.getElementById('ordersScreen').classList.add('hidden');
             if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
             const btnHome = document.getElementById('navBtnHome');
             const btnClienti = document.getElementById('navBtnClienti');
+            const btnOrdini = document.getElementById('navBtnOrdini');
             const btnSettings = document.getElementById('navBtnImpostazioni');
+            
             if(btnHome) btnHome.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
+            if(btnOrdini) btnOrdini.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
 
             if (screen === 'main') {
@@ -564,6 +555,10 @@
             } else if (screen === 'detail') {
                 if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.remove('hidden');
                 if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+            } else if (screen === 'orders') {
+                if(document.getElementById('ordersScreen')) document.getElementById('ordersScreen').classList.remove('hidden');
+                if(btnOrdini) btnOrdini.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                renderOrdersTabScreen();
             } else if (screen === 'settings') {
                 if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
                 if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
@@ -769,7 +764,6 @@
             if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa attiva.</p>`; return; }
             
             cliente.commesse.forEach(com => {
-                // 🌟 LOGICA DI LETTURA REALE DAL DIARIO STORICO PER IL BADGE DELLA LISTA HUB
                 let faseRealeRegistrata = com.stato_macro || 'PRIMO_CONTATTO';
                 if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
                     const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
@@ -822,7 +816,6 @@
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
-            // RIALLINEAMENTO INTERFACCIA E BADGE SCHEDA IN ALTO A SINISTRA
             const badgeEl = document.getElementById('commessaBadgeStato');
             if (badgeEl) {
                 badgeEl.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata.replace('_', ' ');
@@ -846,7 +839,6 @@
                     : currentCommessa.titolo_lavoro || 'Senza Titolo';
             }
 
-            // Sincronizziamo i menu a tendina e gli input
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
@@ -865,6 +857,42 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
+            inizializzaCalendarioOggi();
+            adjustWorkerLabels(macroFaseImpostata);
+            aggiornaSelettoreCategorie(macroFaseImpostata); 
+            handleSubStatoChange(); 
+            renderDiarioTimelineInterfaccia(timelineAttivita || []);
+            fetchAllegatiDrive(); 
+            navigateTo('detail');
+        }
+
+        // 🌟 FUNZIONE DI RENDERING DELLA TAB INTERAMENTE SEPARATA PER GLI ORDINI
+        function renderOrdersTabScreen() {
+            const titleEl = document.getElementById('ordersCommessaTitle');
+            const boxFornitori = document.getElementById('boxSezioneOrdiniFornitori');
+            
+            if (!currentCommessaId || !currentCommessa) {
+                titleEl.innerText = "Nessuna commessa selezionata. Apri un cantiere prima.";
+                boxFornitori.classList.add('opacity-40');
+                return;
+            }
+            
+            boxFornitori.classList.remove('opacity-40');
+            titleEl.innerText = `${currentCommessa.titolo_lavoro} - Gestione Forniture`;
+            
+            let macroFaseCorrente = document.getElementById('commessaMacroSelect').value;
+            let subStatoCorrente = document.getElementById('subStatoAvanzamentoSelect').value;
+            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
+            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+            
+            if (macroFaseCorrente === 'MISURE_ESECUTIVE' && subStatoCorrente === 'PRE_ORDINI') {
+                badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
+                boxDataArrivo.classList.add('opacity-40');
+            } else {
+                badgeTipoDoc.innerText = "CONFERMA D'ORDINE / FORNITURA";
+                boxDataArrivo.classList.remove('opacity-40');
+            }
+
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
@@ -875,14 +903,7 @@
             document.getElementById('ordineDataInvioInput').value = oggi;
             document.getElementById('ordineDataArrivoInput').value = "";
 
-            inizializzaCalendarioOggi();
-            adjustWorkerLabels(macroFaseImpostata);
-            aggiornaSelettoreCategorie(macroFaseImpostata); 
-            handleSubStatoChange(); 
-            renderDiarioTimelineInterfaccia(timelineAttivita || []);
-            fetchAllegatiDrive(); 
             fetchOrdiniFornituresDellaCommessa();
-            navigateTo('detail');
         }
 
         // Listener PDF Ordine
@@ -903,18 +924,18 @@
             const dataInvio = document.getElementById('ordineDataInvioInput').value;
             const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
-            const operatoreId = document.getElementById('workerContattoSelect').value;
+            const operatoreId = currentCommessa.contatto_gestito_da || listLavoratori[0]?.id;
             
             const macroFaseCorrente = document.getElementById('commessaMacroSelect').value;
-            const tipoDoc = (macroFaseCorrente === 'MISURE_ESECUTIVE') ? 'ORDINE' : 'CONFERMA';
+            const subStatoCorrente = document.getElementById('subStatoAvanzamentoSelect').value;
+            const tipoDoc = (macroFaseCorrente === 'MISURE_ESECUTIVE' && subStatoCorrente === 'PRE_ORDINI') ? 'ORDINE' : 'CONFERMA';
 
-            if (!fornitoreId || !prodotto || !dataInvio || !operatoreId) {
-                alert("Fornitore, Prodotto, Data Invio e Operatore Incaricato sono campi obbligatori!");
+            if (!fornitoreId || !prodotto || !dataInvio) {
+                alert("Fornitore, Prodotto e Data Invio sono campi obbligatori!");
                 return;
             }
 
             let percorsoStoragePdf = null;
-
             if (temporaryOrderFileObj) {
                 try {
                     const nomeSanificato = temporaryOrderFileObj.name
@@ -945,7 +966,7 @@
 
                 if (error) throw error;
                 alert("✅ Fornitura inserita con successo nel database relazionale!");
-                openCommessaWorkspace(currentCommessaId);
+                renderOrdersTabScreen();
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
@@ -962,7 +983,7 @@
 
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato.</p>`;
+                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato per questa commessa.</p>`;
                     return;
                 }
 
@@ -995,6 +1016,7 @@
                             <div class="text-slate-600 mt-1 text-[11px]">
                                 Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
                             </div>
+                            ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotannotations || o.annotazioni}</div>` : ''}
                         </div>
                         <div class="flex space-x-1 shrink-0">
                             <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 text-slate-600 rounded-lg border">✏️</button>
@@ -1027,7 +1049,7 @@
                 
                 closeOrdineEditDataModal();
                 alert("🟢 Informazioni consegna aggiornate con successo!");
-                openCommessaWorkspace(currentCommessaId);
+                renderOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
 
@@ -1039,7 +1061,7 @@
                 }
                 await db.from('ordini_fornitori').delete().eq('id', id);
                 alert("🟢 Fornitura rimossa.");
-                openCommessaWorkspace(currentCommessaId);
+                renderOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
 
@@ -1131,22 +1153,12 @@
                 inputAllerta.value = "";
             }
 
-            // CONTROLLO RIGIDO VISIBILITÀ TABELLA ORDINI CONDIVISA
-            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
-            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
-            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
-            
-            if (macroFase === 'ORDINI_FORNITORI' || (macroFase === 'MISURE_ESECUTIVE' && subStato === 'PRE_ORDINI')) {
-                boxOrdini.classList.remove('hidden');
-                if (macroFase === 'MISURE_ESECUTIVE') {
-                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
-                    boxDataArrivo.classList.add('opacity-40'); 
-                } else {
-                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
-                    boxDataArrivo.classList.remove('opacity-40');
-                }
+            // 🌟 LOGICA DELLA DISATTIVAZIONE DELL'OBBLIGATORIETÀ DELLE ANNOTAZIONI
+            const lblAnnotazioni = document.getElementById('lblAnnotazioniObbligatorieta');
+            if (subStato === 'PRE_ORDINI' || macroFase === 'ORDINI_FORNITORI') {
+                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni del passaggio (Opzionali)";
             } else {
-                boxOrdini.classList.add('hidden');
+                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni del passaggio *";
             }
         }
 
@@ -1195,15 +1207,20 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            if(!op1Value || !annotazioni) { 
-                alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
-                return; 
+            // Se non siamo in Preordini o Ordini Fornitori, le annotazioni servono obbligatoriamente
+            if (subStatoScelto !== 'PRE_ORDINI' && macroFaseScelta !== 'ORDINI_FORNITORI') {
+                if(!op1Value || !annotazioni) { 
+                    alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
+                    return; 
+                }
+            } else {
+                if(!op1Value) {
+                    alert("Operatore Incaricato è obbligatorio!");
+                    return;
+                }
             }
 
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
-            const dataScelta = new Date(dataSceltaRaw);
-            const oggi = new Date(); oggi.setHours(23,59,59,999);
-            if (dataScelta > oggi) { alert("❌ Errore: Non puoi inserire date future!"); return; }
 
             try {
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
@@ -1212,7 +1229,7 @@
                     macro_fase: macroFaseScelta,
                     sub_stato: subStatoScelto,
                     operatore_id: op1Value,
-                    nota: annotazioni,
+                    nota: annotazioni || "Nessuna annotazione di passaggio inserita.",
                     giorni_allerta: giorniSalvataggioDB
                 }]);
 
@@ -1229,7 +1246,7 @@
                 }).eq('id', currentCommessaId);
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
+                alert("🟢 Fase avanzata e registrata con successo!");
                 
                 await fetchClienti();
                 openCommessaWorkspace(currentCommessaId); 
@@ -1480,7 +1497,7 @@
                 resetWorkerForm(); await initLists(); renderSettingsWorkersList();
             } catch (err) { alert("Errore: " + err.message); } finally { btn.disabled = false; }
         }
-        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamento questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
+        async function deleteWorkerDatabase(id) { if(confirm("Eliminare definitivamente questo collaboratore?")) { await db.from('lavoratori').delete().eq('id', id); await initLists(); renderSettingsWorkersList(); } }
         function escapeHtml(s) { return s ? s.replace(/"/g, "") : ''; }
 
         function checkOmonimiaDoppioni(valoreDigitato) {
@@ -1638,7 +1655,7 @@
             document.getElementById('charCounter').innerText = `${el.value.length} / 150`;
         }
 
-        async function eliminaFornitoreDaImpostazioni(id) {
+        async function借liminaFornitoreDaImpostazioni(id) {
             if (confirm("Rimuovere definitivamente questo fornitore?")) {
                 await db.from('fornitori').delete().eq('id', id);
                 await initLists();
