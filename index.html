@@ -173,13 +173,13 @@
 
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    <label>3. Annotazioni *</label>
+                    <label id="lblAnnotazioniTitolo">3. Annotazioni *</label>
                     <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
                 </div>
                 <textarea id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" rows="2" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium resize-none overflow-y-auto"></textarea>
             </div>
 
-            <!-- MODULO AGGIORNATO: GESTIONE ORDINI FORNITORI - SFONDO CELESTE PASTELLO TRASPARENTE -->
+            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
             <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-800 p-4 rounded-2xl border border-sky-200 shadow-sm space-y-3">
                 <div class="border-b border-sky-200 pb-1.5 flex justify-between items-center">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-blue-700">📦 Gestione Ordini ai Fornitori</h3>
@@ -884,14 +884,17 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
-            let macroFaseImpostata = currentCommessa.stato_macro;
-            let subStatoImpostato = currentCommessa.preventivo_stato;
+            let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
+            
+            // AGGIORNATO: Assicura un valore iniziale di default coerente se la sottofase nel db è null
+            let defaultSottofaseIniziale = isFinanz ? sottofasiFinanziamento[0].val : (subStatiOpzioni[macroFaseImpostata] ? subStatiOpzioni[macroFaseImpostata][0].val : 'GENERICO');
+            let subStatoImpostato = currentCommessa.preventivo_stato || defaultSottofaseIniziale;
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
             if (timelineAttivita && timelineAttivita.length > 0) {
                 macroFaseImpostata = timelineAttivita[0].macro_fase;
-                subStatoImpostato = timelineAttivita[0].sub_stato;
+                subStatoImpostato = timelineAttivita[0].sub_stato || defaultSottofaseIniziale;
                 if (timelineAttivita[0].operatore_id) {
                     operatorePredefinito = timelineAttivita[0].operatore_id;
                 }
@@ -908,7 +911,7 @@
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
-            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val);
+            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato;
             
             document.getElementById('workerContattoSelect').value = operatorePredefinito;
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
@@ -916,8 +919,7 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            // SPOSTATO IN AGGIORNAMENTO DINAMICO SOTTOFASE (Invocato all'avvio)
-            gestisciVisibilitaTabellaOrdini(macroFaseImpostata, subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val));
+            gestisciVisibilitaTabellaOrdini(macroFaseImpostata, subStatoImpostato);
 
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
@@ -939,18 +941,21 @@
             navigateTo('detail');
         }
 
-        // AGGIORNATO: Funzione per controllare la visibilità e impostare il badge basandosi RIGIDAMENTE sulla sottofase PRE_ORDINI
+        // AGGIORNATO: Controlla visibilità e gestisce la dicitura dell'asterisco obbligatorietà a schermo
         function gestisciVisibilitaTabellaOrdini(macroFase, subStato) {
             const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
             const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
             const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+            const lblAnnotazioni = document.getElementById('lblAnnotazioniTitolo');
 
             if (subStato === 'PRE_ORDINI') {
                 boxOrdini.classList.remove('hidden');
                 badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
                 boxDataArrivo.classList.add('opacity-40');
+                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni";
             } else {
                 boxOrdini.classList.add('hidden');
+                if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni *";
             }
         }
 
@@ -1099,7 +1104,7 @@
             } catch(err) { alert(err.message); }
         }
 
-        async function eliminarOrdineFornitoreRelazionale(id, filePath) {
+        async function eliminaOrdineFornitoreRelazionale(id, filePath) {
             if (!confirm("Rimuovere questa riga di fornitura dal cantiere attuale?")) return;
             try {
                 if (filePath && filePath !== "null" && filePath !== "undefined") {
@@ -1210,7 +1215,6 @@
             handleSubStatoChange();
         }
 
-        // AGGIORNATO: Aggancia la logica di controllo visibilità all'evento di mutamento della sottofase
         function handleSubStatoChange() {
             const macroFase = document.getElementById('commessaMacroSelect').value;
             const subStato = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -1276,6 +1280,7 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
+        // AGGIORNATO: Validazione condizionata per PRE_ORDINI e correzione del calcolo indici per il workflow automatico
         async function saveFaseLavorazioneConDati() {
             const macroFaseScelta = document.getElementById('commessaMacroSelect').value;
             const subStatoScelto = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -1290,8 +1295,15 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            if(!op1Value || !annotazioni) { 
-                alert("Operatore Incaricato e Annotazioni sono campi obbligatori!"); 
+            // Controlla obbligatorietà operatore obbligatoria ovunque
+            if(!op1Value) {
+                alert("L'operatore incaricato è un campo obbligatorio!");
+                return;
+            }
+
+            // AGGIORNATO: Rilassata l'obbligatorietà delle note esclusivamente per la sottofase PRE_ORDINI
+            if(subStatoScelto !== 'PRE_ORDINI' && !annotazioni) { 
+                alert("Le annotazioni sono obbligatorie per registrare l'attività!"); 
                 return; 
             }
 
@@ -1304,7 +1316,7 @@
                     macro_fase: macroFaseScelta,
                     sub_stato: subStatoScelto,
                     operatore_id: op1Value,
-                    nota: annotazioni,
+                    nota: annotazioni || 'Avanzamento di stato senza note.',
                     giorni_allerta: giorniSalvataggioDB
                 }]);
 
@@ -1317,6 +1329,7 @@
                     ? sottofasiFinanziamento 
                     : (subStatiOpzioni[macroFaseScelta] || []);
                 
+                // FIXED: Cerca l'indice basandosi rigidamente sul valore stringa (codice) per evitare disallineamenti
                 const indiceSottofaseAttuale = elencoSottofasiCorrenti.findIndex(o => o.val === subStatoScelto);
 
                 if (indiceSottofaseAttuale !== -1 && indiceSottofaseAttuale < elencoSottofasiCorrenti.length - 1) {
@@ -1332,6 +1345,7 @@
 
                 let valoreFinanziamentoDB = (prossimaMacroFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
+                // Salva lo stato avanzato a database
                 await db.from('commesse').update({ 
                     stato_macro: prossimaMacroFase,
                     preventivo_stato: prossimoSubStato,
@@ -1343,6 +1357,7 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
                 
+                // Aggiorna la cache in memoria e riallinea il Workspace sul cantiere attuale
                 const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (dataAggiornata) allClients = dataAggiornata;
 
@@ -1530,6 +1545,7 @@
                 } else {
                     datiCommessa.cliente_id = currentClienteId;
                     datiCommessa.stato_macro = 'PRIMO_CONTATTO';
+                    datiCommessa.preventivo_stato = 'INFO'; // Forza subito la sottofase standard
                     await db.from('commesse').insert([datiCommessa]);
                 }
                 closeCommessaModal(); 
