@@ -443,8 +443,8 @@
         
         let allClients = [];
         let listLavoratori = [];
-        let listFornitori = []; // Inizializzazione corretta in alto
-        let temporaryOrderFileObj = null; // Buffer temporaneo per upload file ordine
+        let listFornitori = []; 
+        let temporaryOrderFileObj = null; 
         
         let currentClienteId = null;
         let currentCommessaId = null;
@@ -764,7 +764,7 @@
                 const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 div.innerHTML = `
-                <div class="flex-1 min-w-0" onclick="openCommessaWorkspace('${com.id}')" class="cursor-pointer">
+                <div class="flex-1 min-w-0 font-pointer" onclick="openCommessaWorkspace('${com.id}')">
                     <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${com.stato_macro}">${com.stato_macro === 'ASSISTENZA_POST' ? 'POST-VENDITA' : com.stato_macro}</span>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
@@ -983,7 +983,7 @@
         }
 
         function apriModalModificaDataOrdinePost(ordineId, dataArrivoAttuale, noteAttuali) {
-            document.getElementById('modalEditOrdineId').value = ordenId || ordineId;
+            document.getElementById('modalEditOrdineId').value = ordineId;
             document.getElementById('modalEditOrdineDataArrivo').value = dataArrivoAttuale;
             document.getElementById('modalEditOrdineNote').value = noteAttuali === "undefined" || noteAttuali === "null" ? "" : noteAttuali;
             document.getElementById('ordineEditDataModal').classList.remove('hidden');
@@ -1268,7 +1268,7 @@
             pendingDeleteAction = { type: 'NOTE_RELAZIONALE', data: idRecordDiario };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
+            setTimeout(() => document.getElementById('adminPasswordHiddenInput').focus(), 50);
         }
 
         function requestDeleteCommessaCascade(commessaId, titolo) {
@@ -1276,7 +1276,7 @@
             pendingDeleteAction = { type: 'COMMESSA', data: commessaId };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
+            setTimeout(() => document.getElementById('adminPasswordHiddenInput').focus(), 50);
         }
 
         function deleteCurrentClientCascade() {
@@ -1284,7 +1284,7 @@
             pendingDeleteAction = { type: 'CLIENTE', data: currentClienteId };
             document.getElementById('adminPasswordHiddenInput').value = "";
             document.getElementById('passwordAuthModal').classList.remove('hidden');
-            document.getElementById('adminPasswordHiddenInput').focus();
+            setTimeout(() => document.getElementById('adminPasswordHiddenInput').focus(), 50);
         }
 
         async function submitAdminPasswordFlow() {
@@ -1293,12 +1293,13 @@
                 alert("❌ Password amministratore errata.");
                 return;
             }
-            closePasswordAuthModal();
+            
             if (!pendingDeleteAction) {
                 alert("⚠️ Nessuna azione di cancellazione pendente trovata.");
                 return;
             }
 
+            closePasswordAuthModal();
             console.log("AVVIO CANCELLAZIONE FLUSSO:", pendingDeleteAction);
 
             try {
@@ -1312,7 +1313,6 @@
                 else if (pendingDeleteAction.type === 'COMMESSA') {
                     const commessaIdDaEliminare = pendingDeleteAction.data;
                     
-                    // Pulizia totale dei figli della commessa con controllo errori strutturale
                     const { error: err1 } = await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
                     if (err1) throw err1;
                     const { error: err2 } = await db.from('ordini_fornitori').delete().eq('commessa_id', commessaIdDaEliminare);
@@ -1330,7 +1330,6 @@
                     const clienteIdDaEliminare = pendingDeleteAction.data;
                     console.log("ID CLIENTE DA CANCELLARE:", clienteIdDaEliminare);
                     
-                    // 1. Troviamo tutte le commesse del cliente per ripulire i loro storici vincolati
                     const { data: coms, error: errComs } = await db.from('commesse').select('id').eq('cliente_id', clienteIdDaEliminare);
                     if (errComs) throw errComs;
                     
@@ -1338,7 +1337,6 @@
                         const idsCommesse = coms.map(c => c.id);
                         console.log("COMMESSE DA PULIRE A CASCATA:", idsCommesse);
                         
-                        // Cancelliamo tutti i vincoli relazionali di tutte le commesse del cliente
                         const { error: errDelDiario } = await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
                         if (errDelDiario) throw errDelDiario;
                         const { error: errDelOrdini } = await db.from('ordini_fornitori').delete().in('commessa_id', idsCommesse);
@@ -1347,7 +1345,6 @@
                         if (errDelDrive) throw errDelDrive;
                     }
                     
-                    // 2. Eliminiamo prima le commesse orfane e infine il record cliente principale
                     const { error: errDelCom } = await db.from('commesse').delete().eq('cliente_id', clienteIdDaEliminare);
                     if (errDelCom) throw errDelCom;
                     
@@ -1360,11 +1357,14 @@
                 }
             } catch (err) { 
                 console.error("ERRORE DURANTE LA CANCELLAZIONE:", err);
-                alert("❌ Bloccato da Supabase: " + err.message + "\n\nDettagli: " + (err.details || 'Verifica i vincoli sulle tabelle')); 
+                alert("❌ Bloccato da Supabase: " + err.message); 
             }
-            finally { pendingDeleteAction = null; }
+            finally { 
+                pendingDeleteAction = null; 
+            }
         }
-        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
+
+        function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); }
         async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
         async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
 
