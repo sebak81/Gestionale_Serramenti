@@ -800,7 +800,7 @@
             
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
-                const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 // Cerca il nome della sede associata
                 const sedeTrovata = listSedi.find(s => s.id === com.sede_id);
@@ -829,7 +829,7 @@
             currentCommessaId = commessaId;
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
-            const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
