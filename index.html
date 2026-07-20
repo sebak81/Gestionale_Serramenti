@@ -193,7 +193,7 @@
         </div>
     </main>
 
-    <!-- NUOVA SCHERMATA ORDINI E FORNITORI SEPARATA -->
+    <!-- SCHERMATA ORDINI E FORNITORI SEPARATA -->
     <main id="ordersScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
@@ -866,7 +866,7 @@
             navigateTo('detail');
         }
 
-        // 🌟 FUNZIONE DI RENDERING DELLA TAB INTERAMENTE SEPARATA PER GLI ORDINI
+        // FUNZIONE DI RENDERING DELLA TAB INTERAMENTE SEPARATA PER GLI ORDINI
         function renderOrdersTabScreen() {
             const titleEl = document.getElementById('ordersCommessaTitle');
             const boxFornitori = document.getElementById('boxSezioneOrdiniFornitori');
@@ -1016,7 +1016,7 @@
                             <div class="text-slate-600 mt-1 text-[11px]">
                                 Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
                             </div>
-                            ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotannotations || o.annotazioni}</div>` : ''}
+                            ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotazioni}</div>` : ''}
                         </div>
                         <div class="flex space-x-1 shrink-0">
                             <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 text-slate-600 rounded-lg border">✏️</button>
@@ -1153,7 +1153,6 @@
                 inputAllerta.value = "";
             }
 
-            // 🌟 LOGICA DELLA DISATTIVAZIONE DELL'OBBLIGATORIETÀ DELLE ANNOTAZIONI
             const lblAnnotazioni = document.getElementById('lblAnnotazioniObbligatorieta');
             if (subStato === 'PRE_ORDINI' || macroFase === 'ORDINI_FORNITORI') {
                 if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni del passaggio (Opzionali)";
@@ -1207,7 +1206,6 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            // Se non siamo in Preordini o Ordini Fornitori, le annotazioni servono obbligatoriamente
             if (subStatoScelto !== 'PRE_ORDINI' && macroFaseScelta !== 'ORDINI_FORNITORI') {
                 if(!op1Value || !annotazioni) { 
                     alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
@@ -1655,7 +1653,7 @@
             document.getElementById('charCounter').innerText = `${el.value.length} / 150`;
         }
 
-        async function借liminaFornitoreDaImpostazioni(id) {
+        async function eliminaFornitoreDaImpostazioni(id) {
             if (confirm("Rimuovere definitivamente questo fornitore?")) {
                 await db.from('fornitori').delete().eq('id', id);
                 await initLists();
