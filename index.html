@@ -790,9 +790,7 @@
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
             const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
             document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
-            document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
-            // 🌟 LOGICA DI SINCRONIZZAZIONE RIPRISTINATA DAL DIARIO CON ORDINAMENTO REALE (creato_il)
             const { data: timelineAttivita, error } = await db
                 .from('status_diario_attivita')
                 .select('*, lavoratori(nome)')
@@ -811,6 +809,32 @@
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
+            // 🌟 RIALLINEAMENTO INTERFACCIA E BADGE SCHEDA IN ALTO A SINISTRA
+            const badgeEl = document.getElementById('commessaBadgeStato');
+            if (badgeEl) {
+                badgeEl.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata.replace('_', ' ');
+                // Pulisce le classi colore precedenti e assegna la nuova
+                badgeEl.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseImpostata}`;
+            }
+
+            const headerTitleEl = document.getElementById('commessaTitleHeader');
+            if (headerTitleEl) {
+                let etichettaSottofase = subStatoImpostato;
+                if (macroFaseImpostata === 'FATTURA_ACCONTO' && isFinanz) {
+                    const fOpt = sottofasiFinanziamento.find(o => o.val === subStatoImpostato);
+                    if (fOpt) etichettaSottofase = fOpt.label;
+                } else {
+                    const setOpzioni = subStatiOpzioni[macroFaseImpostata] || [];
+                    const opzioneTrovata = setOpzioni.find(o => o.val === subStatoImpostato);
+                    if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
+                }
+                
+                headerTitleEl.innerText = etichettaSottofase 
+                    ? `${currentCommessa.titolo_lavoro} (${etichettaSottofase})` 
+                    : currentCommessa.titolo_lavoro || 'Senza Titolo';
+            }
+
+            // Sincronizziamo i menu a tendina e gli input
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
