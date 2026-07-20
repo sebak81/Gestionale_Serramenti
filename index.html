@@ -1288,51 +1288,61 @@
         }
 
         async function submitAdminPasswordFlow() {
-            const passValue = document.getElementById('adminPasswordHiddenInput').value;
-            if (passValue !== "Fighette@69") {
-                alert("❌ Password amministratore errata.");
-                return;
-            }
-            closePasswordAuthModal();
-            if (!pendingDeleteAction) return;
+    const passValue = document.getElementById('adminPasswordHiddenInput').value;
+    if (passValue !== "Fighette@69") {
+        alert("❌ Password amministratore errata.");
+        return;
+    }
+    closePasswordAuthModal();
+    if (!pendingDeleteAction) return;
 
-            try {
-                if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
-                    const idDaRimuovere = pendingDeleteAction.data;
-                    await db.from('status_diario_attivita').delete().eq('id', idDaRimuovere);
-                    alert("🗑️ Riga rimossa con successo dal Database relazionale.");
-                    openCommessaWorkspace(currentCommessaId);
-                } 
-                else if (pendingDeleteAction.type === 'COMMESSA') {
-                    const commessaIdDaEliminare = pendingDeleteAction.data;
-                    await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
-                    await db.from('ordini_fornitori').delete().eq('commessa_id', commessaIdDaEliminare);
-                    await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
-                    const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
-                    if (error) throw error;
-                    alert("🗑️ Cantiere rimosso.");
-                    await fetchClienti(); renderClientHub(); 
-                }
-                else if (pendingDeleteAction.type === 'CLIENTE') {
-                    const { data: coms } = await db.from('commesse').select('id').eq('cliente_id', pendingDeleteAction.data);
-                    if (coms && coms.length > 0) {
-                        const idsCommesse = coms.map(c => c.id);
-                        await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
-                        await db.from('ordini_fornitori').delete().in('commessa_id', idsCommesse);
-                        await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
-                    }
-                    await db.from('commesse').delete().eq('cliente_id', pendingDeleteAction.data);
-                    const { error } = await db.from('clienti').delete().eq('id', pendingDeleteAction.data);
-                    if (error) throw error;
-                    
-                    alert("🟢 Record cliente ed intero storico eliminati a cascata con successo.");
-                    currentClienteId = null; 
-                    navigateTo('main');
-                }
-            } catch (err) { alert("Errore: " + err.message); }
-            finally { pendingDeleteAction = null; }
+    try {
+        if (pendingDeleteAction.type === 'NOTE_RELAZIONALE') {
+            const idDaRimuovere = pendingDeleteAction.data;
+            await db.from('status_diario_attivita').delete().eq('id', idDaRimuovere);
+            alert("🗑️ Riga rimossa con successo dal Database relazionale.");
+            openCommessaWorkspace(currentCommessaId);
+        } 
+        else if (pendingDeleteAction.type === 'COMMESSA') {
+            const commessaIdDaEliminare = pendingDeleteAction.data;
+            // Pulizia totale dei figli della commessa
+            await db.from('status_diario_attivita').delete().eq('commessa_id', commessaIdDaEliminare);
+            await db.from('ordini_fornitori').delete().eq('commessa_id', commessaIdDaEliminare);
+            await db.from('allegati_drive').delete().eq('commessa_id', commessaIdDaEliminare);
+            
+            const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
+            if (error) throw error;
+            alert("🗑️ Cantiere rimosso.");
+            await fetchClienti(); renderClientHub(); 
         }
-
+        else if (pendingDeleteAction.type === 'CLIENTE') {
+            const clienteIdDaEliminare = pendingDeleteAction.data;
+            
+            // 1. Troviamo tutte le commesse del cliente per ripulire i loro storici
+            const { data: coms } = await db.from('commesse').select('id').eq('cliente_id', clienteIdDaEliminare);
+            
+            if (coms && coms.length > 0) {
+                const idsCommesse = coms.map(c => c.id);
+                // Cancelliamo tutti i vincoli relazionali di tutte le commesse del cliente
+                await db.from('status_diario_attivita').delete().in('commessa_id', idsCommesse);
+                await db.from('ordini_fornitori').delete().in('commessa_id', idsCommesse);
+                await db.from('allegati_drive').delete().in('commessa_id', idsCommesse);
+            }
+            
+            // 2. Eliminiamo le commesse e infine il cliente
+            await db.from('commesse').delete().eq('cliente_id', clienteIdDaEliminare);
+            const { error } = await db.from('clienti').delete().eq('id', clienteIdDaEliminare);
+            if (error) throw error;
+            
+            alert("🟢 Record cliente ed intero storico eliminati a cascata con successo.");
+            currentClienteId = null; 
+            navigateTo('main');
+        }
+    } catch (err) { 
+        alert("Errore durante la cancellazione: " + err.message); 
+    }
+    finally { pendingDeleteAction = null; }
+}
         function closePasswordAuthModal() { document.getElementById('passwordAuthModal').classList.add('hidden'); pendingDeleteAction = null; }
         async function updateCommessaField(field, value) { await db.from('commesse').update({ [field]: value }).eq('id', currentCommessaId); }
         async function updateWorker(field, value) { await updateCommessaField(field, value===""?null:value); }
