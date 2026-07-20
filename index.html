@@ -145,7 +145,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
-                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
@@ -171,7 +171,6 @@
                 </div>
             </div>
 
-            <!-- SEZIONE 3 AGGIORNATA CON TEXTAREA MULTI-RIGA E CONTATORE CORRETTO -->
             <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     <label>3. Annotazioni *</label>
@@ -339,10 +338,14 @@
         </div>
     </main>
 
+    <!-- NAVBAR AGGIORNATA CON ICONA HOME (CASETTA) A SINISTRA -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnHome" onclick="resetToHomeDashboard()" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">🏠</span><span>Home</span>
+            </button>
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
-                <span class="text-lg">👥</span><span>Clienti</span>
+                <span class="text-lg">👥</span><span>Contatti</span>
             </button>
             <button id="navBtnImpostazioni" onclick="navigateTo('settings')" class="flex flex-col items-center text-slate-400 flex-1">
                 <span class="text-lg">⚙️</span><span>Impostazioni</span>
@@ -487,12 +490,13 @@
 
         const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
+        // AGGIORNATO: Sostituito "Pronto da spedire" con "Da Controllare"
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
                 {val: 'SOPRALLUOGO', label: '📐 Sopralluogo Preventivo'},
                 {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
-                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Pronto da Spedire'},
+                {val: 'PRONTO_DA_SPEDIRE', label: '📦 Da Controllare'},
                 {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
                 {val: 'RIFIUTATO', label: '❌ Rifiutato / Non accettato'},
                 {val: 'CONFERMATO', label: '🎉 CONFERMATO / ACCETTATO'}
@@ -552,7 +556,6 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        // AGGIORNATO: Gestisce il contatore di caratteri dinamico
         function updateCharCounter(textareaElement) {
             const currentLength = textareaElement.value.length;
             const counterSpan = document.getElementById('charCounter');
@@ -574,14 +577,26 @@
             }
         }
 
+        // AGGIORNATO: Funzione della casetta per tornare alla dashboard principale resettando tutto
+        function resetToHomeDashboard() {
+            activeFilter = 'all';
+            const searchInput = document.getElementById('searchClient');
+            if (searchInput) searchInput.value = "";
+            switchClientFilter('all');
+            navigateTo('main');
+        }
+
         function navigateTo(screen) {
             if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.add('hidden');
             if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.add('hidden');
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
             if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
+            const btnHome = document.getElementById('navBtnHome');
             const btnClienti = document.getElementById('navBtnClienti');
             const btnSettings = document.getElementById('navBtnImpostazioni');
+            
+            if(btnHome) btnHome.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
 
@@ -810,6 +825,8 @@
             
             cliente.commesse.forEach(com => {
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
+                
+                // AGGIORNATO: Assicurato link maps assoluto per bloccare errori 404 relativi
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 const sedeTrovata = listSedi.find(s => s.id === com.sede_id);
@@ -838,8 +855,10 @@
             currentCommessaId = commessaId;
 
             document.getElementById('commessaClientName').innerText = cliente.denominazione;
+            
+            // AGGIORNATO: Assicurato link maps assoluto per bloccare errori 404 relativi
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentCommessa.indirizzo_cantiere)}`;
-            document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
+            document.getElementById('commessaCantiere').innerHTML = `<a href="${mapsUrl}" target="_blank" class="hover:text-blue-800 transition-colors">📍 Cantiere: ${currentCommessa.indirizzo_cantiere}</a>`;
             document.getElementById('commessaTitleHeader').innerText = currentCommessa.titolo_lavoro || 'Senza Titolo';
             
             const sedeTrovata = listSedi.find(s => s.id === currentCommessa.sede_id);
@@ -875,7 +894,6 @@
             document.getElementById('workerContattoSelect').value = operatorePredefinito;
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
             
-            // Ripristino valori iniziali del blocco annotazioni
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
@@ -1257,6 +1275,7 @@
             if (!dataSceltaRaw) { alert("Seleziona una data valida!"); return; }
 
             try {
+                // 1. Inserimento dello storico sul diario
                 const { error: errorDiario } = await db.from('status_diario_attivita').insert([{
                     commessa_id: currentCommessaId,
                     data_attivita: dataSceltaRaw,
@@ -1269,33 +1288,45 @@
 
                 if (errorDiario) throw errorDiario;
 
-                const { data: timelineAggiornata } = await db
-                    .from('status_diario_attivita')
-                    .select('*')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('data_attivita', { ascending: false })
-                    .order('creato_il', { ascending: false });
+                // 2. LOGICA AUTOMATICA DI AVANZAMENTO STATO DI LAVORAZIONE
+                let prossimaMacroFase = macroFaseScelta;
+                let prossimoSubStato = subStatoScelto;
 
-                let macroFaseFinaleDaImpostare = macroFaseScelta;
-                let subStatoFinaleDaImpostare = subStatoScelto;
+                const elencoSottofasiCorrenti = isFinanziamentoAttivo && macroFaseScelta === 'FATTURA_ACCONTO' 
+                    ? sottofasiFinanziamento 
+                    : (subStatiOpzioni[macroFaseScelta] || []);
+                
+                const indiceSottofaseAttuale = elencoSottofasiCorrenti.findIndex(o => o.val === subStatoScelto);
 
-                if (timelineAggiornata && timelineAggiornata.length > 0) {
-                    macroFaseFinaleDaImpostare = timelineAggiornata[0].macro_fase;
-                    subStatoFinaleDaImpostare = timelineAggiornata[0].sub_stato;
+                if (indiceSottofaseAttuale !== -1 && indiceSottofaseAttuale < elencoSottofasiCorrenti.length - 1) {
+                    // C'è una sottofase successiva nella stessa macro-fase
+                    prossimoSubStato = elencoSottofasiCorrenti[indiceSottofaseAttuale + 1].val;
+                } else {
+                    // Sottofasi finite, passiamo alla macro-fase successiva
+                    const indiceMacroAttuale = workflowOrdered.indexOf(macroFaseScelta);
+                    if (indiceMacroAttuale !== -1 && indiceMacroAttuale < workflowOrdered.length - 1) {
+                        prossimaMacroFase = workflowOrdered[indiceMacroAttuale + 1];
+                        // Prendiamo la prima sottofase del nuovo blocco
+                        const sottofasiNuove = subStatiOpzioni[prossimaMacroFase] || [];
+                        prossimoSubStato = sottofasiNuove.length > 0 ? sottofasiNuove[0].val : 'GENERICO';
+                    }
                 }
 
-                let valoreFinanziamentoDB = (macroFaseFinaleDaImpostare === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
+                let valoreFinanziamentoDB = (prossimaMacroFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
+                // 3. Aggiornamento sul database dello stato principale della Commessa avanzato
                 await db.from('commesse').update({ 
-                    stato_macro: macroFaseFinaleDaImpostare,
-                    preventivo_stato: subStatoFinaleDaImpostare,
+                    stato_macro: prossimaMacroFase,
+                    preventivo_stato: prossimoSubStato,
                     contatto_gestito_da: op1Value===""?null:op1Value, 
                     preventivo_assegnato_a: op2Value===""?null:op2Value,
                     descrizione_lavoro: valoreFinanziamentoDB
                 }).eq('id', currentCommessaId);
                 
                 document.getElementById('faseAnnotazioniInput').value = "";
-                alert("🟢 Attività inserita nel database relazionale e Diario Global riallineato!");
+                alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
+                
+                // Ricarica la scheda riallineando l'interfaccia allo step successivo
                 openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore tecnico: " + err.message); }
