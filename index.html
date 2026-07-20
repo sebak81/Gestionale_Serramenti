@@ -179,57 +179,57 @@
                 <textarea id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" rows="2" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium resize-none overflow-y-auto"></textarea>
             </div>
 
-            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
-            <div id="boxSezioneOrdiniFornitori" class="hidden bg-slate-900 text-white p-4 rounded-2xl border border-slate-700 space-y-3">
-                <div class="border-b border-slate-700 pb-1.5 flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">📦 Gestione Ordini ai Fornitori</h3>
-                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200">STATO</span>
+            <!-- MODULO AGGIORNATO: GESTIONE ORDINI FORNITORI - SFONDO CELESTE PASTELLO TRASPARENTE -->
+            <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-800 p-4 rounded-2xl border border-sky-200 shadow-sm space-y-3">
+                <div class="border-b border-sky-200 pb-1.5 flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-700">📦 Gestione Ordini ai Fornitori</h3>
+                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600 text-white">STATO</span>
                 </div>
                 
                 <div class="space-y-2 text-xs">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Fornitore *</label>
-                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-semibold"></select>
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
+                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-400 focus:outline-none"></select>
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Materiale / Prodotto *</label>
-                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
+                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Data Invio Doc *</label>
-                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
+                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         </div>
                         <div id="boxDataArrivoPresunta">
-                            <label class="block font-bold text-amber-300 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
-                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-300 text-[10px] mb-1">Note Ordine / Fornitore</label>
-                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white">
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
+                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-white border-sky-200 text-slate-800 focus:ring-2 focus:ring-blue-400 focus:outline-none">
                     </div>
 
-                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <div class="text-[10px] text-slate-400 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                    <div class="bg-white/80 p-2.5 rounded-xl border border-sky-200 flex justify-between items-center">
+                        <div class="text-[10px] text-slate-600 font-semibold">Allegato PDF Ordine/Conferma:</div>
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
                             📎 Carica PDF
                             <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
                         </label>
                     </div>
-                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-400 font-bold italic hidden"></div>
+                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-700 font-bold italic hidden"></div>
 
-                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl font-bold tracking-wide transition-colors">
+                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow-sm">
                         ➕ Registra Fornitura nel Cantiere
                     </button>
                 </div>
 
-                <div class="space-y-1.5 pt-2 border-t border-slate-700">
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
+                <div class="space-y-1.5 pt-2 border-t border-sky-200">
+                    <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
                     <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
                 </div>
             </div>
@@ -823,7 +823,6 @@
 
         function filterClients() { renderClientsList(); }
 
-        // GESTIONE HUB FIXED: Calcola dinamicamente l'ultima fase della commessa per aggiornare il badge
         function renderClientHub() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             if (!cliente) return;
@@ -841,7 +840,6 @@
                 const sedeTrovata = listSedi.find(s => s.id === com.sede_id);
                 const stringaSede = sedeTrovata ? ` 🏢 ${sedeTrovata.name || sedeTrovata.nome}` : '';
 
-                // FIX LOGICO-GRAFICO: Estrae la macro-fase aggiornata dallo storico attività per valorizzare il badge dell'Hub
                 let macroFaseVisualizzata = com.stato_macro;
                 if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
                     const ordinati = [...com.status_diario_attivita].sort((a,b) => new Date(b.data_attivita) - new Date(a.data_attivita) || new Date(b.creato_il) - new Date(a.creato_il));
@@ -899,7 +897,6 @@
                 }
             }
 
-            // Forza l'aggiornamento grafico del badge della scheda Workspace
             const badgeFaseWorkspace = document.getElementById('commessaBadgeStato');
             if(badgeFaseWorkspace) {
                 badgeFaseWorkspace.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata;
@@ -919,22 +916,8 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
-            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
-            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
-            
-            if (macroFaseImpostata === 'MISURE_ESECUTIVE' || macroFaseImpostata === 'ORDINI_FORNITORI' || workflowOrdered.indexOf(macroFaseImpostata) > 2) {
-                boxOrdini.classList.remove('hidden');
-                if (macroFaseImpostata === 'MISURE_ESECUTIVE') {
-                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
-                    boxDataArrivo.classList.add('opacity-40'); 
-                } else {
-                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
-                    boxDataArrivo.classList.remove('opacity-40');
-                }
-            } else {
-                boxOrdini.classList.add('hidden');
-            }
+            // SPOSTATO IN AGGIORNAMENTO DINAMICO SOTTOFASE (Invocato all'avvio)
+            gestisciVisibilitaTabellaOrdini(macroFaseImpostata, subStatoImpostato || (isFinanz ? sottofasiFinanziamento[0].val : subStatiOpzioni[macroFaseImpostata][0].val));
 
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
@@ -952,8 +935,23 @@
             handleSubStatoChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
-            fetchOrdiniFornitureDellaCommessa();
+            fetchOrdiniFornituresDellaCommessa();
             navigateTo('detail');
+        }
+
+        // AGGIORNATO: Funzione per controllare la visibilità e impostare il badge basandosi RIGIDAMENTE sulla sottofase PRE_ORDINI
+        function gestisciVisibilitaTabellaOrdini(macroFase, subStato) {
+            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
+            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
+            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+
+            if (subStato === 'PRE_ORDINI') {
+                boxOrdini.classList.remove('hidden');
+                badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
+                boxDataArrivo.classList.add('opacity-40');
+            } else {
+                boxOrdini.classList.add('hidden');
+            }
         }
 
         setTimeout(() => {
@@ -1032,43 +1030,43 @@
 
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-[11px] text-slate-400 italic text-left">Nessun ordine o materiale registrato.</p>`;
+                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato.</p>`;
                     return;
                 }
 
                 data.forEach(o => {
                     const row = document.createElement('div');
-                    row.className = "bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1";
+                    row.className = "bg-white border border-sky-200 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1 text-slate-700 shadow-sm";
                     
                     const fParti = o.data_invio.split('-');
                     const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
 
-                    let dataArrivoLeggibile = "<span class='text-slate-500'>Non comunicata</span>";
+                    let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
                     if (o.data_presunta_arrivo) {
                         const arrParti = o.data_presunta_arrivo.split('-');
-                        dataArrivoLeggibile = `<span class='text-amber-400 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                        dataArrivoLeggibile = `<span class='text-amber-700 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
                     }
 
                     let btnPdfHtml = '';
                     if (o.file_path_supabase) {
                         const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-400 font-bold underline ml-2">Vedi PDF</a>`;
+                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-2">Vedi PDF</a>`;
                     }
 
                     row.innerHTML = `
                         <div class="flex-1 min-w-0 text-left">
                             <div class="flex items-center space-x-1">
-                                <span class="px-1 py-0.2 bg-slate-700 text-[9px] font-bold rounded ${o.tipo_documento==='ORDINE'?'text-blue-300':'text-purple-300'}">${o.tipo_documento}</span>
-                                <strong class="text-white">${o.fornitori?.nome || 'N/D'}</strong> 
-                                <span class="text-slate-400">(${o.prodotto})</span>
+                                <span class="px-1 py-0.2 bg-blue-600 text-[9px] font-bold text-white rounded">${o.tipo_documento}</span>
+                                <strong class="text-slate-800">${o.fornitori?.nome || 'N/D'}</strong> 
+                                <span class="text-slate-500">(${o.prodotto})</span>
                             </div>
-                            <div class="text-slate-300 mt-1 text-[11px]">
+                            <div class="text-slate-600 mt-1 text-[11px]">
                                 Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
                             </div>
                         </div>
                         <div class="flex space-x-1 shrink-0">
-                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-700 text-slate-300 rounded-lg">✏️</button>
-                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-950 text-red-400 rounded-lg font-bold">✕</button>
+                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 border text-slate-600 rounded-lg">✏️</button>
+                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold">✕</button>
                         </div>
                     `;
                     container.appendChild(row);
@@ -1096,12 +1094,12 @@
                 }).eq('id', id);
                 
                 closeOrdineEditDataModal();
-                alert("🔒 Informazioni consegna aggiornate con successo!");
+                alert("🟢 Informazioni consegna aggiornate con successo!");
                 openCommessaWorkspace(currentCommessaId);
             } catch(err) { alert(err.message); }
         }
 
-        async function eliminaOrdineFornitoreRelazionale(id, filePath) {
+        async function eliminarOrdineFornitoreRelazionale(id, filePath) {
             if (!confirm("Rimuovere questa riga di fornitura dal cantiere attuale?")) return;
             try {
                 if (filePath && filePath !== "null" && filePath !== "undefined") {
@@ -1212,12 +1210,15 @@
             handleSubStatoChange();
         }
 
+        // AGGIORNATO: Aggancia la logica di controllo visibilità all'evento di mutamento della sottofase
         function handleSubStatoChange() {
             const macroFase = document.getElementById('commessaMacroSelect').value;
             const subStato = document.getElementById('subStatoAvanzamentoSelect').value;
             const boxAllerta = document.getElementById('boxGiorniAllertaDinamici');
             const inputAllerta = document.getElementById('giorniAllertaInput');
             
+            gestisciVisibilitaTabellaOrdini(macroFase, subStato);
+
             let abilitato = false;
             let valoreDefault = 7;
 
@@ -1342,7 +1343,6 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
                 
-                // Forza l'aggiornamento della cache globale dei clienti prima di riaprire
                 const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (dataAggiornata) allClients = dataAggiornata;
 
@@ -1791,7 +1791,6 @@
 
                 alert("🟢 Documento salvato ed archiviato correttamente!");
                 
-                // Ricarica la cache locale
                 const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (dataAggiornata) allClients = dataAggiornata;
 
