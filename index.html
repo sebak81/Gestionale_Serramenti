@@ -229,7 +229,7 @@
                 </div>
 
                 <div class="space-y-1.5 pt-2 border-t border-sky-200">
-                    <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
+                    <div class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Fornitures collegate a questa commessa:</div>
                     <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
                 </div>
             </div>
@@ -489,7 +489,6 @@
 
         const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
-        // AGGIORNATO: Rinominata l'etichetta visualizzata in "Misure"
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
@@ -864,7 +863,7 @@
             });
         }
 
-        // FIXED: Corretto allineamento visivo del Workspace all'apertura per riflettere lo stato esatto calcolato
+        // FIXED CRITICO: Logica di allineamento e sincronizzazione forzata dei menu a cascata all'apertura del Workspace
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -886,16 +885,20 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
-            // Sincronizza lo stato partendo direttamente da quello consolidato sulla commessa
+            // 1. Estrai la macro-fase consolidata direttamente dal record della commessa
             let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
-            
-            let defaultSottofaseIniziale = isFinanz ? sottofasiFinanziamento[0].val : (subStatiOpzioni[macroFaseImpostata] ? subStatiOpzioni[macroFaseImpostata][0].val : 'GENERICO');
-            let subStatoImpostato = currentCommessa.preventivo_stato || defaultSottofaseIniziale;
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
-            // Se la commessa ha già subito promozioni salvate a DB ma differisce dall'ultima nota del diario, diamo priorità al DB corrente
+            // Calcola il default in base alle opzioni disponibili
+            let arrayOpzioniSottofase = isFinanz ? sottofasiFinanziamento : (subStatiOpzioni[macroFaseImpostata] || []);
+            let defaultSottofaseIniziale = arrayOpzioniSottofase.length > 0 ? arrayOpzioniSottofase[0].val : 'GENERICO';
+            
+            // 2. Determina la sottofase esatta calcolando la priorità del record
+            let subStatoImpostato = currentCommessa.preventivo_stato || defaultSottofaseIniziale;
+
             if (timelineAttivita && timelineAttivita.length > 0) {
+                // Se siamo nella macro-fase dell'ultimo log del diario, carichiamo la sottofase registrata o quella successiva già elaborata
                 if (currentCommessa.stato_macro === timelineAttivita[0].macro_fase) {
                     subStatoImpostato = currentCommessa.preventivo_stato || timelineAttivita[0].sub_stato || defaultSottofaseIniziale;
                 }
@@ -904,18 +907,30 @@
                 }
             }
 
+            // 3. Forza l'aggiornamento immediato del badge a schermo
             const badgeFaseWorkspace = document.getElementById('commessaBadgeStato');
             if(badgeFaseWorkspace) {
                 badgeFaseWorkspace.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata;
                 badgeFaseWorkspace.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseImpostata}`;
             }
 
+            // 4. Esegui il binding dei campi select nell'esatto ordine cronologico del DOM
             document.getElementById('commessaMacroSelect').value = macroFaseImpostata;
             gestisciVisibilitaFinanziamentoBox(macroFaseImpostata);
             document.getElementById('checkFinanziamentoAttivo').checked = isFinanz;
 
+            // Rigenera le opzioni prima di forzare la selezione
             popolaSubStatoMenu(macroFaseImpostata, isFinanz);
-            document.getElementById('subStatoAvanzamentoSelect').value = subStatoImpostato;
+            
+            // Fallback di sicurezza: se il valore salvato non esiste nel menu, aggancia il primo elemento
+            const menuSottofaseHTML = document.getElementById('subStatoAvanzamentoSelect');
+            if (menuSottofaseHTML) {
+                menuSottofaseHTML.value = subStatoImpostato;
+                if (menuSottofaseHTML.value !== subStatoImpostato && menuSottofaseHTML.options.length > 0) {
+                    menuSottofaseHTML.selectedIndex = 0;
+                    subStatoImpostato = menuSottofaseHTML.value;
+                }
+            }
             
             document.getElementById('workerContattoSelect').value = operatorePredefinito;
             document.getElementById('workerAssegnatoSelect').value = currentCommessa.preventivo_assegnato_a || '';
@@ -923,6 +938,7 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
+            // Sincronizza i box dipendenti dallo stato
             gestisciVisibilitaTabellaOrdini(macroFaseImpostata, subStatoImpostato);
 
             document.getElementById('ordineFornitoreSelect').value = "";
