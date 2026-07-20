@@ -489,10 +489,11 @@
 
         const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
+        // AGGIORNATO: Rinominata l'etichetta visualizzata in "Misure"
         const subStatiOpzioni = {
             'PRIMO_CONTATTO': [{val: 'INFO', label: '📞 Preso contatto / Richiesta informazioni'}],
             'PREVENTIVAZIONE': [
-                {val: 'SOPRALLUOGO', label: '📐 Sopralluogo Preventivo'},
+                {val: 'SOPRALLUOGO', label: '📐 Misure'},
                 {val: 'IN_CORSO', label: '⏳ In Corso (Richieste prezzi o sviluppo)'},
                 {val: 'PRONTO_DA_SPEDIRE', label: '📦 Da Controllare'},
                 {val: 'INVIATO_CONSEGNATO', label: '📬 Inviato / Consegnato al cliente'},
@@ -863,6 +864,7 @@
             });
         }
 
+        // FIXED: Corretto allineamento visivo del Workspace all'apertura per riflettere lo stato esatto calcolato
         async function openCommessaWorkspace(commessaId) {
             const cliente = allClients.find(c => c.id === currentClienteId);
             currentCommessa = cliente.commesse.find(com => com.id === commessaId);
@@ -884,17 +886,19 @@
                 .order('data_attivita', { ascending: false })
                 .order('creato_il', { ascending: false });
 
+            // Sincronizza lo stato partendo direttamente da quello consolidato sulla commessa
             let macroFaseImpostata = currentCommessa.stato_macro || 'PRIMO_CONTATTO';
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             
-            // AGGIORNATO: Assicura un valore iniziale di default coerente se la sottofase nel db è null
             let defaultSottofaseIniziale = isFinanz ? sottofasiFinanziamento[0].val : (subStatiOpzioni[macroFaseImpostata] ? subStatiOpzioni[macroFaseImpostata][0].val : 'GENERICO');
             let subStatoImpostato = currentCommessa.preventivo_stato || defaultSottofaseIniziale;
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
+            // Se la commessa ha già subito promozioni salvate a DB ma differisce dall'ultima nota del diario, diamo priorità al DB corrente
             if (timelineAttivita && timelineAttivita.length > 0) {
-                macroFaseImpostata = timelineAttivita[0].macro_fase;
-                subStatoImpostato = timelineAttivita[0].sub_stato || defaultSottofaseIniziale;
+                if (currentCommessa.stato_macro === timelineAttivita[0].macro_fase) {
+                    subStatoImpostato = currentCommessa.preventivo_stato || timelineAttivita[0].sub_stato || defaultSottofaseIniziale;
+                }
                 if (timelineAttivita[0].operatore_id) {
                     operatorePredefinito = timelineAttivita[0].operatore_id;
                 }
@@ -941,7 +945,6 @@
             navigateTo('detail');
         }
 
-        // AGGIORNATO: Controlla visibilità e gestisce la dicitura dell'asterisco obbligatorietà a schermo
         function gestisciVisibilitaTabellaOrdini(macroFase, subStato) {
             const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
             const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
@@ -1280,7 +1283,6 @@
             select.innerHTML = opzioni.map(op => `<option value="${op.val}">${op.label}</option>`).join('');
         }
 
-        // AGGIORNATO: Validazione condizionata per PRE_ORDINI e correzione del calcolo indici per il workflow automatico
         async function saveFaseLavorazioneConDati() {
             const macroFaseScelta = document.getElementById('commessaMacroSelect').value;
             const subStatoScelto = document.getElementById('subStatoAvanzamentoSelect').value;
@@ -1295,13 +1297,11 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            // Controlla obbligatorietà operatore obbligatoria ovunque
             if(!op1Value) {
                 alert("L'operatore incaricato è un campo obbligatorio!");
                 return;
             }
 
-            // AGGIORNATO: Rilassata l'obbligatorietà delle note esclusivamente per la sottofase PRE_ORDINI
             if(subStatoScelto !== 'PRE_ORDINI' && !annotazioni) { 
                 alert("Le annotazioni sono obbligatorie per registrare l'attività!"); 
                 return; 
@@ -1329,7 +1329,6 @@
                     ? sottofasiFinanziamento 
                     : (subStatiOpzioni[macroFaseScelta] || []);
                 
-                // FIXED: Cerca l'indice basandosi rigidamente sul valore stringa (codice) per evitare disallineamenti
                 const indiceSottofaseAttuale = elencoSottofasiCorrenti.findIndex(o => o.val === subStatoScelto);
 
                 if (indiceSottofaseAttuale !== -1 && indiceSottofaseAttuale < elencoSottofasiCorrenti.length - 1) {
@@ -1345,7 +1344,6 @@
 
                 let valoreFinanziamentoDB = (prossimaMacroFase === 'FATTURA_ACCONTO' && isFinanziamentoAttivo) ? 'FINANZIAMENTO_ATTIVO' : null;
 
-                // Salva lo stato avanzato a database
                 await db.from('commesse').update({ 
                     stato_macro: prossimaMacroFase,
                     preventivo_stato: prossimoSubStato,
@@ -1357,7 +1355,6 @@
                 document.getElementById('faseAnnotazioniInput').value = "";
                 alert("🟢 Attività registrata ed avanzamento automatico applicato con successo!");
                 
-                // Aggiorna la cache in memoria e riallinea il Workspace sul cantiere attuale
                 const { data: dataAggiornata } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (dataAggiornata) allClients = dataAggiornata;
 
@@ -1545,7 +1542,7 @@
                 } else {
                     datiCommessa.cliente_id = currentClienteId;
                     datiCommessa.stato_macro = 'PRIMO_CONTATTO';
-                    datiCommessa.preventivo_stato = 'INFO'; // Forza subito la sottofase standard
+                    datiCommessa.preventivo_stato = 'INFO'; 
                     await db.from('commesse').insert([datiCommessa]);
                 }
                 closeCommessaModal(); 
