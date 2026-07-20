@@ -144,7 +144,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
-                <select id="subStatoAvanzamentoSelect" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
+                <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
@@ -178,57 +178,57 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
-            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI -->
-            <div id="boxSezioneOrdiniFornitori" class="hidden bg-slate-900 text-white p-4 rounded-2xl border border-slate-700 space-y-3">
-                <div class="border-b border-slate-700 pb-1.5 flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">📦 Gestione Ordini ai Fornitori</h3>
-                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200">STATO</span>
+            <!-- MODULO RELAZIONALE: ORDINI AI FORNITORI - AZZURRO PASTELLO TRASPARENTE -->
+            <div id="boxSezioneOrdiniFornitori" class="hidden bg-sky-100/70 text-slate-900 p-4 rounded-2xl border border-sky-200 space-y-3">
+                <div class="border-b border-sky-200/80 pb-1.5 flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">📦 Gestione Ordini ai Fornitori</h3>
+                    <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-200 text-sky-800">STATO</span>
                 </div>
                 
                 <div class="space-y-2 text-xs">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Fornitore *</label>
-                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-semibold"></select>
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
+                            <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold"></select>
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Materiale / Prodotto *</label>
-                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
+                            <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-slate-300 text-[10px] mb-1">Data Invio Doc *</label>
-                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
+                            <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
                         </div>
                         <div id="boxDataArrivoPresunta">
-                            <label class="block font-bold text-amber-300 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
-                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white font-medium">
+                            <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                            <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-medium">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-slate-300 text-[10px] mb-1">Note Ordine / Fornitore</label>
-                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-slate-800 border-slate-700 text-white">
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
+                        <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800">
                     </div>
 
-                    <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <div class="text-[10px] text-slate-400 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                    <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine/Conferma:</div>
                         <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
                             📎 Carica PDF
                             <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
                         </label>
                     </div>
-                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-400 font-bold italic hidden"></div>
+                    <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
 
-                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl font-bold tracking-wide transition-colors">
+                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow">
                         ➕ Registra Fornitura nel Cantiere
                     </button>
                 </div>
 
-                <div class="space-y-1.5 pt-2 border-t border-slate-700">
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
+                <div class="space-y-1.5 pt-2 border-t border-sky-200/80">
+                    <div class="text-[10px] font-bold text-sky-800 uppercase tracking-wide">Forniture collegate a questa commessa:</div>
                     <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
                 </div>
             </div>
@@ -322,8 +322,12 @@
         </div>
     </main>
 
+    <!-- NAVIGATION BAR NAVIGAZIONE RAPIDA: AGGIUNTO IL TASTO HOME -->
     <nav class="bg-slate-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-lg safe-bottom">
         <div class="max-w-md mx-auto flex justify-around items-center py-2 text-center text-xs">
+            <button id="navBtnHome" onclick="navigateTo('main')" class="flex flex-col items-center text-slate-400 flex-1">
+                <span class="text-lg">🏠</span><span>Home</span>
+            </button>
             <button id="navBtnClienti" onclick="navigateTo('main')" class="flex flex-col items-center text-blue-600 font-semibold flex-1">
                 <span class="text-lg">👥</span><span>Clienti</span>
             </button>
@@ -542,14 +546,17 @@
             if(document.getElementById('detailScreen')) document.getElementById('detailScreen').classList.add('hidden');
             if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.add('hidden');
             
+            const btnHome = document.getElementById('navBtnHome');
             const btnClienti = document.getElementById('navBtnClienti');
             const btnSettings = document.getElementById('navBtnImpostazioni');
+            if(btnHome) btnHome.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnClienti) btnClienti.className = "flex flex-col items-center text-slate-400 flex-1";
             if(btnSettings) btnSettings.className = "flex flex-col items-center text-slate-400 flex-1";
 
             if (screen === 'main') {
                 if(document.getElementById('mainScreen')) document.getElementById('mainScreen').classList.remove('hidden');
                 if(btnClienti) btnClienti.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
+                if(btnHome) btnHome.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
                 fetchClienti();
             } else if (screen === 'hub') {
                 if(document.getElementById('clientHubScreen')) document.getElementById('clientHubScreen').classList.remove('hidden');
@@ -809,11 +816,10 @@
             let isFinanz = currentCommessa.descrizione_lavoro === 'FINANZIAMENTO_ATTIVO';
             let operatorePredefinito = currentCommessa.contatto_gestito_da || '';
 
-            // 🌟 RIALLINEAMENTO INTERFACCIA E BADGE SCHEDA IN ALTO A SINISTRA
+            // RIALLINEAMENTO INTERFACCIA E BADGE SCHEDA IN ALTO A SINISTRA
             const badgeEl = document.getElementById('commessaBadgeStato');
             if (badgeEl) {
                 badgeEl.innerText = macroFaseImpostata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : macroFaseImpostata.replace('_', ' ');
-                // Pulisce le classi colore precedenti e assegna la nuova
                 badgeEl.className = `text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${macroFaseImpostata}`;
             }
 
@@ -853,24 +859,6 @@
             document.getElementById('faseAnnotazioniInput').value = "";
             document.getElementById('charCounter').innerText = "0 / 150";
 
-            // Attivazione Box Ordini
-            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
-            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
-            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
-            
-            if (macroFaseImpostata === 'MISURE_ESECUTIVE' || macroFaseImpostata === 'ORDINI_FORNITORI' || workflowOrdered.indexOf(macroFaseImpostata) > 2) {
-                boxOrdini.classList.remove('hidden');
-                if (macroFaseImpostata === 'MISURE_ESECUTIVE') {
-                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
-                    boxDataArrivo.classList.add('opacity-40'); 
-                } else {
-                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
-                    boxDataArrivo.classList.remove('opacity-40');
-                }
-            } else {
-                boxOrdini.classList.add('hidden');
-            }
-
             document.getElementById('ordineFornitoreSelect').value = "";
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
@@ -884,7 +872,7 @@
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
             aggiornaSelettoreCategorie(macroFaseImpostata); 
-            handleSubStatoChange(); 
+            handleSubStatoChange(); // 🌟 Innesca il controllo corretto sulla visibilità della tabella ordini
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             fetchAllegatiDrive(); 
             fetchOrdiniFornituresDellaCommessa();
@@ -940,7 +928,7 @@
                 const { error } = await db.from('ordini_fornitori').insert([{
                     commessa_id: currentCommessaId,
                     fornitore_id: fornitoreId,
-                    prodotto: prodotto,
+                    prodotto: producto,
                     tipo_documento: tipoDoc,
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
@@ -968,43 +956,43 @@
 
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-[11px] text-slate-400 italic text-left">Nessun ordine o materiale registrato.</p>`;
+                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato.</p>`;
                     return;
                 }
 
                 data.forEach(o => {
                     const row = document.createElement('div');
-                    row.className = "bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1";
+                    row.className = "bg-white border border-slate-200 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1 shadow-sm text-slate-800";
                     
                     const fParti = o.data_invio.split('-');
                     const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
 
-                    let dataArrivoLeggibile = "<span class='text-slate-500'>Non comunicata</span>";
+                    let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
                     if (o.data_presunta_arrivo) {
                         const arrParti = o.data_presunta_arrivo.split('-');
-                        dataArrivoLeggibile = `<span class='text-amber-400 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                        dataArrivoLeggibile = `<span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
                     }
 
                     let btnPdfHtml = '';
                     if (o.file_path_supabase) {
                         const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-400 font-bold underline ml-2">Vedi PDF</a>`;
+                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-2">Vedi PDF</a>`;
                     }
 
                     row.innerHTML = `
                         <div class="flex-1 min-w-0 text-left">
                             <div class="flex items-center space-x-1">
-                                <span class="px-1 py-0.2 bg-slate-700 text-[9px] font-bold rounded ${o.tipo_documento==='ORDINE'?'text-blue-300':'text-purple-300'}">${o.tipo_documento}</span>
-                                <strong class="text-white">${o.fornitori?.nome || 'N/D'}</strong> 
-                                <span class="text-slate-400">(${o.prodotto})</span>
+                                <span class="px-1 py-0.2 bg-slate-200 text-[9px] font-bold rounded text-slate-700">${o.tipo_documento}</span>
+                                <strong class="text-slate-900">${o.fornitori?.nome || 'N/D'}</strong> 
+                                <span class="text-slate-500">(${o.prodotto})</span>
                             </div>
-                            <div class="text-slate-300 mt-1 text-[11px]">
+                            <div class="text-slate-600 mt-1 text-[11px]">
                                 Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
                             </div>
                         </div>
                         <div class="flex space-x-1 shrink-0">
-                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-700 text-slate-300 rounded-lg">✏️</button>
-                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-950 text-red-400 rounded-lg font-bold">✕</button>
+                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 text-slate-600 rounded-lg border">✏️</button>
+                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-50 text-red-600 rounded-lg border border-red-100 font-bold">✕</button>
                         </div>
                     `;
                     container.appendChild(row);
@@ -1135,6 +1123,24 @@
             } else {
                 boxAllerta.classList.add('hidden');
                 inputAllerta.value = "";
+            }
+
+            // 🌟 CONTROLLO RIGIDO VISIBILITÀ TABELLA ORDINI CONDIVISA
+            const boxOrdini = document.getElementById('boxSezioneOrdiniFornitori');
+            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
+            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
+            
+            if (macroFase === 'ORDINI_FORNITORI' || (macroFase === 'MISURE_ESECUTIVE' && subStato === 'PRE_ORDINI')) {
+                boxOrdini.classList.remove('hidden');
+                if (macroFase === 'MISURE_ESECUTIVE') {
+                    badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
+                    boxDataArrivo.classList.add('opacity-40'); 
+                } else {
+                    badgeTipoDoc.innerText = "CONFERMA D'ORDINE (FASE 5)";
+                    boxDataArrivo.classList.remove('opacity-40');
+                }
+            } else {
+                boxOrdini.classList.add('hidden');
             }
         }
 
