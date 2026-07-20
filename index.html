@@ -53,18 +53,18 @@
 
             <!-- Griglia di Filtri Avanzati -->
             <div class="flex flex-col space-y-1 bg-slate-200/80 p-1.5 rounded-xl text-[10px] font-bold text-slate-600 shadow-inner">
-                <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti</button>
+                <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti (0)</button>
                 <div class="grid grid-cols-4 gap-1">
-                    <button id="btnFilter-PRIMO_CONTATTO" onclick="switchClientFilter('PRIMO_CONTATTO')" class="py-1 text-center rounded-md transition-all truncate">📞 Contatti</button>
-                    <button id="btnFilter-PREVENTIVAZIONE" onclick="switchClientFilter('PREVENTIVAZIONE')" class="py-1 text-center rounded-md transition-all truncate">📄 Prev.</button>
-                    <button id="btnFilter-MISURE_ESECUTIVE" onclick="switchClientFilter('MISURE_ESECUTIVE')" class="py-1 text-center rounded-md transition-all truncate">📐 Misure</button>
-                    <button id="btnFilter-FATTURA_ACCONTO" onclick="switchClientFilter('FATTURA_ACCONTO')" class="py-1 text-center rounded-md transition-all truncate">💰 Acconti</button>
+                    <button id="btnFilter-PRIMO_CONTATTO" onclick="switchClientFilter('PRIMO_CONTATTO')" class="py-1 text-center rounded-md transition-all truncate">📞 Contatti (0)</button>
+                    <button id="btnFilter-PREVENTIVAZIONE" onclick="switchClientFilter('PREVENTIVAZIONE')" class="py-1 text-center rounded-md transition-all truncate">📄 Prev. (0)</button>
+                    <button id="btnFilter-MISURE_ESECUTIVE" onclick="switchClientFilter('MISURE_ESECUTIVE')" class="py-1 text-center rounded-md transition-all truncate">📐 Misure (0)</button>
+                    <button id="btnFilter-FATTURA_ACCONTO" onclick="switchClientFilter('FATTURA_ACCONTO')" class="py-1 text-center rounded-md transition-all truncate">💰 Acconti (0)</button>
                 </div>
                 <div class="grid grid-cols-4 gap-1">
-                    <button id="btnFilter-ORDINI_FORNITORI" onclick="switchClientFilter('ORDINI_FORNITORI')" class="py-1 text-center rounded-md transition-all truncate">📦 Ordini</button>
-                    <button id="btnFilter-INSTALLAZIONE" onclick="switchClientFilter('INSTALLAZIONE')" class="py-1 text-center rounded-md transition-all truncate">🔧 Posa</button>
-                    <button id="btnFilter-SALDO_CONCLUSO" onclick="switchClientFilter('SALDO_CONCLUSO')" class="py-1 text-center rounded-md transition-all truncate">💵 Saldi</button>
-                    <button id="btnFilter-ASSISTENZA_POST" onclick="switchClientFilter('ASSISTENZA_POST')" class="py-1 text-center rounded-md transition-all truncate">🛠️ Post</button>
+                    <button id="btnFilter-ORDINI_FORNITORI" onclick="switchClientFilter('ORDINI_FORNITORI')" class="py-1 text-center rounded-md transition-all truncate">📦 Ordini (0)</button>
+                    <button id="btnFilter-INSTALLAZIONE" onclick="switchClientFilter('INSTALLAZIONE')" class="py-1 text-center rounded-md transition-all truncate">🔧 Posa (0)</button>
+                    <button id="btnFilter-SALDO_CONCLUSO" onclick="switchClientFilter('SALDO_CONCLUSO')" class="py-1 text-center rounded-md transition-all truncate">💵 Saldi (0)</button>
+                    <button id="btnFilter-ASSISTENZA_POST" onclick="switchClientFilter('ASSISTENZA_POST')" class="py-1 text-center rounded-md transition-all truncate">🛠️ Post (0)</button>
                 </div>
             </div>
         </div>
@@ -605,17 +605,30 @@
                 if (error) throw error;
                 allClients = data || [];
                 
-                aggiornaBadgeAlertFasi();
+                aggiornaBadgeEConteggiFasi();
                 renderClientsList();
             } catch (err) { console.error(err); }
         }
 
-        function aggiornaBadgeAlertFasi() {
+        // 🌟 SISTEMA DINAMICO DI CALCOLO DEL NUMERO DI RECORD E STATO ALLERTE
+        function aggiornaBadgeEConteggiFasi() {
             const fasiConAlert = {
                 'PREVENTIVAZIONE': false,
                 'MISURE_ESECUTIVE': false,
                 'FATTURA_ACCONTO': false,
                 'SALDO_CONCLUSO': false
+            };
+
+            // Mappatura contatori real-time basati sull'ultimo diario di ogni commessa
+            const contatoriFasi = {
+                'PRIMO_CONTATTO': 0,
+                'PREVENTIVAZIONE': 0,
+                'MISURE_ESECUTIVE': 0,
+                'FATTURA_ACCONTO': 0,
+                'ORDINI_FORNITORI': 0,
+                'INSTALLAZIONE': 0,
+                'SALDO_CONCLUSO': 0,
+                'ASSISTENZA_POST': 0
             };
 
             const oggi = new Date();
@@ -624,18 +637,23 @@
             const defaultFatt = parseInt(localStorage.getItem('cfg_days_fatture') || "5");
 
             allClients.forEach(c => {
-                if (!c.commesse) return;
+                if (!c.commesse || c.commesse.length === 0) return;
+                
+                // Mappa per tracciare le fasi univoche attive su questo singolo cliente
+                const fasiTrovatePerCliente = new Set();
+
                 c.commesse.forEach(com => {
-                    let macro = com.stato_macro;
+                    let macro = com.stato_macro || 'PRIMO_CONTATTO';
                     let sub = com.preventivo_stato;
 
-                    // Riallineamento macro basato su storico per precisione allerta
                     if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
                         const ord = [...com.status_diario_attivita].sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
-                        macro = ord[0].macro_fase || com.stato_macro;
+                        macro = ord[0].macro_fase || 'PRIMO_CONTATTO';
                         sub = ord[0].sub_stato || com.preventivo_stato;
                     }
                     
+                    fasiTrovatePerCliente.add(macro);
+
                     let targetSottofase = false;
                     let giorniLimite = 7;
 
@@ -665,6 +683,11 @@
                         }
                     }
                 });
+
+                // Aggiunge 1 al contatore della fase per ogni cantiere che si trova in quello stato
+                fasiTrovatePerCliente.forEach(f => {
+                    if (contatoriFasi[f] !== undefined) contatoriFasi[f]++;
+                });
             });
 
             const etichetteBasi = {
@@ -678,10 +701,17 @@
                 'ASSISTENZA_POST': '🛠️ Post'
             };
 
-            for (const [fase, haAlert] of Object.entries(fasiConAlert)) {
+            // Aggiorna la label globale superiore (Tutti i Clienti)
+            const btnAll = document.getElementById('btnFilter-all');
+            if (btnAll) btnAll.innerText = `Tutti i Clienti (${allClients.length})`;
+
+            // Aggiorna le singole griglie dei filtri con il numero esatto (X)
+            for (const [fase, quantita] of Object.entries(contatoriFasi)) {
                 const btn = document.getElementById(`btnFilter-${fase}`);
                 if (btn) {
-                    btn.innerText = haAlert ? `🔴 ${etichetteBasi[fase]}` : etichetteBasi[fase];
+                    const haAlert = fasiConAlert[fase];
+                    const prefissoAllerta = haAlert ? '🔴 ' : '';
+                    btn.innerText = `${prefissoAllerta}${etichetteBasi[fase]} (${quantita})`;
                 }
             }
         }
@@ -713,7 +743,6 @@
             renderClientsList();
         }
 
-        // 🌟 SISTEMA DI FILTRAZIONE RIALLINEATO AL DIARIO STORICO REAL-TIME
         function renderClientsList() {
             const container = document.getElementById('clientList'); 
             if (!container) return; container.innerHTML = "";
@@ -727,7 +756,6 @@
                 listFiltrata = allClients.filter(c => {
                     if (!c.commesse || c.commesse.length === 0) return false;
                     
-                    // Rileva lo stato effettivo estraendo l'ultimo evento della timeline di ogni commessa
                     return c.commesse.some(com => {
                         let faseReale = com.stato_macro || 'PRIMO_CONTATTO';
                         if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
@@ -1336,7 +1364,7 @@
             }
             
             if (!pendingDeleteAction) {
-                alert("⚠️ Nessuna azione di cancellazione pendente trouvata.");
+                alert("⚠️ Nessuna azione di cancellazione pendente trovata.");
                 return;
             }
 
