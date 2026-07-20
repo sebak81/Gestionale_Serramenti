@@ -626,8 +626,15 @@
             allClients.forEach(c => {
                 if (!c.commesse) return;
                 c.commesse.forEach(com => {
-                    const macro = com.stato_macro;
-                    const sub = com.preventivo_stato;
+                    let macro = com.stato_macro;
+                    let sub = com.preventivo_stato;
+
+                    // Riallineamento macro basato su storico per precisione allerta
+                    if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                        const ord = [...com.status_diario_attivita].sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
+                        macro = ord[0].macro_fase || com.stato_macro;
+                        sub = ord[0].sub_stato || com.preventivo_stato;
+                    }
                     
                     let targetSottofase = false;
                     let giorniLimite = 7;
@@ -706,6 +713,7 @@
             renderClientsList();
         }
 
+        // 🌟 SISTEMA DI FILTRAZIONE RIALLINEATO AL DIARIO STORICO REAL-TIME
         function renderClientsList() {
             const container = document.getElementById('clientList'); 
             if (!container) return; container.innerHTML = "";
@@ -718,7 +726,16 @@
             if (activeFilter !== 'all') {
                 listFiltrata = allClients.filter(c => {
                     if (!c.commesse || c.commesse.length === 0) return false;
-                    return c.commesse.some(com => com.stato_macro === activeFilter);
+                    
+                    // Rileva lo stato effettivo estraendo l'ultimo evento della timeline di ogni commessa
+                    return c.commesse.some(com => {
+                        let faseReale = com.stato_macro || 'PRIMO_CONTATTO';
+                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                            const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
+                            faseReale = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
+                        }
+                        return faseReale === activeFilter;
+                    });
                 });
             }
 
@@ -866,7 +883,6 @@
             navigateTo('detail');
         }
 
-        // FUNZIONE DI RENDERING DELLA TAB INTERAMENTE SEPARATA PER GLI ORDINI
         function renderOrdersTabScreen() {
             const titleEl = document.getElementById('ordersCommessaTitle');
             const boxFornitori = document.getElementById('boxSezioneOrdiniFornitori');
@@ -906,7 +922,6 @@
             fetchOrdiniFornituresDellaCommessa();
         }
 
-        // Listener PDF Ordine
         setTimeout(() => {
             document.getElementById('fileOrdinePdfInput')?.addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -1321,7 +1336,7 @@
             }
             
             if (!pendingDeleteAction) {
-                alert("⚠️ Nessuna azione di cancellazione pendente trovata.");
+                alert("⚠️ Nessuna azione di cancellazione pendente trouvata.");
                 return;
             }
 
