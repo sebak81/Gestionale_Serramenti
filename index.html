@@ -577,6 +577,72 @@
             return mb.toFixed(1) + ' MB';
         }
 
+        function calcolaAllertETextCommessa(com) {
+            let macro = com.stato_macro || 'PRIMO_CONTATTO';
+            let sub = com.preventivo_stato;
+
+            if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                const ord = [...com.status_diario_attivita].sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
+                macro = ord[0].macro_fase || 'PRIMO_CONTATTO';
+                sub = ord[0].sub_stato || com.preventivo_stato;
+            }
+
+            // Regola speciale richiesta: "Contratto Firmato" fa sempre apparire la scritta visibile
+            if (macro === 'MISURE_ESECUTIVE' && sub === 'FIRMATO_CONFERMATO') {
+                return { haAlert: false, testoAlert: 'INVIARE ORDINI / CONFERME', classe: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+            }
+
+            const oggi = new Date();
+            const defaultPrev = parseInt(localStorage.getItem('cfg_days_preventivi') || "7");
+            const defaultContr = parseInt(localStorage.getItem('cfg_days_contratti') || "7");
+            const defaultFatt = parseInt(localStorage.getItem('cfg_days_fatture') || "5");
+
+            let targetSottofase = false;
+            let giorniLimite = 7;
+            let testoEtichetta = 'ATTENZIONE SCADENZA';
+
+            if (macro === 'PREVENTIVAZIONE' && sub === 'INVIATO_CONSEGNATO') { 
+                targetSottofase = true; 
+                giorniLimite = defaultPrev; 
+                testoEtichetta = 'DA RICHIAMARE';
+            } else if (macro === 'MISURE_ESECUTIVE' && sub === 'INVIATO_CONSEGNA') { 
+                targetSottofase = true; 
+                giorniLimite = defaultContr; 
+                testoEtichetta = 'NON HANNO ANCORA FIRMATO';
+            } else if (macro === 'FATTURA_ACCONTO' && (sub === 'FATTURA_INVIATA' || sub === 'FATTURA_INVIATA_FIN')) { 
+                targetSottofase = true; 
+                giorniLimite = defaultFatt; 
+                testoEtichetta = 'VERIFICARE ACCONTO';
+            } else if (macro === 'SALDO_CONCLUSO' && sub === 'SALDO_INVIATO') { 
+                targetSottofase = true; 
+                giorniLimite = defaultFatt; 
+                testoEtichetta = 'VERIFICARE SALDO';
+            }
+
+            if (targetSottofase && com.status_diario_attivita && com.status_diario_attivita.length > 0) {
+                const noteOrdinate = com.status_diario_attivita
+                    .filter(n => n.macro_fase === macro && n.sub_stato === sub)
+                    .sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
+
+                if (noteOrdinate.length > 0) {
+                    const ultimaNota = noteOrdinate[0];
+                    if (ultimaNota.giorni_allerta !== null) {
+                        giorniLimite = ultimaNota.giorni_allerta;
+                    }
+
+                    const dataAttivita = new Date(ultimaNota.data_attivita);
+                    const diffTempo = Math.abs(oggi - dataAttivita);
+                    const giorniTrascorsi = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+
+                    if (giorniTrascorsi > giorniLimite) {
+                        return { haAlert: true, testoAlert: testoEtichetta, classe: 'bg-red-100 text-red-700 border-red-300' };
+                    }
+                }
+            }
+
+            return { haAlert: false, testoAlert: null, classe: '' };
+        }
+
         function inizializzaCalendarioOggi() {
             const oggi = new Date();
             const anno = oggi.getFullYear();
@@ -692,11 +758,6 @@
                 'ASSISTENZA_POST': 0
             };
 
-            const oggi = new Date();
-            const defaultPrev = parseInt(localStorage.getItem('cfg_days_preventivi') || "7");
-            const defaultContr = parseInt(localStorage.getItem('cfg_days_contratti') || "7");
-            const defaultFatt = parseInt(localStorage.getItem('cfg_days_fatture') || "5");
-
             allClients.forEach(c => {
                 if (!c.commesse || c.commesse.length === 0) return;
                 
@@ -704,43 +765,11 @@
 
                 c.commesse.forEach(com => {
                     let macro = com.stato_macro || 'PRIMO_CONTATTO';
-                    let sub = com.preventivo_stato;
-
-                    if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                        const ord = [...com.status_diario_attivita].sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
-                        macro = ord[0].macro_fase || 'PRIMO_CONTATTO';
-                        sub = ord[0].sub_stato || com.preventivo_stato;
-                    }
-                    
                     fasiTrovatePerCliente.add(macro);
 
-                    let targetSottofase = false;
-                    let giorniLimite = 7;
-
-                    if (macro === 'PREVENTIVAZIONE' && sub === 'INVIATO_CONSEGNATO') { targetSottofase = true; giorniLimite = defaultPrev; }
-                    else if (macro === 'MISURE_ESECUTIVE' && sub === 'INVIATO_CONSEGNA') { targetSottofase = true; giorniLimite = defaultContr; }
-                    else if (macro === 'FATTURA_ACCONTO' && (sub === 'FATTURA_INVIATA' || sub === 'FATTURA_INVIATA_FIN')) { targetSottofase = true; giorniLimite = defaultFatt; }
-                    else if (macro === 'SALDO_CONCLUSO' && sub === 'SALDO_INVIATO') { targetSottofase = true; giorniLimite = defaultFatt; }
-
-                    if (targetSottofase && com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                        const noteOrdinate = com.status_diario_attivita
-                            .filter(n => n.macro_fase === macro && n.sub_stato === sub)
-                            .sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
-
-                        if (noteOrdinate.length > 0) {
-                            const ultimaNota = noteOrdinate[0];
-                            if (ultimaNota.giorni_allerta !== null) {
-                                giorniLimite = ultimaNota.giorni_allerta;
-                            }
-
-                            const dataAttivita = new Date(ultimaNota.data_attivita);
-                            const diffTempo = Math.abs(oggi - dataAttivita);
-                            const giorniTrascorsi = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
-
-                            if (giorniTrascorsi > giorniLimite) {
-                                fasiConAlert[macro] = true;
-                            }
-                        }
+                    const alertInfo = calcolaAllertETextCommessa(com);
+                    if (alertInfo.haAlert) {
+                        fasiConAlert[macro] = true;
                     }
                 });
 
@@ -855,13 +884,15 @@
                                               (com.titolo_lavoro && com.titolo_lavoro.toLowerCase().includes(term));
                             
                             if (matchTerm) {
+                                const alertData = calcolaAllertETextCommessa(com);
                                 commesseFiltrate.push({
                                     clienteId: c.id,
                                     clienteNome: c.denominazione,
                                     commessaId: com.id,
                                     titolo: com.titolo_lavoro || 'Senza Titolo',
                                     cantiere: com.indirizzo_cantiere || 'N/D',
-                                    fase: faseReale
+                                    fase: faseReale,
+                                    alertInfo: alertData
                                 });
                             }
                         }
@@ -884,13 +915,21 @@
                         openCommessaWorkspace(item.commessaId); 
                     };
                     
+                    let htmlAlertBadge = '';
+                    if (item.alertInfo.testoAlert) {
+                        htmlAlertBadge = `<span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded border ${item.alertInfo.classe}">${item.alertInfo.testoAlert}</span>`;
+                    }
+
                     mainClickable.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded w-max macro-${item.fase}">${item.fase.replace('_', ' ')}</span>
-                            <div class="text-slate-900 font-bold mt-1 truncate">
+                        <div class="flex flex-col space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded macro-${item.fase}">${item.fase.replace('_', ' ')}</span>
+                                ${htmlAlertBadge}
+                            </div>
+                            <div class="text-slate-900 font-bold truncate">
                                 👤 ${item.clienteNome} - <span class="text-blue-600">🚪 ${item.titolo}</span>
                             </div>
-                            <p class="text-xs font-normal text-slate-400 mt-0.5 truncate">📍 Cantiere: ${item.cantiere}</p>
+                            <p class="text-xs font-normal text-slate-400 truncate">📍 Cantiere: ${item.cantiere}</p>
                         </div>
                     `;
                     card.appendChild(mainClickable); container.appendChild(card);
@@ -917,12 +956,21 @@
                     faseRealeRegistrata = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
                 }
 
+                const alertData = calcolaAllertETextCommessa(com);
+                let htmlAlertBadge = '';
+                if (alertData.testoAlert) {
+                    htmlAlertBadge = `<span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded border ${alertData.classe}">${alertData.testoAlert}</span>`;
+                }
+
                 const div = document.createElement('div'); div.className = "bg-white p-4 rounded-xl border flex justify-between items-center text-xs mt-2 font-medium shadow-sm hover:border-slate-300 transition-colors";
                 const mapsUrl = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(com.indirizzo_cantiere)}`;
                 
                 div.innerHTML = `
                 <div class="flex-1 min-w-0 cursor-pointer" onclick="openCommessaWorkspace('${com.id}')">
-                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${faseRealeRegistrata}">${faseRealeRegistrata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : faseRealeRegistrata.replace('_', ' ')}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded macro-${faseRealeRegistrata}">${faseRealeRegistrata === 'ASSISTENZA_POST' ? 'POST-VENDITA' : faseRealeRegistrata.replace('_', ' ')}</span>
+                        ${htmlAlertBadge}
+                    </div>
                     <h4 class="font-bold text-blue-600 mt-1 truncate">${com.titolo_lavoro || 'Senza Titolo'}</h4>
                     <p class="text-slate-500 mt-1 text-[11px] truncate">
                         📍 Cantiere: ${com.indirizzo_cantiere}
@@ -1037,7 +1085,6 @@
             document.getElementById('newOrderModal').classList.add('hidden');
         }
 
-        // SELEZIONE E FILTRAGGIO DINAMICO COMMESSA/CLIENTE NEL MODAL NUOVA FORNITURA
         function filterModalOrderTargetCommesse() {
             const select = document.getElementById('ordineTargetCommessaSelect');
             const term = document.getElementById('modalOrderSearchClientInput').value.toLowerCase().trim();
@@ -1072,7 +1119,6 @@
                 </option>
             `).join('');
 
-            // Se c'è solo un risultato o se abbiamo una commessa attiva, la seleziona automaticamente
             if (opzioni.length === 1) {
                 select.value = opzioni[0].id;
             } else if (currentCommessaId && opzioni.some(o => o.id === currentCommessaId)) {
