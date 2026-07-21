@@ -17,6 +17,8 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         /* Colori dei Macro Stati */
         .macro-PRIMO_CONTATTO { background-color: #f1f5f9; color: #475569; }
@@ -51,7 +53,7 @@
                 </button>
             </div>
 
-            <!-- Griglia di Filtri Avanzati -->
+            <!-- Griglia di Filtri Avanzati per Fasi -->
             <div class="flex flex-col space-y-1 bg-slate-200/80 p-1.5 rounded-xl text-[10px] font-bold text-slate-600 shadow-inner">
                 <button id="btnFilter-all" onclick="switchClientFilter('all')" class="w-full py-1.5 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">Tutti i Clienti (0)</button>
                 <div class="grid grid-cols-4 gap-1">
@@ -122,7 +124,6 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            
             <div>
                 <label id="lblFaseLavorazione" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">1. Fase di Lavorazione</label>
                 <select id="commessaMacroSelect" onchange="handleFaseChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
@@ -193,22 +194,50 @@
         </div>
     </main>
 
-    <!-- SCHERMATA ORDINI E FORNITORI SEPARATA -->
+    <!-- SCHERMATA ORDINI E FORNITORI AVANZATA -->
     <main id="ordersScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <span class="text-[9px] bg-blue-100 text-blue-800 font-bold uppercase px-1.5 py-0.5 rounded">SCHERMATA ORDINI</span>
-                <h2 id="ordersCommessaTitle" class="text-base font-bold text-slate-900 mt-1">Nessuna Commessa Selezionata</h2>
+                <h2 class="text-base font-bold text-slate-900 mt-1">📦 Registro Forniture Globale</h2>
             </div>
         </div>
 
+        <!-- FILTRO DINAMICO FORNITORI (SCROLL ORIZZONTALE) -->
+        <div class="space-y-1">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">Filtra per Fornitore:</label>
+            <div id="containerFiltriFornitori" class="flex space-x-1.5 overflow-x-auto no-scrollbar py-1">
+                <!-- Generato Dinamicamente -->
+            </div>
+        </div>
+
+        <!-- RICERCA CLIENTE & COMMESSA DINAMICA -->
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cerca per Cliente o Cantiere Specifico:</label>
+            <div class="relative">
+                <input type="text" id="searchOrdersClientInput" oninput="handleOrdersSearchInput()" placeholder="Scrivi Cognome/Nome Cliente..." 
+                       class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
+            </div>
+            
+            <select id="selectOrdersCommessaFilter" onchange="renderGlobalOrdersList()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500">
+                <option value="all">-- Tutte le Commesse --</option>
+            </select>
+        </div>
+
+        <!-- REGISTRO NUOVA FORNITURA (APRIBILE O SELEZIONABILE SE C'È UNA COMMESSA ATTIVA) -->
         <div id="boxSezioneOrdiniFornitori" class="bg-sky-100/70 text-slate-900 p-4 rounded-2xl border border-sky-200 space-y-3">
             <div class="border-b border-sky-200/80 pb-1.5 flex justify-between items-center">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">📦 Gestione Ordini ai Fornitori</h3>
-                <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-200 text-sky-800">STATO</span>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">➕ Registra Nuova Fornitura</h3>
+                <span id="badgeTipoDocOrdine" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-200 text-sky-800">NUOVO RECORD</span>
             </div>
             
             <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Seleziona Cantiere Target *</label>
+                    <select id="ordineTargetCommessaSelect" class="w-full p-2 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold"></select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
@@ -246,14 +275,15 @@
                 <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
 
                 <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold tracking-wide transition-colors shadow">
-                    ➕ Registra Fornitura nel Cantiere
+                    ➕ Inserisci Fornitura
                 </button>
             </div>
+        </div>
 
-            <div class="space-y-1.5 pt-2 border-t border-sky-200/80">
-                <div class="text-[10px] font-bold text-sky-800 uppercase tracking-wide">Fornitures collegate a questa commessa:</div>
-                <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
-            </div>
+        <!-- LISTA ORDINI FILTRATA -->
+        <div class="space-y-1.5 pt-2">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide px-1">Elenco Forniture Trovate:</div>
+            <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
         </div>
     </main>
 
@@ -356,8 +386,9 @@
                     <select id="newTipo" class="w-full p-2 border rounded-lg bg-slate-50 font-medium"><option value="PRIVATO">Privato</option><option value="AZIENDA">Azienda</option></select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label>
-                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                    <!-- 🌟 TITOLO AGGIORNATO COME RICHIESTO -->
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">COGNOME e NOME / RAG. SOCIALE *</label>
+                    <input type="text" id="newDenominazione" oninput="checkOmonimiaDoppioni(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold" placeholder="Es. Rossi Mario">
                     <div id="omonimiaSuggestBox" class="mt-2 p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 hidden">
                         <div class="text-[10px] font-bold text-red-600 uppercase tracking-wide">⚠️ Possibili duplicati nel Database:</div>
                         <div id="omonimiaListContainer" class="space-y-1 max-h-24 overflow-y-auto"></div>
@@ -389,7 +420,11 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
-                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Nome / Ragione Sociale *</label><input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold"></div>
+                <div>
+                    <!-- 🌟 TITOLO AGGIORNATO COME RICHIESTO -->
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">COGNOME e NOME / RAG. SOCIALE *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
+                </div>
                 <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
@@ -438,6 +473,7 @@
         let allClients = [];
         let listLavoratori = [];
         let listFornitori = []; 
+        let rawGlobalOrders = []; // Mantiene tutti gli ordini scaricati per filtri veloci
         let temporaryOrderFileObj = null; 
         
         let currentClienteId = null;
@@ -446,6 +482,7 @@
         let omonimiaTimeout = null;
         let pendingDeleteAction = null; 
         let activeFilter = 'all'; 
+        let activeOrderFornitoreFilter = 'all'; // Filtro Fornitore attivo nella schermata ordini
 
         const workflowOrdered = ["PRIMO_CONTATTO", "PREVENTIVAZIONE", "MISURE_ESECUTIVE", "FATTURA_ACCONTO", "ORDINI_FORNITORI", "INSTALLAZIONE", "SALDO_CONCLUSO", "ASSISTENZA_POST"];
 
@@ -558,7 +595,7 @@
             } else if (screen === 'orders') {
                 if(document.getElementById('ordersScreen')) document.getElementById('ordersScreen').classList.remove('hidden');
                 if(btnOrdini) btnOrdini.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
-                renderOrdersTabScreen();
+                initOrdersTabScreen();
             } else if (screen === 'settings') {
                 if(document.getElementById('settingsScreen')) document.getElementById('settingsScreen').classList.remove('hidden');
                 if(btnSettings) btnSettings.className = "flex flex-col items-center text-blue-600 font-semibold flex-1";
@@ -737,7 +774,6 @@
             renderClientsList();
         }
 
-        // 🌟 LOGICA DI VISTA INTELLIGENTE: CLIENTI (VISTA GENERALE) vs COMMESSE (VISTA FILTRATA)
         function renderClientsList() {
             const container = document.getElementById('clientList'); 
             if (!container) return; container.innerHTML = "";
@@ -746,7 +782,6 @@
 
             const term = document.getElementById('searchClient').value.toLowerCase().trim();
             
-            // SE IL FILTRO È "ALL", MOSTRIAMO I NORMALI RECORD DEI CLIENTI
             if (activeFilter === 'all') {
                 let listFiltrata = allClients;
                 if (term.length > 0) {
@@ -776,22 +811,19 @@
                     }
                     card.appendChild(mainClickable); card.appendChild(act); container.appendChild(card);
                 });
-            } 
-            // SE C'È UN FILTRO ATTIVO, MOSTRIAMO LE SINGOLE COMMESSE NELLA SCHERMATA INIZIALE
-            else {
+            } else {
                 let commesseFiltrate = [];
 
                 allClients.forEach(c => {
                     if (!c.commesse) return;
                     c.commesse.forEach(com => {
                         let faseReale = com.stato_macro || 'PRIMO_CONTATTO';
-                        if (com.status_diactivity || (com.status_diario_attivita && com.status_diario_attivita.length > 0)) {
+                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
                             const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
                             faseReale = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
                         }
 
                         if (faseReale === activeFilter) {
-                            // Controllo della stringa di ricerca sia su Cliente che su Titolo Commessa
                             const matchTerm = term.length === 0 || 
                                               c.denominazione.toLowerCase().includes(term) || 
                                               (com.titolo_lavoro && com.titolo_lavoro.toLowerCase().includes(term));
@@ -821,7 +853,6 @@
                     
                     const mainClickable = document.createElement('div');
                     mainClickable.className = "flex-1 min-w-0 text-left";
-                    // Click Diretto: Imposta le variabili globali del contesto e salta direttamente al workspace
                     mainClickable.onclick = () => { 
                         currentClienteId = item.clienteId; 
                         openCommessaWorkspace(item.commessaId); 
@@ -954,33 +985,9 @@
             navigateTo('detail');
         }
 
-        function renderOrdersTabScreen() {
-            const titleEl = document.getElementById('ordersCommessaTitle');
-            const boxFornitori = document.getElementById('boxSezioneOrdiniFornitori');
-            
-            if (!currentCommessaId || !currentCommessa) {
-                titleEl.innerText = "Nessuna commessa selezionata. Apri un cantiere prima.";
-                boxFornitori.classList.add('opacity-40');
-                return;
-            }
-            
-            boxFornitori.classList.remove('opacity-40');
-            titleEl.innerText = `${currentCommessa.titolo_lavoro} - Gestione Forniture`;
-            
-            let macroFaseCorrente = document.getElementById('commessaMacroSelect').value;
-            let subStatoCorrente = document.getElementById('subStatoAvanzamentoSelect').value;
-            const badgeTipoDoc = document.getElementById('badgeTipoDocOrdine');
-            const boxDataArrivo = document.getElementById('boxDataArrivoPresunta');
-            
-            if (macroFaseCorrente === 'MISURE_ESECUTIVE' && subStatoCorrente === 'PRE_ORDINI') {
-                badgeTipoDoc.innerText = "PRE-ORDINE (FASE 3)";
-                boxDataArrivo.classList.add('opacity-40');
-            } else {
-                badgeTipoDoc.innerText = "CONFERMA D'ORDINE / FORNITURA";
-                boxDataArrivo.classList.remove('opacity-40');
-            }
-
-            document.getElementById('ordineFornitoreSelect').value = "";
+        // 🌟 SISTEMA DINAMICO E AVANZATO DELLA SCHERMATA ORDINI
+        async function initOrdersTabScreen() {
+            // reset campi inserimento
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
             document.getElementById('nomeFileOrdineCaricatoText').classList.add('hidden');
@@ -990,7 +997,198 @@
             document.getElementById('ordineDataInvioInput').value = oggi;
             document.getElementById('ordineDataArrivoInput').value = "";
 
-            fetchOrdiniFornituresDellaCommessa();
+            // Popola selettore commesse target nel modulo di inserimento
+            popolaSelectCommesseTarget();
+
+            // Scarica tutti gli ordini per la lista globale
+            await fetchGlobalOrdersData();
+            
+            // Popola chip filtri fornitori
+            renderFiltriFornitoriDinamici();
+
+            // Renderizza lista filtrata
+            renderGlobalOrdersList();
+        }
+
+        function popolaSelectCommesseTarget() {
+            const select = document.getElementById('ordineTargetCommessaSelect');
+            if (!select) return;
+            select.innerHTML = "";
+
+            let opzioni = [];
+            allClients.forEach(c => {
+                if (c.commesse) {
+                    c.commesse.forEach(com => {
+                        opzioni.push({ id: com.id, label: `${c.denominazione} - ${com.titolo_lavoro}` });
+                    });
+                }
+            });
+
+            if (opzioni.length === 0) {
+                select.innerHTML = `<option value="">Nessun cantiere disponibile</option>`;
+                return;
+            }
+
+            select.innerHTML = opzioni.map(o => `<option value="${o.id}" ${o.id === currentCommessaId ? 'selected' : ''}>${o.label}</option>`).join('');
+        }
+
+        async function fetchGlobalOrdersData() {
+            try {
+                const { data, error } = await db
+                    .from('ordini_fornitori')
+                    .select('*, fornitori(nome), commesse(titolo_lavoro, cliente_id, clienti(denominazione))')
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+                rawGlobalOrders = data || [];
+            } catch(err) { console.error("Errore fetch ordini:", err); }
+        }
+
+        function renderFiltriFornitoriDinamici() {
+            const container = document.getElementById('containerFiltriFornitori');
+            if (!container) return;
+
+            // Conteggio ordini per ciascun fornitore
+            const conteggi = {};
+            rawGlobalOrders.forEach(o => {
+                if (o.fornitore_id) {
+                    conteggi[o.fornitore_id] = (conteggi[o.fornitore_id] || 0) + 1;
+                }
+            });
+
+            let html = `
+                <button id="btnFilterOrd-all" onclick="switchOrderFornitoreFilter('all')" 
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${activeOrderFornitoreFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-200 text-slate-700'}">
+                    Tutti (${rawGlobalOrders.length})
+                </button>
+            `;
+
+            listFornitori.forEach(f => {
+                const num = conteggi[f.id] || 0;
+                const isSelected = activeOrderFornitoreFilter === f.id;
+                html += `
+                    <button id="btnFilterOrd-${f.id}" onclick="switchOrderFornitoreFilter('${f.id}')" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${isSelected ? 'bg-blue-600 text-white shadow' : 'bg-slate-200 text-slate-700'}">
+                        🏢 ${f.nome} (${num})
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function switchOrderFornitoreFilter(fornitoreId) {
+            activeOrderFornitoreFilter = fornitoreId;
+            renderFiltriFornitoriDinamici();
+            renderGlobalOrdersList();
+        }
+
+        function handleOrdersSearchInput() {
+            const term = document.getElementById('searchOrdersClientInput').value.toLowerCase().trim();
+            const selectCommessa = document.getElementById('selectOrdersCommessaFilter');
+            selectCommessa.innerHTML = `<option value="all">-- Tutte le Commesse --</option>`;
+
+            if (term.length > 0) {
+                const parole = term.split(/\s+/);
+                
+                // Mappa delle commesse dei clienti trovati
+                allClients.forEach(c => {
+                    const matchCliente = parole.every(p => c.denominazione.toLowerCase().includes(p));
+                    if (matchCliente && c.commesse) {
+                        c.commesse.forEach(com => {
+                            const opt = document.createElement('option');
+                            opt.value = com.id;
+                            opt.innerText = `${c.denominazione} - ${com.titolo_lavoro}`;
+                            selectCommessa.appendChild(opt);
+                        });
+                    }
+                });
+            }
+
+            renderGlobalOrdersList();
+        }
+
+        function renderGlobalOrdersList() {
+            const container = document.getElementById('listaOrdiniCommessaContainer');
+            if (!container) return; container.innerHTML = "";
+
+            const term = document.getElementById('searchOrdersClientInput').value.toLowerCase().trim();
+            const selectedCommessaId = document.getElementById('selectOrdersCommessaFilter').value;
+
+            let ordiniFiltrati = rawGlobalOrders;
+
+            // 1. Filtro Fornitore (Chip)
+            if (activeOrderFornitoreFilter !== 'all') {
+                ordiniFiltrati = ordiniFiltrati.filter(o => o.fornitore_id === activeOrderFornitoreFilter);
+            }
+
+            // 2. Filtro Commessa specifica selezionata
+            if (selectedCommessaId !== 'all') {
+                ordiniFiltrati = ordiniFiltrati.filter(o => o.commessa_id === selectedCommessaId);
+            }
+
+            // 3. Filtro Ricerca Intelligente Nome/Cognome
+            if (term.length > 0) {
+                const parole = term.split(/\s+/);
+                ordiniFiltrati = ordiniFiltrati.filter(o => {
+                    const clienteNome = o.commesse?.clienti?.denominazione || '';
+                    const commessaTitolo = o.commesse?.titolo_lavoro || '';
+                    const prodotto = o.prodotto || '';
+                    const testoCompleto = `${clienteNome} ${commessaTitolo} ${prodotto}`.toLowerCase();
+                    
+                    return parole.every(p => testoCompleto.includes(p));
+                });
+            }
+
+            if (ordiniFiltrati.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic text-center p-4">Nessun ordine trovato con i filtri selezionati.</p>`;
+                return;
+            }
+
+            ordiniFiltrati.forEach(o => {
+                const row = document.createElement('div');
+                row.className = "bg-white border border-slate-200 p-3 rounded-2xl text-xs flex justify-between items-center gap-2 mt-1.5 shadow-sm text-slate-800";
+                
+                const fParti = o.data_invio.split('-');
+                const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
+
+                let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
+                if (o.data_presunta_arrivo) {
+                    const arrParti = o.data_presunta_arrivo.split('-');
+                    dataArrivoLeggibile = `<span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                }
+
+                let btnPdfHtml = '';
+                if (o.file_path_supabase) {
+                    const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
+                    btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-1">Vedi PDF</a>`;
+                }
+
+                const clienteNome = o.commesse?.clienti?.denominazione || 'Cliente N/D';
+                const commessaTitolo = o.commesse?.titolo_lavoro || 'Commessa N/D';
+
+                row.innerHTML = `
+                    <div class="flex-1 min-w-0 text-left">
+                        <div class="text-[11px] font-bold text-slate-900 truncate">
+                            👤 ${clienteNome} - <span class="text-blue-600">🚪 ${commessaTitolo}</span>
+                        </div>
+                        <div class="flex items-center space-x-1 mt-1">
+                            <span class="px-1.5 py-0.2 bg-slate-100 text-[9px] font-bold rounded text-slate-700 border">${o.tipo_documento}</span>
+                            <strong class="text-slate-800">🏢 ${o.fornitori?.nome || 'N/D'}</strong> 
+                            <span class="text-slate-500">(${o.prodotto})</span>
+                        </div>
+                        <div class="text-slate-600 mt-1 text-[11px]">
+                            Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
+                        </div>
+                        ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotazioni}</div>` : ''}
+                    </div>
+                    <div class="flex space-x-1 shrink-0">
+                        <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-2 bg-slate-50 text-slate-600 rounded-xl border">✏️</button>
+                        <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100 font-bold">✕</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
         }
 
         setTimeout(() => {
@@ -1005,21 +1203,15 @@
         }, 1000);
 
         async function salvaNuovoOrdineFornitoreRelazionale() {
+            const targetCommessaId = document.getElementById('ordineTargetCommessaSelect').value;
             const fornitoreId = document.getElementById('ordineFornitoreSelect').value;
             const prodotto = document.getElementById('ordineProdottoInput').value.trim();
             const dataInvio = document.getElementById('ordineDataInvioInput').value;
             const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
-            const operatoreId = currentCommessa.contatto_gestito_da || listLavoratori[0]?.id;
             
-            const macroFaseCorrente = document.getElementById('commessaMacroSelect').value;
-            const subStatoCorrente = document.getElementById('subStatoAvanzamentoSelect').value;
-            const tipoDoc = (macroFaseCorrente === 'MISURE_ESECUTIVE' && subStatoCorrente === 'PRE_ORDINI') ? 'ORDINE' : 'CONFERMA';
-
-            if (!fornitoreId || !prodotto || !dataInvio) {
-                alert("Fornitore, Prodotto e Data Invio sono campi obbligatori!");
-                return;
-            }
+            if (!targetCommessaId) { alert("Seleziona una commessa target!"); return; }
+            if (!fornitoreId || !prodotto || !dataInvio) { alert("Fornitore, Prodotto e Data Invio sono campi obbligatori!"); return; }
 
             let percorsoStoragePdf = null;
             if (temporaryOrderFileObj) {
@@ -1028,7 +1220,7 @@
                         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                         .replace(/[^a-zA-Z0-9.\-_ ]/g, "").replace(/\s+/g, "_");
 
-                    percorsoStoragePdf = `${currentCommessaId}/ordini_${Date.now()}_${nomeSanificato}`;
+                    percorsoStoragePdf = `${targetCommessaId}/ordini_${Date.now()}_${nomeSanificato}`;
                     const { error: errStorage } = await db.storage.from('documenti').upload(percorsoStoragePdf, temporaryOrderFileObj);
                     if (errStorage) throw errStorage;
                 } catch(err) {
@@ -1039,79 +1231,20 @@
 
             try {
                 const { error } = await db.from('ordini_fornitori').insert([{
-                    commessa_id: currentCommessaId,
+                    commessa_id: targetCommessaId,
                     fornitore_id: fornitoreId,
                     prodotto: prodotto,
-                    tipo_documento: tipoDoc,
+                    tipo_documento: 'CONFERMA',
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
-                    operatore_id: operatoreId,
                     annotazioni: note,
                     file_path_supabase: percorsoStoragePdf
                 }]);
 
                 if (error) throw error;
-                alert("✅ Fornitura inserita con successo nel database relazionale!");
-                renderOrdersTabScreen();
+                alert("✅ Fornitura inserita con successo!");
+                initOrdersTabScreen();
             } catch(err) { alert("Errore inserimento database: " + err.message); }
-        }
-
-        async function fetchOrdiniFornituresDellaCommessa() {
-            const container = document.getElementById('listaOrdiniCommessaContainer');
-            if (!container) return; container.innerHTML = "";
-
-            try {
-                const { data, error } = await db
-                    .from('ordini_fornitori')
-                    .select('*, fornitori(nome)')
-                    .eq('commessa_id', currentCommessaId)
-                    .order('creato_il', { ascending: false });
-
-                if (error) throw error;
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-[11px] text-slate-500 italic text-left">Nessun ordine o materiale registrato per questa commessa.</p>`;
-                    return;
-                }
-
-                data.forEach(o => {
-                    const row = document.createElement('div');
-                    row.className = "bg-white border border-slate-200 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2 mt-1 shadow-sm text-slate-800";
-                    
-                    const fParti = o.data_invio.split('-');
-                    const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
-
-                    let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
-                    if (o.data_presunta_arrivo) {
-                        const arrParti = o.data_presunta_arrivo.split('-');
-                        dataArrivoLeggibile = `<span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
-                    }
-
-                    let btnPdfHtml = '';
-                    if (o.file_path_supabase) {
-                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-2">Vedi PDF</a>`;
-                    }
-
-                    row.innerHTML = `
-                        <div class="flex-1 min-w-0 text-left">
-                            <div class="flex items-center space-x-1">
-                                <span class="px-1 py-0.2 bg-slate-200 text-[9px] font-bold rounded text-slate-700">${o.tipo_documento}</span>
-                                <strong class="text-slate-900">${o.fornitori?.nome || 'N/D'}</strong> 
-                                <span class="text-slate-500">(${o.prodotto})</span>
-                            </div>
-                            <div class="text-slate-600 mt-1 text-[11px]">
-                                Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
-                            </div>
-                            ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotazioni}</div>` : ''}
-                        </div>
-                        <div class="flex space-x-1 shrink-0">
-                            <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-1.5 bg-slate-100 text-slate-600 rounded-lg border">✏️</button>
-                            <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-50 text-red-600 rounded-lg border border-red-100 font-bold">✕</button>
-                        </div>
-                    `;
-                    container.appendChild(row);
-                });
-            } catch(err) { console.error(err); }
         }
 
         function apriModalModificaDataOrdinePost(ordineId, dataArrivoAttuale, noteAttuali) {
@@ -1135,7 +1268,7 @@
                 
                 closeOrdineEditDataModal();
                 alert("🟢 Informazioni consegna aggiornate con successo!");
-                renderOrdersTabScreen();
+                initOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
 
@@ -1147,7 +1280,7 @@
                 }
                 await db.from('ordini_fornitori').delete().eq('id', id);
                 alert("🟢 Fornitura rimossa.");
-                renderOrdersTabScreen();
+                initOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
 
@@ -1483,7 +1616,7 @@
             const tel = document.getElementById('newTelefono').value.trim();
             const em = document.getElementById('newEmail').value.trim();
             
-            if(!d) { alert("Il campo Nome / Ragione Sociale è obbligatorio!"); return; }
+            if(!d) { alert("Il campo COGNOME e NOME / RAG. SOCIALE è obbligatorio!"); return; }
             if(!ind) { alert("L'indirizzo di fatturazione è obbligatorio!"); return; }
             if(!tel && !em) { alert("È obbligatorio inserire almeno un contatto tra Telefono ed Email!"); return; }
             
