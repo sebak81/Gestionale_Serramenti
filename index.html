@@ -211,17 +211,14 @@
         <div class="space-y-1">
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">Filtra per Fornitore:</label>
             <div class="relative flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
-                <!-- Freccia Sinistra PC -->
                 <button onclick="scrollFornitoriLeft()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
                     ◀
                 </button>
                 
-                <!-- Contenitore Scorrevole Riga Unica -->
                 <div id="containerFiltriFornitori" class="flex flex-nowrap space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 flex-1">
                     <!-- Generato Dinamicamente -->
                 </div>
 
-                <!-- Freccia Destra PC -->
                 <button onclick="scrollFornitoriRight()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
                     ▶
                 </button>
@@ -249,7 +246,7 @@
         </div>
     </main>
 
-    <!-- MODAL REGISTRAZIONE NUOVA FORNITURA -->
+    <!-- MODAL REGISTRAZIONE NUOVA FORNITURA CON SELEZIONE DINAMICA CLIENTE/CANTIERE -->
     <div id="newOrderModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
@@ -258,9 +255,18 @@
             </div>
             
             <div class="space-y-2 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Seleziona Cantiere Target *</label>
-                    <select id="ordineTargetCommessaSelect" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-semibold"></select>
+                <!-- COMPILAZIONE DINAMICA CANTIERE / CLIENTE -->
+                <div class="space-y-1.5 bg-sky-50/60 p-2.5 rounded-xl border border-sky-100">
+                    <label class="block font-bold text-sky-900 text-[10px] uppercase tracking-wider">1. Cerca e Seleziona Cantiere *</label>
+                    <div class="relative">
+                        <input type="text" id="modalOrderSearchClientInput" oninput="filterModalOrderTargetCommesse()" placeholder="Scrivi nome cliente o lavoro..." 
+                               class="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                    </div>
+
+                    <select id="ordineTargetCommessaSelect" size="3" class="w-full p-1.5 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 text-xs">
+                        <!-- Popolato dinamicamente -->
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -1007,7 +1013,6 @@
 
         // 🌟 GESTIONE SCHERMATA E MODAL ORDINI
         async function initOrdersTabScreen() {
-            popolaSelectCommesseTarget();
             await fetchGlobalOrdersData();
             renderFiltriFornitoriDinamici();
             renderGlobalOrdersList();
@@ -1016,6 +1021,7 @@
         function openNewOrderModal() {
             document.getElementById('ordineProdottoInput').value = "";
             document.getElementById('ordineNoteInput').value = "";
+            document.getElementById('modalOrderSearchClientInput').value = "";
             document.getElementById('nomeFileOrdineCaricatoText').classList.add('hidden');
             temporaryOrderFileObj = null;
 
@@ -1023,7 +1029,7 @@
             document.getElementById('ordineDataInvioInput').value = oggi;
             document.getElementById('ordineDataArrivoInput').value = "";
 
-            popolaSelectCommesseTarget();
+            filterModalOrderTargetCommesse(); 
             document.getElementById('newOrderModal').classList.remove('hidden');
         }
 
@@ -1031,26 +1037,47 @@
             document.getElementById('newOrderModal').classList.add('hidden');
         }
 
-        function popolaSelectCommesseTarget() {
+        // SELEZIONE E FILTRAGGIO DINAMICO COMMESSA/CLIENTE NEL MODAL NUOVA FORNITURA
+        function filterModalOrderTargetCommesse() {
             const select = document.getElementById('ordineTargetCommessaSelect');
+            const term = document.getElementById('modalOrderSearchClientInput').value.toLowerCase().trim();
             if (!select) return;
             select.innerHTML = "";
 
             let opzioni = [];
+            const parole = term.length > 0 ? term.split(/\s+/) : [];
+
             allClients.forEach(c => {
                 if (c.commesse) {
                     c.commesse.forEach(com => {
-                        opzioni.push({ id: com.id, label: `${c.denominazione} - ${com.titolo_lavoro}` });
+                        const labelTesto = `${c.denominazione} - ${com.titolo_lavoro}`;
+                        const labelLower = labelTesto.toLowerCase();
+
+                        const match = parole.length === 0 || parole.every(p => labelLower.includes(p));
+                        if (match) {
+                            opzioni.push({ id: com.id, label: labelTesto });
+                        }
                     });
                 }
             });
 
             if (opzioni.length === 0) {
-                select.innerHTML = `<option value="">Nessun cantiere disponibile</option>`;
+                select.innerHTML = `<option value="" disabled class="text-slate-400 p-2">Nessun cantiere trovato...</option>`;
                 return;
             }
 
-            select.innerHTML = opzioni.map(o => `<option value="${o.id}" ${o.id === currentCommessaId ? 'selected' : ''}>${o.label}</option>`).join('');
+            select.innerHTML = opzioni.map(o => `
+                <option value="${o.id}" ${o.id === currentCommessaId ? 'selected' : ''} class="p-1.5 hover:bg-blue-50 text-slate-800">
+                    👤 ${o.label}
+                </option>
+            `).join('');
+
+            // Se c'è solo un risultato o se abbiamo una commessa attiva, la seleziona automaticamente
+            if (opzioni.length === 1) {
+                select.value = opzioni[0].id;
+            } else if (currentCommessaId && opzioni.some(o => o.id === currentCommessaId)) {
+                select.value = currentCommessaId;
+            }
         }
 
         async function fetchGlobalOrdersData() {
@@ -1065,7 +1092,6 @@
             } catch(err) { console.error("Errore fetch ordini:", err); }
         }
 
-        // FUNZIONALITÀ DI SCROLL TRAMITE FRECCE SUI FORNITORI
         function scrollFornitoriLeft() {
             const container = document.getElementById('containerFiltriFornitori');
             if (container) container.scrollBy({ left: -180, behavior: 'smooth' });
@@ -1237,7 +1263,7 @@
             const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
             
-            if (!targetCommessaId) { alert("Seleziona una commessa target!"); return; }
+            if (!targetCommessaId) { alert("Seleziona una commessa/cantiere target!"); return; }
             if (!fornitoreId || !prodotto || !dataInvio) { alert("Fornitore, Prodotto e Data Invio sono campi obbligatori!"); return; }
 
             let percorsoStoragePdf = null;
