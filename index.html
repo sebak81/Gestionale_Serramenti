@@ -207,11 +207,24 @@
             </button>
         </div>
 
-        <!-- FILTRO DINAMICO FORNITORI -->
+        <!-- FILTRO DINAMICO FORNITORI COMPATTO IN RIGA UNICA CON FRECCE E SCROLL -->
         <div class="space-y-1">
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">Filtra per Fornitore:</label>
-            <div id="containerFiltriFornitori" class="flex flex-wrap gap-1.5 py-1">
-                <!-- Generato Dinamicamente -->
+            <div class="relative flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                <!-- Freccia Sinistra PC -->
+                <button onclick="scrollFornitoriLeft()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
+                    ◀
+                </button>
+                
+                <!-- Contenitore Scorrevole Riga Unica -->
+                <div id="containerFiltriFornitori" class="flex flex-nowrap space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 flex-1">
+                    <!-- Generato Dinamicamente -->
+                </div>
+
+                <!-- Freccia Destra PC -->
+                <button onclick="scrollFornitoriRight()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
+                    ▶
+                </button>
             </div>
         </div>
 
@@ -1052,6 +1065,17 @@
             } catch(err) { console.error("Errore fetch ordini:", err); }
         }
 
+        // FUNZIONALITÀ DI SCROLL TRAMITE FRECCE SUI FORNITORI
+        function scrollFornitoriLeft() {
+            const container = document.getElementById('containerFiltriFornitori');
+            if (container) container.scrollBy({ left: -180, behavior: 'smooth' });
+        }
+
+        function scrollFornitoriRight() {
+            const container = document.getElementById('containerFiltriFornitori');
+            if (container) container.scrollBy({ left: 180, behavior: 'smooth' });
+        }
+
         function renderFiltriFornitoriDinamici() {
             const container = document.getElementById('containerFiltriFornitori');
             if (!container) return;
@@ -1065,8 +1089,8 @@
 
             let html = `
                 <button id="btnFilterOrd-all" onclick="switchOrderFornitoreFilter('all')" 
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeOrderFornitoreFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-200 text-slate-700'}">
-                    Tutti (${rawGlobalOrders.length})
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center space-x-1 ${activeOrderFornitoreFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                    <span>🌐</span> <span>Tutti (${rawGlobalOrders.length})</span>
                 </button>
             `;
 
@@ -1075,8 +1099,8 @@
                 const isSelected = activeOrderFornitoreFilter === f.id;
                 html += `
                     <button id="btnFilterOrd-${f.id}" onclick="switchOrderFornitoreFilter('${f.id}')" 
-                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${isSelected ? 'bg-blue-600 text-white shadow' : 'bg-slate-200 text-slate-700'}">
-                        🏢 ${f.nome} (${num})
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center space-x-1 ${isSelected ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                        <span>🏬</span> <span>${f.nome}</span> <span class="${isSelected ? 'text-blue-100' : 'text-slate-400'} font-normal">(${num})</span>
                     </button>
                 `;
             });
@@ -1677,7 +1701,7 @@
                 container.appendChild(r);
             });
         }
-        function startEditWorker(id, n) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
+        function startEditWorker(id, n) { document.getElementById('editingWorkerId').value = id; document.getElementById('newWorkerName').value = n; document.getElementById('workerFormTitle').innerText = "Modifica Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.remove('hidden'); }
         function resetWorkerForm() { document.getElementById('editingWorkerId').value = ""; document.getElementById('newWorkerName').value = ""; document.getElementById('workerFormTitle').innerText = "Aggiungi Collaboratore"; document.getElementById('btnCancelWorkerEdit').classList.add('hidden'); }
         
         async function saveWorkerToDatabase() {
@@ -1734,6 +1758,17 @@
                 renderSettingsFornitoriList();
             }
         }
+
+        // SUPPORTO MOUSE WHEEL SUI FORNITORI DA PC
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('containerFiltriFornitori');
+            if (container) {
+                container.addEventListener('wheel', (evt) => {
+                    evt.preventDefault();
+                    container.scrollLeft += (evt.deltaY || evt.deltaX);
+                }, { passive: false });
+            }
+        });
 
         window.onload = async () => { await initLists(); await fetchClienti(); };
     </script>
