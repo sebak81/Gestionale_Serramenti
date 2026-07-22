@@ -138,7 +138,7 @@
                 </select>
             </div>
 
-            <!-- 🌟 PULSANTONE DI SCORCIATOIA DIRETTA ALLA SCHEDA ORDINI -->
+            <!-- PULSANTONE DI SCORCIATOIA DIRETTA ALLA SCHEDA ORDINI -->
             <div id="boxShortcutOrdini" class="hidden bg-blue-50 p-3.5 rounded-2xl border border-blue-200 text-center space-y-2">
                 <p class="text-xs font-semibold text-blue-900">Gli ordini e le forniture si gestiscono nella scheda dedicata.</p>
                 <button onclick="goToOrdersForCurrentCommessa()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center space-x-1.5">
@@ -209,8 +209,9 @@
                 <span class="text-[9px] bg-blue-100 text-blue-800 font-bold uppercase px-1.5 py-0.5 rounded">SCHERMATA ORDINI</span>
                 <h2 class="text-base font-bold text-slate-900 mt-1">📦 Registro Forniture Globale</h2>
             </div>
+            <!-- 🌟 PULSANTE AGGIORNATO COME RICHIESTO -->
             <button onclick="openNewOrderModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition-colors flex items-center space-x-1 shrink-0">
-                <span>＋</span> <span>Nuovo Ordine</span>
+                <span>＋</span> <span>Inserisci Cliente</span>
             </button>
         </div>
 
@@ -238,24 +239,24 @@
             </select>
         </div>
 
-        <!-- LISTA ORDINI FILTRATA -->
+        <!-- LISTA ORDINI RAGGRUPPATA PER CLIENTE E COMMESSA -->
         <div class="space-y-1.5 pt-1">
-            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide px-1">Elenco Forniture Trovate:</div>
-            <div id="listaOrdiniCommessaContainer" class="space-y-2"></div>
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide px-1">Commesse con Forniture Attive:</div>
+            <div id="listaOrdiniCommessaContainer" class="space-y-3"></div>
         </div>
     </main>
 
-    <!-- MODAL REGISTRAZIONE NUOVA FORNITURA -->
+    <!-- 🌟 MODAL CREAZIONE / SELEZIONE CLIENTE E COMMESSA CON CHECKBOX FORNITORI MULTIPLI -->
     <div id="newOrderModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">➕ Registra Nuova Fornitura</h3>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-800">➕ Scheda Ordini Cliente / Cantiere</h3>
                 <button onclick="closeNewOrderModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
             </div>
             
-            <div class="space-y-2 text-xs">
+            <div class="space-y-3 text-xs">
                 <div class="space-y-1.5 bg-sky-50/60 p-2.5 rounded-xl border border-sky-100">
-                    <label class="block font-bold text-sky-900 text-[10px] uppercase tracking-wider">1. Cerca e Seleziona Cantiere *</label>
+                    <label class="block font-bold text-sky-900 text-[10px] uppercase tracking-wider">1. Seleziona Cantiere Target *</label>
                     <div class="relative">
                         <input type="text" id="modalOrderSearchClientInput" oninput="filterModalOrderTargetCommesse()" placeholder="Scrivi nome cliente o lavoro..." 
                                class="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500">
@@ -264,40 +265,18 @@
                     <select id="ordineTargetCommessaSelect" size="3" class="w-full p-1.5 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 text-xs"></select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Fornitore *</label>
-                        <select id="ordineFornitoreSelect" onchange="autoCompilaProdottoFornitore(this.value)" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-semibold"></select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
-                        <input type="text" id="ordineProdottoInput" placeholder="Es. Zanzariere" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-medium">
+                <!-- CHECKBOX PER SELEZIONARE MULTIPLI FORNITORI -->
+                <div class="space-y-1.5">
+                    <label class="block font-bold text-slate-700 text-[10px] uppercase tracking-wider">2. Seleziona Fornitori da ordinare per questo cantiere *</label>
+                    <div id="gridCheckboxFornitori" class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 max-h-36 overflow-y-auto">
+                        <!-- Generato dinamicamente -->
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Ordine *</label>
-                    <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-medium">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Note Ordine / Fornitore</label>
-                    <input type="text" id="ordineNoteInput" placeholder="Note interne..." class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800">
-                </div>
-
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
-                    <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine:</div>
-                    <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
-                        📎 Carica PDF
-                        <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
-                    </label>
-                </div>
-                <div id="nomeFileOrdineCaricatoText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
 
                 <div class="flex space-x-2 pt-2">
                     <button onclick="closeNewOrderModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Annulla</button>
-                    <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold text-xs transition-colors shadow">
-                        💾 Salva Ordine
+                    <button onclick="creaBozzeFornitoriPerCommessa()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold text-xs transition-colors shadow">
+                        🚀 Inizializza Scheda Ordini
                     </button>
                 </div>
             </div>
@@ -337,6 +316,11 @@
             </div>
 
             <div class="space-y-2 text-xs pt-1">
+                <div>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Materiale / Prodotto *</label>
+                    <input type="text" id="modalAdvProdottoInput" placeholder="Es. Serramenti PVC" class="w-full p-2 border rounded-lg bg-white font-semibold text-slate-800 border-slate-300">
+                </div>
+
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
@@ -1159,12 +1143,11 @@
 
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
-            handleFaseChange(); // Aggiorna la visibilità dei campi/shortcut
+            handleFaseChange(); 
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             navigateTo('detail');
         }
 
-        // 🌟 SCORCIATOIA DIRETTA ALLA SCHEDA ORDINI FILTRATA SULLA COMMESSA
         function goToOrdersForCurrentCommessa() {
             const cliente = allClients.find(c => c.id === currentClienteId);
             navigateTo('orders');
@@ -1189,15 +1172,24 @@
             renderGlobalOrdersList();
         }
 
+        // 🌟 APERTURA MODAL CON GRIGLIA CHECKBOX FORNITORI MULTIPLI
         function openNewOrderModal() {
-            document.getElementById('ordineProdottoInput').value = "";
-            document.getElementById('ordineNoteInput').value = "";
             document.getElementById('modalOrderSearchClientInput').value = "";
-            document.getElementById('nomeFileOrdineCaricatoText').classList.add('hidden');
-            temporaryOrderFileObj = null;
-
-            const oggi = new Date().toISOString().split('T')[0];
-            document.getElementById('ordineDataInvioInput').value = oggi;
+            
+            // Genera la lista di checkbox dinamica dei fornitori salvati
+            const gridCheck = document.getElementById('gridCheckboxFornitori');
+            if (gridCheck) {
+                if (listFornitori.length === 0) {
+                    gridCheck.innerHTML = `<p class="text-slate-400 italic text-[10px] col-span-2">Nessun fornitore nelle impostazioni.</p>`;
+                } else {
+                    gridCheck.innerHTML = listFornitori.map(f => `
+                        <label class="flex items-center space-x-1.5 p-1 bg-white border rounded-lg cursor-pointer hover:bg-blue-50 select-none">
+                            <input type="checkbox" name="chkFornitoreOrdine" value="${f.id}" class="rounded text-blue-600 focus:ring-blue-500">
+                            <span class="font-bold text-slate-800 text-[11px] truncate">${f.nome}</span>
+                        </label>
+                    `).join('');
+                }
+            }
 
             filterModalOrderTargetCommesse(); 
             document.getElementById('newOrderModal').classList.remove('hidden');
@@ -1246,6 +1238,50 @@
             } else if (currentCommessaId && opzioni.some(o => o.id === currentCommessaId)) {
                 select.value = currentCommessaId;
             }
+        }
+
+        // 🌟 CREAZIONE IN MASSA DELLE SCHEDE BOZZA PER I FORNITORI SELEZIONATI
+        async function creaBozzeFornitoriPerCommessa() {
+            const targetCommessaId = document.getElementById('ordineTargetCommessaSelect').value;
+            if (!targetCommessaId) { alert("Seleziona prima un cantiere!"); return; }
+
+            const chkSelected = Array.from(document.querySelectorAll('input[name="chkFornitoreOrdine"]:checked')).map(el => el.value);
+            if (chkSelected.length === 0) { alert("Seleziona almeno un fornitore tramite le checkbox!"); return; }
+
+            const oggi = new Date().toISOString().split('T')[0];
+
+            try {
+                for (const fornitoreId of chkSelected) {
+                    const fObj = listFornitori.find(f => f.id === fornitoreId);
+                    const nomeProdottoDefault = fObj?.prodotti_gestiti ? fObj.prodotti_gestiti.split(',')[0].trim() : 'Materiale Fornitore';
+
+                    // Inserisce il record bozza
+                    await db.from('ordini_fornitori').insert([{
+                        commessa_id: targetCommessaId,
+                        fornitore_id: fornitoreId,
+                        prodotto: nomeProdottoDefault,
+                        tipo_documento: 'ORDINE',
+                        data_invio: oggi,
+                        data_presunta_arrivo: null,
+                        annotazioni: 'Scheda fornitura inizializzata'
+                    }]);
+
+                    // Registra evento nel diario
+                    await db.from('status_diario_attivita').insert([{
+                        commessa_id: targetCommessaId,
+                        data_attivita: oggi,
+                        macro_fase: 'ORDINI_FORNITORI',
+                        sub_stato: 'INVIO_ORDINE',
+                        nota: `📦 Inizializzata Fornitura per ${fObj?.nome || 'Fornitore'} (${nomeProdottoDefault}).`
+                    }]);
+                }
+
+                alert(`✅ Schede forniture create con successo per la commessa!`);
+                closeNewOrderModal();
+                await fetchClienti();
+                initOrdersTabScreen();
+
+            } catch(err) { alert("Errore creazione schede fornitori: " + err.message); }
         }
 
         async function fetchGlobalOrdersData() {
@@ -1332,6 +1368,7 @@
             renderGlobalOrdersList();
         }
 
+        // 🌟 VISTA RAGGRUPPATA ORDINI PER CLIENTE E COMMESSA
         function renderGlobalOrdersList() {
             const container = document.getElementById('listaOrdiniCommessaContainer');
             if (!container) return; container.innerHTML = "";
@@ -1367,74 +1404,100 @@
                 return;
             }
 
+            // Raggruppa gli ordini per commessa
+            const mappaCommesse = {};
             ordiniFiltrati.forEach(o => {
-                const row = document.createElement('div');
-                row.className = "bg-white border border-slate-200 p-3 rounded-2xl text-xs flex justify-between items-center gap-2 mt-1.5 shadow-sm text-slate-800";
-                
-                const fParti = o.data_invio.split('-');
-                const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
-
-                let dataArrivoLeggibile = "";
-                if (o.tipo_documento !== 'ORDINE' && o.data_presunta_arrivo) {
-                    const arrParti = o.data_presunta_arrivo.split('-');
-                    dataArrivoLeggibile = ` | Consegna: <span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                const cId = o.commessa_id;
+                if (!mappaCommesse[cId]) {
+                    mappaCommesse[cId] = {
+                        clienteNome: o.commesse?.clienti?.denominazione || 'Cliente N/D',
+                        commessaTitolo: o.commesse?.titolo_lavoro || 'Commessa N/D',
+                        cantiereIndirizzo: o.commesse?.indirizzo_cantiere || 'N/D',
+                        ordini: []
+                    };
                 }
+                mappaCommesse[cId].ordini.push(o);
+            });
 
-                let btnPdfHtml = '';
-                if (o.file_path_supabase) {
-                    const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                    btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="inline-flex items-center space-x-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg font-bold text-[10px] ml-1 transition-colors">
-                        <span>📎</span> <span>Vedi PDF</span>
-                    </a>`;
-                }
+            // Genera una scheda per ciascun cantiere/commessa
+            Object.values(mappaCommesse).forEach(group => {
+                const cardCommessa = document.createElement('div');
+                cardCommessa.className = "bg-white border border-slate-200 p-3.5 rounded-2xl shadow-sm space-y-2.5";
 
-                const clienteNome = o.commesse?.clienti?.denominazione || 'Cliente N/D';
-                const commessaTitolo = o.commesse?.titolo_lavoro || 'Commessa N/D';
-                const cantiereIndirizzo = o.commesse?.indirizzo_cantiere || 'Cantiere N/D';
+                let htmlFornitureList = '';
+                group.ordini.forEach(o => {
+                    const fParti = o.data_invio.split('-');
+                    const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
 
-                const badgeStyle = {
-                    'ORDINE': 'bg-blue-50 text-blue-700 border-blue-200',
-                    'MODIFICA': 'bg-amber-50 text-amber-700 border-amber-200',
-                    'CONFERMA': 'bg-purple-50 text-purple-700 border-purple-200',
-                    'PARZIALE': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                    'MERCE_ARRIVATA': 'bg-green-50 text-green-700 border-green-200'
-                }[o.tipo_documento] || 'bg-slate-100 text-slate-700';
+                    let dataArrivoLeggibile = "";
+                    if (o.tipo_documento !== 'ORDINE' && o.data_presunta_arrivo) {
+                        const arrParti = o.data_presunta_arrivo.split('-');
+                        dataArrivoLeggibile = ` | Consegna: <span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                    }
 
-                const badgeLabel = {
-                    'ORDINE': 'ORDINE INVIATO',
-                    'MODIFICA': 'Da MODIFICARE',
-                    'CONFERMA': 'CONFERMATO',
-                    'PARZIALE': 'ARRIVO PARZIALE',
-                    'MERCE_ARRIVATA': 'MERCE ARRIVATA'
-                }[o.tipo_documento] || o.tipo_documento;
+                    let btnPdfHtml = '';
+                    if (o.file_path_supabase) {
+                        const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
+                        btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="inline-flex items-center space-x-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg font-bold text-[10px] ml-1 transition-colors">
+                            <span>📎</span> <span>Vedi PDF</span>
+                        </a>`;
+                    }
 
-                row.innerHTML = `
-                    <div class="flex-1 min-w-0 text-left space-y-1">
-                        <div class="text-[11px] font-bold text-slate-900 truncate">
-                            👤 ${clienteNome} - <span class="text-blue-600">🚪 ${commessaTitolo}</span>
+                    const badgeStyle = {
+                        'ORDINE': 'bg-blue-50 text-blue-700 border-blue-200',
+                        'MODIFICA': 'bg-amber-50 text-amber-700 border-amber-200',
+                        'CONFERMA': 'bg-purple-50 text-purple-700 border-purple-200',
+                        'PARZIALE': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                        'MERCE_ARRIVATA': 'bg-green-50 text-green-700 border-green-200'
+                    }[o.tipo_documento] || 'bg-slate-100 text-slate-700';
+
+                    const badgeLabel = {
+                        'ORDINE': 'ORDINE INVIATO',
+                        'MODIFICA': 'Da MODIFICARE',
+                        'CONFERMA': 'CONFERMATO',
+                        'PARZIALE': 'ARRIVO PARZIALE',
+                        'MERCE_ARRIVATA': 'MERCE ARRIVATA'
+                    }[o.tipo_documento] || o.tipo_documento;
+
+                    htmlFornitureList += `
+                        <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs flex justify-between items-center gap-2">
+                            <div class="flex-1 min-w-0 text-left space-y-0.5">
+                                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                                    <span class="px-1.5 py-0.2 text-[9px] font-bold rounded border ${badgeStyle}">${badgeLabel}</span>
+                                    <strong class="text-slate-800">🏢 ${o.fornitori?.nome || 'N/D'}</strong> 
+                                    <span class="text-slate-600 font-semibold">(${o.prodotto})</span>
+                                </div>
+                                <div class="text-slate-500 text-[11px] flex items-center flex-wrap gap-1 mt-0.5">
+                                    <span>Invio: ${dataInvioLeggibile}${dataArrivoLeggibile}</span>
+                                    ${btnPdfHtml}
+                                </div>
+                                ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic">Note: ${o.annotazioni}</div>` : ''}
+                            </div>
+                            <div class="flex space-x-1 shrink-0">
+                                <button onclick="apriModalAvanzamentoOrdine('${o.id}')" class="px-2.5 py-1.5 bg-blue-600 text-white rounded-xl font-bold text-[11px] shadow hover:bg-blue-700 flex items-center space-x-1">
+                                    <span>🔄</span> <span>Gestisci</span>
+                                </button>
+                                <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-1.5 bg-red-50 text-red-600 rounded-xl border border-red-100 font-bold">✕</button>
+                            </div>
                         </div>
-                        <div class="text-[10px] text-slate-500 font-medium truncate">
-                            📍 Cantiere: ${cantiereIndirizzo}
+                    `;
+                });
+
+                cardCommessa.innerHTML = `
+                    <div class="border-b pb-2 flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xs font-extrabold text-slate-900 uppercase">👤 ${group.clienteNome}</h3>
+                            <div class="text-blue-600 font-bold text-xs mt-0.5">🚪 ${group.commessaTitolo}</div>
+                            <div class="text-[10px] text-slate-400 font-medium mt-0.5">📍 Cantiere: ${group.cantiereIndirizzo}</div>
                         </div>
-                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1 mt-0.5">
-                            <span class="px-1.5 py-0.2 text-[9px] font-bold rounded border ${badgeStyle}">${badgeLabel}</span>
-                            <strong class="text-slate-800">🏢 ${o.fornitori?.nome || 'N/D'}</strong> 
-                            <span class="text-slate-500">(${o.prodotto})</span>
-                        </div>
-                        <div class="text-slate-600 text-[11px] flex items-center flex-wrap gap-1">
-                            <span>Invio: ${dataInvioLeggibile}${dataArrivoLeggibile}</span>
-                            ${btnPdfHtml}
-                        </div>
-                        ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotazioni}</div>` : ''}
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold border">${group.ordini.length} Forniture</span>
                     </div>
-                    <div class="flex space-x-1 shrink-0">
-                        <button onclick="apriModalAvanzamentoOrdine('${o.id}')" class="px-2.5 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl border border-blue-200 font-bold flex items-center space-x-1">
-                            <span>🔄</span> <span>Gestisci</span>
-                        </button>
-                        <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100 font-bold">✕</button>
+                    <div class="space-y-1.5">
+                        ${htmlFornitureList}
                     </div>
                 `;
-                container.appendChild(row);
+
+                container.appendChild(cardCommessa);
             });
         }
 
@@ -1458,60 +1521,6 @@
             });
         }, 1000);
 
-        async function salvaNuovoOrdineFornitoreRelazionale() {
-            const targetCommessaId = document.getElementById('ordineTargetCommessaSelect').value;
-            const fornitoreId = document.getElementById('ordineFornitoreSelect').value;
-            const prodotto = document.getElementById('ordineProdottoInput').value.trim();
-            const dataInvio = document.getElementById('ordineDataInvioInput').value;
-            const note = document.getElementById('ordineNoteInput').value.trim();
-            
-            if (!targetCommessaId) { alert("Seleziona una commessa/cantiere target!"); return; }
-            if (!fornitoreId || !prodotto || !dataInvio) { alert("Fornitore, Prodotto e Data Invio sono campi obbligatori!"); return; }
-
-            let percorsoStoragePdf = null;
-            if (temporaryOrderFileObj) {
-                try {
-                    const nomeSanificato = temporaryOrderFileObj.name
-                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                        .replace(/[^a-zA-Z0-9.\-_ ]/g, "").replace(/\s+/g, "_");
-
-                    percorsoStoragePdf = `${targetCommessaId}/ordini_${Date.now()}_${nomeSanificato}`;
-                    const { error: errStorage } = await db.storage.from('documenti').upload(percorsoStoragePdf, temporaryOrderFileObj);
-                    if (errStorage) throw errStorage;
-                } catch(err) {
-                    alert("Errore caricamento PDF: " + err.message);
-                    return;
-                }
-            }
-
-            try {
-                const { error } = await db.from('ordini_fornitori').insert([{
-                    commessa_id: targetCommessaId,
-                    fornitore_id: fornitoreId,
-                    prodotto: prodotto,
-                    tipo_documento: 'ORDINE',
-                    data_invio: dataInvio,
-                    data_presunta_arrivo: null,
-                    annotazioni: note,
-                    file_path_supabase: percorsoStoragePdf
-                }]);
-
-                if (error) throw error;
-
-                await db.from('status_diario_attivita').insert([{
-                    commessa_id: targetCommessaId,
-                    data_attivita: dataInvio,
-                    macro_fase: 'ORDINI_FORNITORI',
-                    sub_stato: 'INVIO_ORDINE',
-                    nota: `📦 Inserito Ordine Fornitura (${prodotto}). ${note ? 'Note: ' + note : ''}`
-                }]);
-
-                alert("✅ Ordine fornitura registrato con successo!");
-                closeNewOrderModal();
-                initOrdersTabScreen();
-            } catch(err) { alert("Errore inserimento database: " + err.message); }
-        }
-
         async function apriModalAvanzamentoOrdine(ordineId) {
             const ordine = rawGlobalOrders.find(o => o.id === ordineId);
             if (!ordine) return;
@@ -1522,6 +1531,7 @@
             document.getElementById('modalAdvCantiereIndirizzo').innerText = ordine.commesse?.indirizzo_cantiere || 'Cantiere N/D';
             document.getElementById('modalAdvFornitoreEProdotto').innerText = `${ordine.fornitori?.nome || 'N/D'} (${ordine.prodotto})`;
 
+            document.getElementById('modalAdvProdottoInput').value = ordine.prodotto || "";
             document.getElementById('modalAdvDataInvio').value = "";
             document.getElementById('modalAdvDataArrivo').value = ordine.data_presunta_arrivo || "";
             document.getElementById('modalAdvNote').value = "";
@@ -1564,13 +1574,13 @@
 
                 let elencoPassaggi = data || [];
 
-                const haPrimoOrdineLog = elencoPassaggi.some(p => p.sub_stato === 'INVIO_ORDINE' || p.nota.includes('Inserito Ordine Fornitura'));
+                const haPrimoOrdineLog = elencoPassaggi.some(p => p.sub_stato === 'INVIO_ORDINE' || p.nota.includes('Inizializzata Fornitura'));
                 
                 if (!haPrimoOrdineLog && ordine.data_invio) {
                     elencoPassaggi.push({
                         data_attivita: ordine.data_invio,
                         sub_stato: 'INVIO_ORDINE',
-                        nota: `📦 Inserito Ordine Fornitura (${ordine.prodotto}).`
+                        nota: `📦 Ordine Inserito (${ordine.prodotto}).`
                     });
                 }
 
@@ -1643,6 +1653,7 @@
         async function salvaAvanzamentoOrdinePost() {
             const id = document.getElementById('modalAdvOrdineId').value;
             const tipoDoc = document.getElementById('modalAdvSelectedType').value;
+            const nuovoProdotto = document.getElementById('modalAdvProdottoInput').value.trim();
             const dataInvio = document.getElementById('modalAdvDataInvio').value;
             const dataArrivo = document.getElementById('modalAdvDataArrivo').value;
             const note = document.getElementById('modalAdvNote').value.trim();
@@ -1673,6 +1684,7 @@
             try {
                 await db.from('ordini_fornitori').update({
                     tipo_documento: tipoDoc,
+                    prodotto: nuovoProdotto || ordineOriginale.prodotto,
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
                     annotazioni: note || ordineOriginale.annotazioni,
@@ -1691,7 +1703,7 @@
                     data_attivita: dataInvio,
                     macro_fase: 'ORDINI_FORNITORI',
                     sub_stato: mappaSottofasi[tipoDoc] || 'INVIO_CONFERMA',
-                    nota: `Aggiornamento stato fornitura [${tipoDoc}] (${ordineOriginale.prodotto}). ${note ? 'Note: ' + note : ''}`
+                    nota: `Aggiornamento stato fornitura [${tipoDoc}] (${nuovoProdotto || ordineOriginale.prodotto}). ${note ? 'Note: ' + note : ''}`
                 }]);
                 
                 closeOrdineAvanzamentoModal();
@@ -1842,7 +1854,6 @@
             select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
-        // 🌟 GESTIONE VISIBILITÀ CAMPI SCHERMATA DETTAGLIO SELEZIONANDO "ORDINI AI FORNITORI"
         function handleFaseChange() {
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
             
