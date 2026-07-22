@@ -385,7 +385,7 @@
         </div>
     </div>
 
-    <!-- 🌟 MODAL DEDICATO ALLA MODIFICA O CANCELLAZIONE DELLA NOTA DEL DIARIO -->
+    <!-- MODAL DEDICATO ALLA MODIFICA O CANCELLAZIONE DELLA NOTA DEL DIARIO -->
     <div id="editDiarioNotaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-3 text-xs">
             <div class="border-b pb-2 flex justify-between items-center">
@@ -661,7 +661,6 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        // HELPER PER RECUPERARE LO STATO MACRO/SUB REALE DAL DIARIO STORICO
         function getCommessaCurrentState(com) {
             let macro = com.stato_macro || 'PRIMO_CONTATTO';
             let sub = com.preventivo_stato || '';
@@ -1689,13 +1688,11 @@
             } catch(err) { alert(err.message); }
         }
 
-        // 🌟 FUNZIONI DEDICATE ALLA MODIFICA ED ELIMINAZIONE DELLE NOTE DEL DIARIO GLOBAL
         async function apriModalModificaNotaDiario(idNota, dataAttuale, operatoreIdAttuale, notaTestoAttuale) {
             document.getElementById('modalDiarioNotaId').value = idNota;
             document.getElementById('modalDiarioDataInput').value = dataAttuale || "";
             document.getElementById('modalDiarioNotaTextInput').value = notaTestoAttuale === "Nessuna" ? "" : notaTestoAttuale;
 
-            // Popola l'operatore selezionato
             const opSelect = document.getElementById('modalDiarioWorkerSelect');
             if (opSelect) opSelect.value = operatoreIdAttuale || "";
 
@@ -1763,7 +1760,6 @@
 
                 r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
                 
-                // 🌟 SCORCIATOIA 3 CLIC VELOCI: APRE LA MODIFICA INVECE DI DARE SUBITO ERRORE / ELIMINAZIONE
                 r.onclick = (e) => {
                     if (e.detail === 3) {
                         apriModalModificaNotaDiario(rec.id, rec.data_attivita, rec.operatore_id, rec.nota || "");
@@ -1860,8 +1856,16 @@
                 inputAllerta.value = "";
             }
 
+            // 🌟 ANNOTAZIONI OPZIONALI ANCHE PER "ACCONTO PAGATO" (PAGATA / PAGATA_FIN)
             const lblAnnotazioni = document.getElementById('lblAnnotazioniObbligatorieta');
-            if (subStato === 'PRE_ORDINI' || macroFase === 'ORDINI_FORNITORI') {
+            const isOpzionale = (
+                subStato === 'PRE_ORDINI' || 
+                macroFase === 'ORDINI_FORNITORI' || 
+                subStato === 'PAGATA' || 
+                subStato === 'PAGATA_FIN'
+            );
+
+            if (isOpzionale) {
                 if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni del passaggio (Opzionali)";
             } else {
                 if (lblAnnotazioni) lblAnnotazioni.innerText = "3. Annotazioni del passaggio *";
@@ -1894,7 +1898,15 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            if (subStatoScelto !== 'PRE_ORDINI' && macroFaseScelta !== 'ORDINI_FORNITORI') {
+            // 🌟 VERIFICA OBBLIGATORIETÀ ANNOTAZIONI
+            const isAnnotazioneOpzionale = (
+                subStatoScelto === 'PRE_ORDINI' || 
+                macroFaseScelta === 'ORDINI_FORNITORI' || 
+                subStatoScelto === 'PAGATA' || 
+                subStatoScelto === 'PAGATA_FIN'
+            );
+
+            if (!isAnnotazioneOpzionale) {
                 if(!op1Value || !annotazioni) { 
                     alert("Operatore Incaricato e Annotazioni del passaggio sono campi obbligatori!"); 
                     return; 
