@@ -138,18 +138,26 @@
                 </select>
             </div>
 
+            <!-- 🌟 PULSANTONE DI SCORCIATOIA DIRETTA ALLA SCHEDA ORDINI -->
+            <div id="boxShortcutOrdini" class="hidden bg-blue-50 p-3.5 rounded-2xl border border-blue-200 text-center space-y-2">
+                <p class="text-xs font-semibold text-blue-900">Gli ordini e le forniture si gestiscono nella scheda dedicata.</p>
+                <button onclick="goToOrdersForCurrentCommessa()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center space-x-1.5">
+                    <span>📦</span> <span>Apri Scheda Ordini Commessa</span>
+                </button>
+            </div>
+
             <div id="boxFinanziamentoFlag" class="hidden bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex items-center space-x-2">
                 <input type="checkbox" id="checkFinanziamentoAttivo" onchange="toggleFinanziamentoFlusso(this.checked)" class="rounded text-blue-600 h-4 w-4 focus:ring-blue-500">
                 <label for="checkFinanziamentoAttivo" class="text-xs font-bold text-slate-700 select-none">💳 Gestione tramite Finanziamento</label>
             </div>
 
-            <div>
+            <div id="boxSubStatoGroup">
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">2. Dettaglio Stato Avanzamento</label>
                 <select id="subStatoAvanzamentoSelect" onchange="handleSubStatoChange()" class="w-full p-2.5 font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 border-slate-300">
                 </select>
             </div>
             
-            <div class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
+            <div id="boxWorkersGroup" class="grid grid-cols-2 gap-2 text-xs border-t pt-3">
                 <div id="boxWorkerContatto">
                     <label id="lblWorkerContatto" class="block font-bold text-slate-700 uppercase tracking-wider text-[9px]">Incaricato / Operatore *</label>
                     <select id="workerContattoSelect" class="w-full mt-1 p-2 border rounded-lg bg-white text-slate-700 border-slate-300 font-semibold"></select>
@@ -160,7 +168,7 @@
                 </div>
             </div>
 
-            <div class="border-t pt-3 grid grid-cols-3 gap-2">
+            <div id="boxDataAllertaGroup" class="border-t pt-3 grid grid-cols-3 gap-2">
                 <div class="col-span-2">
                     <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">📅 Data dell'Attività</label>
                     <input type="date" id="dataAttivitaInput" class="w-full p-2 border rounded-xl bg-slate-50 border-slate-300 font-bold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500">
@@ -171,7 +179,7 @@
                 </div>
             </div>
 
-            <div style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
+            <div id="boxAnnotazioniGroup" style="display: block !important; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">
                 <div class="flex justify-between items-center text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     <label id="lblAnnotazioniObbligatorieta">3. Annotazioni del passaggio *</label>
                     <span id="charCounter" class="text-slate-400 font-normal">0 / 150</span>
@@ -179,7 +187,7 @@
                 <input type="text" id="faseAnnotazioniInput" oninput="updateCharCounter(this)" maxlength="150" placeholder="Scrivi qui cosa è stato fatto prima di salvare..." class="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium">
             </div>
 
-            <div class="pt-2">
+            <div id="boxSaveFaseBtnGroup" class="pt-2">
                 <button id="btnSaveFase" onclick="saveFaseLavorazioneConDati()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-sm shadow transition-colors flex items-center justify-center space-x-2">
                     <span>💾</span> <span id="btnSaveFaseText">Salva Modifiche e Fase</span>
                 </button>
@@ -1151,9 +1159,27 @@
 
             inizializzaCalendarioOggi();
             adjustWorkerLabels(macroFaseImpostata);
-            handleSubStatoChange(); 
+            handleFaseChange(); // Aggiorna la visibilità dei campi/shortcut
             renderDiarioTimelineInterfaccia(timelineAttivita || []);
             navigateTo('detail');
+        }
+
+        // 🌟 SCORCIATOIA DIRETTA ALLA SCHEDA ORDINI FILTRATA SULLA COMMESSA
+        function goToOrdersForCurrentCommessa() {
+            const cliente = allClients.find(c => c.id === currentClienteId);
+            navigateTo('orders');
+
+            const searchInput = document.getElementById('searchOrdersClientInput');
+            if (searchInput && cliente) {
+                searchInput.value = cliente.denominazione;
+                handleOrdersSearchInput();
+            }
+
+            const selectCommessa = document.getElementById('selectOrdersCommessaFilter');
+            if (selectCommessa && currentCommessaId) {
+                selectCommessa.value = currentCommessaId;
+                renderGlobalOrdersList();
+            }
         }
 
         // GESTIONE SCHERMATA ORDINI
@@ -1816,13 +1842,38 @@
             select.innerHTML = opzioni.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
         }
 
+        // 🌟 GESTIONE VISIBILITÀ CAMPI SCHERMATA DETTAGLIO SELEZIONANDO "ORDINI AI FORNITORI"
         function handleFaseChange() {
             const nuevaFase = document.getElementById('commessaMacroSelect').value;
-            popolaSubStatoMenu(nuevaFase, false);
-            adjustWorkerLabels(nuevaFase);
-            gestisciVisibilitaFinanziamentoBox(nuevaFase);
-            document.getElementById('checkFinanziamentoAttivo').checked = false;
-            handleSubStatoChange();
+            
+            const boxShortcut = document.getElementById('boxShortcutOrdini');
+            const boxSub = document.getElementById('boxSubStatoGroup');
+            const boxWorkers = document.getElementById('boxWorkersGroup');
+            const boxDataAllerta = document.getElementById('boxDataAllertaGroup');
+            const boxAnnotazioni = document.getElementById('boxAnnotazioniGroup');
+            const boxSaveBtn = document.getElementById('boxSaveFaseBtnGroup');
+
+            if (nuevaFase === 'ORDINI_FORNITORI') {
+                if (boxShortcut) boxShortcut.classList.remove('hidden');
+                if (boxSub) boxSub.classList.add('hidden');
+                if (boxWorkers) boxWorkers.classList.add('hidden');
+                if (boxDataAllerta) boxDataAllerta.classList.add('hidden');
+                if (boxAnnotazioni) boxAnnotazioni.classList.add('hidden');
+                if (boxSaveBtn) boxSaveBtn.classList.add('hidden');
+            } else {
+                if (boxShortcut) boxShortcut.classList.add('hidden');
+                if (boxSub) boxSub.classList.remove('hidden');
+                if (boxWorkers) boxWorkers.classList.remove('hidden');
+                if (boxDataAllerta) boxDataAllerta.classList.remove('hidden');
+                if (boxAnnotazioni) boxAnnotazioni.classList.remove('hidden');
+                if (boxSaveBtn) boxSaveBtn.classList.remove('hidden');
+
+                popolaSubStatoMenu(nuevaFase, false);
+                adjustWorkerLabels(nuevaFase);
+                gestisciVisibilitaFinanziamentoBox(nuevaFase);
+                document.getElementById('checkFinanziamentoAttivo').checked = false;
+                handleSubStatoChange();
+            }
         }
 
         function handleSubStatoChange() {
@@ -1856,7 +1907,6 @@
                 inputAllerta.value = "";
             }
 
-            // 🌟 ANNOTAZIONI OPZIONALI ANCHE PER "ACCONTO PAGATO" (PAGATA / PAGATA_FIN)
             const lblAnnotazioni = document.getElementById('lblAnnotazioniObbligatorieta');
             const isOpzionale = (
                 subStato === 'PRE_ORDINI' || 
@@ -1898,7 +1948,6 @@
 
             const op1Value = op1Select.value; const op2Value = op2Select.value;
 
-            // 🌟 VERIFICA OBBLIGATORIETÀ ANNOTAZIONI
             const isAnnotazioneOpzionale = (
                 subStatoScelto === 'PRE_ORDINI' || 
                 macroFaseScelta === 'ORDINI_FORNITORI' || 
