@@ -637,12 +637,13 @@
             return { macro, sub };
         }
 
-        // CONTROLLO AUTOMATICO ALLERTE E POSA
+        // 🌟 AGGIORNATA LOGICA FLUSSO ALERT DALLA MISURA/CONTRATTO ALLA FATTURA DI ACCONTO
         function calcolaAllertETextCommessa(com) {
             const state = getCommessaCurrentState(com);
             let macro = state.macro;
             let sub = state.sub;
 
+            // 1. REGOLA POSA AUTOMATICA: Se la commessa ha ordini e TUTTI sono "MERCE_ARRIVATA"
             const ordiniCommessa = rawGlobalOrders.filter(o => o.commessa_id === com.id);
             if (ordiniCommessa.length > 0) {
                 const tuttiArrivati = ordiniCommessa.every(o => o.tipo_documento === 'MERCE_ARRIVATA');
@@ -651,7 +652,13 @@
                 }
             }
 
-            if (macro === 'MISURE_ESECUTIVE' && sub === 'FIRMATO_CONFERMATO') {
+            // 2. CONTRATTO FIRMATO / FATTURA DA FARE -> "INVIARE FATT. ACCONTO" (GIALLO)
+            if ((macro === 'MISURE_ESECUTIVE' && sub === 'FIRMATO_CONFERMATO') || (macro === 'FATTURA_ACCONTO' && sub === 'FATTURA_DA_MAKE')) {
+                return { haAlert: false, testoAlert: 'INVIARE FATT. ACCONTO', classe: 'bg-amber-100 text-amber-800 border-amber-300' };
+            }
+
+            // 3. ACCONTO PAGATO -> "INVIARE ORDINI / CONFERME" (VERDE)
+            if (macro === 'FATTURA_ACCONTO' && (sub === 'PAGATA' || sub === 'PAGATA_FIN')) {
                 return { haAlert: false, testoAlert: 'INVIARE ORDINI / CONFERME', classe: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
             }
 
@@ -803,7 +810,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // 🌟 CONTEGGI E BADGE RIALLINEATI CORRETTAMENTE AI DIARI REALI
         function aggiornaBadgeEConteggiFasi() {
             const fasiConAlert = {
                 'PREVENTIVAZIONE': false,
