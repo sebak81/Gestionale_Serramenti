@@ -196,7 +196,6 @@
 
     <!-- SCHERMATA ORDINI E FORNITORI AVANZATA -->
     <main id="ordersScreen" class="flex-1 max-w-md w-full mx-auto p-4 space-y-4 mb-20 hidden">
-        <!-- HEADER ORDINI CON PULSANTE NUOVA FORNITURA -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
                 <span class="text-[9px] bg-blue-100 text-blue-800 font-bold uppercase px-1.5 py-0.5 rounded">SCHERMATA ORDINI</span>
@@ -297,7 +296,7 @@
         </div>
     </div>
 
-    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON SUPPORTO COMPLETO ALLEGATO PDF) -->
+    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON DIARIO STORICO E INDIRIZZO CANTIERE) -->
     <div id="ordineAvanzamentoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
@@ -311,14 +310,14 @@
             <div class="bg-slate-50 p-2.5 rounded-xl border text-xs space-y-1">
                 <div>👤 <strong id="modalAdvClienteNome">Cliente</strong></div>
                 <div>🚪 <span id="modalAdvCommessaTitolo" class="text-blue-600 font-semibold">Commessa</span></div>
+                <div class="text-slate-500 font-medium">📍 Cantiere: <span id="modalAdvCantiereIndirizzo">Indirizzo</span></div>
                 <div>🏢 <span id="modalAdvFornitoreEProdotto" class="font-bold text-slate-800">Fornitore (Prodotto)</span></div>
-                <!-- Box visione veloce PDF Esistente in Cantiere -->
                 <div id="modalAdvCurrentPdfBox" class="pt-1 hidden"></div>
             </div>
 
-            <!-- SELETTORI AZIONE RAPIDA -->
+            <!-- SELETTORI STATO INIZIALI -->
             <div>
-                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">Seleziona Stato Attuale:</label>
+                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">Passaggio Stato Documento:</label>
                 <div class="grid grid-cols-2 gap-1.5 text-[11px] font-bold">
                     <button type="button" id="btnTypeModifica" onclick="setModalTypeDoc('MODIFICA')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-amber-100">
                         ✏️ Da MODIFICARE
@@ -326,20 +325,14 @@
                     <button type="button" id="btnTypeConferma" onclick="setModalTypeDoc('CONFERMA')" class="py-2 px-2 border rounded-xl bg-blue-600 text-white shadow">
                         ✍️ CONFERMA D'ORDINE
                     </button>
-                    <button type="button" id="btnTypeParziale" onclick="setModalTypeDoc('PARZIALE')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-purple-100">
-                        📦 ARRIVO PARZIALE
-                    </button>
-                    <button type="button" id="btnTypeArrivata" onclick="setModalTypeDoc('MERCE_ARRIVATA')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-green-100">
-                        ✅ MERCE ARRIVATA
-                    </button>
                 </div>
             </div>
 
             <div class="space-y-2 text-xs pt-1">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc</label>
-                        <input type="date" id="modalAdvDataInvio" class="w-full p-2 border rounded-lg bg-slate-50 font-medium">
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
+                        <input type="date" id="modalAdvDataInvio" placeholder="Seleziona data..." class="w-full p-2 border rounded-lg bg-white font-semibold text-slate-800 border-slate-300">
                     </div>
                     <div id="modalAdvBoxDataArrivo">
                         <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
@@ -348,7 +341,7 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Annotazioni / Dettagli Stato</label>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Annotazioni / Dettagli Passaggio</label>
                     <input type="text" id="modalAdvNote" placeholder="Aggiungi note aggiornate..." class="w-full p-2 border rounded-lg bg-slate-50 text-slate-800">
                 </div>
 
@@ -360,6 +353,27 @@
                     </label>
                 </div>
                 <div id="modalAdvNomeFileText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
+
+                <!-- 📜 DIARIO STORICO ATTIVITÀ RIFERITO ALLA FORNITURA -->
+                <div class="border-t pt-2 space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">📝 Storico Passaggi Fornitura:</label>
+                    <div id="modalAdvDiarioTimeline" class="max-h-28 overflow-y-auto space-y-1 bg-slate-50 p-2 rounded-xl border text-[11px]">
+                        <!-- Popolato Dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- 📦 PULSANTI RICEVIMENTO MERCE SPOSTATI IN BASSO -->
+                <div class="border-t pt-2 space-y-1.5">
+                    <label class="block font-bold text-slate-700 text-[10px] uppercase">Rilevamento Arrivo In Magazzino:</label>
+                    <div class="grid grid-cols-2 gap-1.5 text-[11px] font-bold">
+                        <button type="button" id="btnTypeParziale" onclick="setModalTypeDoc('PARZIALE')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-purple-100">
+                            📦 ARRIVO PARZIALE
+                        </button>
+                        <button type="button" id="btnTypeArrivata" onclick="setModalTypeDoc('MERCE_ARRIVATA')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-green-100">
+                            ✅ MERCE ARRIVATA
+                        </button>
+                    </div>
+                </div>
 
                 <div class="flex space-x-2 pt-2">
                     <button onclick="closeOrdineAvanzamentoModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Annulla</button>
@@ -1172,7 +1186,7 @@
             try {
                 const { data, error } = await db
                     .from('ordini_fornitori')
-                    .select('*, fornitori(nome), commesse(titolo_lavoro, cliente_id, clienti(denominazione))')
+                    .select('*, fornitori(nome), commesse(titolo_lavoro, indirizzo_cantiere, cliente_id, clienti(denominazione))')
                     .order('creato_il', { ascending: false });
 
                 if (error) throw error;
@@ -1274,8 +1288,9 @@
                 ordiniFiltrati = ordiniFiltrati.filter(o => {
                     const clienteNome = o.commesse?.clienti?.denominazione || '';
                     const commessaTitolo = o.commesse?.titolo_lavoro || '';
+                    const cantiere = o.commesse?.indirizzo_cantiere || '';
                     const prodotto = o.prodotto || '';
-                    const testoCompleto = `${clienteNome} ${commessaTitolo} ${prodotto}`.toLowerCase();
+                    const testoCompleto = `${clienteNome} ${commessaTitolo} ${cantiere} ${prodotto}`.toLowerCase();
                     
                     return parole.every(p => testoCompleto.includes(p));
                 });
@@ -1299,7 +1314,6 @@
                     dataArrivoLeggibile = ` | Consegna: <span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
                 }
 
-                // 🌟 VEDI PDF BEN VISIBILE ANCHE DA CANTIERE
                 let btnPdfHtml = '';
                 if (o.file_path_supabase) {
                     const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
@@ -1310,6 +1324,7 @@
 
                 const clienteNome = o.commesse?.clienti?.denominazione || 'Cliente N/D';
                 const commessaTitolo = o.commesse?.titolo_lavoro || 'Commessa N/D';
+                const cantiereIndirizzo = o.commesse?.indirizzo_cantiere || 'Cantiere N/D';
 
                 const badgeStyle = {
                     'ORDINE': 'bg-blue-50 text-blue-700 border-blue-200',
@@ -1332,7 +1347,10 @@
                         <div class="text-[11px] font-bold text-slate-900 truncate">
                             👤 ${clienteNome} - <span class="text-blue-600">🚪 ${commessaTitolo}</span>
                         </div>
-                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                        <div class="text-[10px] text-slate-500 font-medium truncate">
+                            📍 Cantiere: ${cantiereIndirizzo}
+                        </div>
+                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1 mt-0.5">
                             <span class="px-1.5 py-0.2 text-[9px] font-bold rounded border ${badgeStyle}">${badgeLabel}</span>
                             <strong class="text-slate-800">🏢 ${o.fornitori?.nome || 'N/D'}</strong> 
                             <span class="text-slate-500">(${o.prodotto})</span>
@@ -1413,29 +1431,41 @@
                 }]);
 
                 if (error) throw error;
+
+                // Registra prima nota nello storico diario
+                await db.from('status_diario_attivita').insert([{
+                    commessa_id: targetCommessaId,
+                    data_attivita: dataInvio,
+                    macro_fase: 'ORDINI_FORNITORI',
+                    sub_stato: 'INVIO_ORDINE',
+                    nota: `📦 Inserito Ordine Fornitura (${prodotto}). ${note ? 'Note: ' + note : ''}`
+                }]);
+
                 alert("✅ Ordine fornitura registrato con successo!");
                 closeNewOrderModal();
                 initOrdersTabScreen();
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        // 🌟 GESTIONE APERTURA MODAL AVANZAMENTO / MODIFICA STATO FORNITURA CON VISIONE PDF
-        function apriModalAvanzamentoOrdine(ordineId) {
+        // 🌟 APERTURA MODAL AVANZAMENTO STATO E DIARIO STORICO FORNITURA
+        async function apriModalAvanzamentoOrdine(ordineId) {
             const ordine = rawGlobalOrders.find(o => o.id === ordineId);
             if (!ordine) return;
 
             document.getElementById('modalAdvOrdineId').value = ordine.id;
             document.getElementById('modalAdvClienteNome').innerText = ordine.commesse?.clienti?.denominazione || 'Cliente N/D';
             document.getElementById('modalAdvCommessaTitolo').innerText = ordine.commesse?.titolo_lavoro || 'Commessa N/D';
+            document.getElementById('modalAdvCantiereIndirizzo').innerText = ordine.commesse?.indirizzo_cantiere || 'Cantiere N/D';
             document.getElementById('modalAdvFornitoreEProdotto').innerText = `${ordine.fornitori?.nome || 'N/D'} (${ordine.prodotto})`;
 
-            document.getElementById('modalAdvDataInvio').value = ordine.data_invio || new Date().toISOString().split('T')[0];
+            // Campo data invio VUOTO di default per inserire la nuova data
+            document.getElementById('modalAdvDataInvio').value = "";
             document.getElementById('modalAdvDataArrivo').value = ordine.data_presunta_arrivo || "";
-            document.getElementById('modalAdvNote').value = ordine.annotazioni || "";
+            document.getElementById('modalAdvNote').value = "";
             document.getElementById('modalAdvNomeFileText').classList.add('hidden');
             temporaryOrderFileObj = null;
 
-            // VISIONE PDF ATTUALE DIRETTAMENTE DAL MODAL
+            // Visione PDF Attivo
             const currentPdfBox = document.getElementById('modalAdvCurrentPdfBox');
             if (ordine.file_path_supabase) {
                 const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(ordine.file_path_supabase);
@@ -1451,7 +1481,44 @@
             }
 
             setModalTypeDoc(ordine.tipo_documento || 'CONFERMA');
+
+            // Carica Diario Storico passaggi di questa commessa/fornitore
+            await caricaDiarioStoricoFornitura(ordine.commessa_id, ordine.prodotto);
+
             document.getElementById('ordineAvanzamentoModal').classList.remove('hidden');
+        }
+
+        async function caricaDiarioStoricoFornitura(commessaId, prodottoTerm) {
+            const container = document.getElementById('modalAdvDiarioTimeline');
+            if (!container) return; container.innerHTML = `<p class="text-slate-400 italic">⏳ Caricamento storico...</p>`;
+
+            try {
+                const { data, error } = await db.from('status_diario_attivita')
+                    .select('*')
+                    .eq('commessa_id', commessaId)
+                    .eq('macro_fase', 'ORDINI_FORNITORI')
+                    .order('creato_il', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-slate-400 italic">Nessun passaggio storico ancora registrato.</p>`;
+                    return;
+                }
+
+                container.innerHTML = data.map(rec => {
+                    const dParti = rec.data_attivita.split('-');
+                    const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
+                    return `
+                        <div class="border-b border-slate-200 pb-1">
+                            <span class="font-bold text-slate-700">[${dataLeggibile}]</span> 
+                            <span class="font-semibold text-blue-600">${rec.sub_stato || 'ORDINE'}</span>: 
+                            <span class="text-slate-600">${rec.nota || 'Nessuna nota'}</span>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch(err) { container.innerHTML = `<p class="text-red-500">Errore caricamento storico</p>`; }
         }
 
         function closeOrdineAvanzamentoModal() {
@@ -1483,11 +1550,11 @@
             } else if (tipo === 'PARZIALE') {
                 btnParziale.className = "py-2 px-2 border rounded-xl bg-purple-600 text-white font-bold shadow";
                 boxDataArrivo.classList.remove('opacity-40');
-                if (lblPdf) lblPdf.innerText = "Allegato PDF BDC / Bolla Parziale:";
+                if (lblPdf) lblPdf.innerText = "Allegato PDF Bolla / Arrivo Parziale:";
             } else if (tipo === 'MERCE_ARRIVATA') {
                 btnArrivata.className = "py-2 px-2 border rounded-xl bg-green-600 text-white font-bold shadow";
                 boxDataArrivo.classList.remove('opacity-40');
-                if (lblPdf) lblPdf.innerText = "Allegato PDF Bolla / Documento:";
+                if (lblPdf) lblPdf.innerText = "Allegato PDF Bolla Completa:";
             }
         }
 
@@ -1497,6 +1564,11 @@
             const dataInvio = document.getElementById('modalAdvDataInvio').value;
             const dataArrivo = document.getElementById('modalAdvDataArrivo').value;
             const note = document.getElementById('modalAdvNote').value.trim();
+
+            if (!dataInvio) {
+                alert("Per favore inserisci la Data Invio Doc relativa a questo passaggio!");
+                return;
+            }
 
             const ordineOriginale = rawGlobalOrders.find(o => o.id === id);
             let percorsoStoragePdf = ordineOriginale?.file_path_supabase || null;
@@ -1521,12 +1593,28 @@
                     tipo_documento: tipoDoc,
                     data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
-                    annotazioni: note,
+                    annotazioni: note || ordineOriginale.annotazioni,
                     file_path_supabase: percorsoStoragePdf
                 }).eq('id', id);
+
+                // Registra passaggio nel diario della commessa
+                const mappaSottofasi = {
+                    'MODIFICA': 'MODIFICA_CONFERMA',
+                    'CONFERMA': 'INVIO_CONFERMA',
+                    'PARZIALE': 'MERCE_ARRIVATA',
+                    'MERCE_ARRIVATA': 'MERCE_ARRIVATA'
+                };
+
+                await db.from('status_diario_attivita').insert([{
+                    commessa_id: ordineOriginale.commessa_id,
+                    data_attivita: dataInvio,
+                    macro_fase: 'ORDINI_FORNITORI',
+                    sub_stato: mappaSottofasi[tipoDoc] || 'INVIO_CONFERMA',
+                    nota: `Aggiornamento stato fornitura [${tipoDoc}] (${ordineOriginale.prodotto}). ${note ? 'Note: ' + note : ''}`
+                }]);
                 
                 closeOrdineAvanzamentoModal();
-                alert("🟢 Stato della fornitura aggiornato con successo!");
+                alert("🟢 Stato della fornitura e Diario aggiornati con successo!");
                 await fetchClienti();
                 initOrdersTabScreen();
             } catch(err) { alert(err.message); }
@@ -1806,7 +1894,7 @@
                     if (err3) throw err3;
                     
                     const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
-                    if (error) throw error;
+                    if (err2) throw err2;
                     
                     alert("🗑️ Cantiere rimosso.");
                     await fetchClienti(); renderClientHub(); 
