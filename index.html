@@ -296,7 +296,7 @@
         </div>
     </div>
 
-    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON DIARIO STORICO E INDIRIZZO CANTIERE) -->
+    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON DIARIO E ORDINE INIZIALE GARANTITO) -->
     <div id="ordineAvanzamentoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
@@ -354,7 +354,7 @@
                 </div>
                 <div id="modalAdvNomeFileText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
 
-                <!-- 📜 DIARIO STORICO ATTIVITÀ RIFERITO ALLA FORNITURA -->
+                <!-- 📜 DIARIO STORICO ATTIVITÀ RIFERITO ALLA FORNITURA CON ORDINE INIZIALE GARANTITO -->
                 <div class="border-t pt-2 space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">📝 Storico Passaggi Fornitura:</label>
                     <div id="modalAdvDiarioTimeline" class="max-h-28 overflow-y-auto space-y-1 bg-slate-50 p-2 rounded-xl border text-[11px]">
@@ -625,7 +625,6 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        // CONTROLLO AUTOMATICO ALLERTE E POSA
         function calcolaAllertETextCommessa(com) {
             let macro = com.stato_macro || 'PRIMO_CONTATTO';
             let sub = com.preventivo_stato;
@@ -1432,7 +1431,7 @@
 
                 if (error) throw error;
 
-                // Registra prima nota nello storico diario
+                // Registra prima nota nello storico diario per l'ordine iniziale
                 await db.from('status_diario_attivita').insert([{
                     commessa_id: targetCommessaId,
                     data_attivita: dataInvio,
@@ -1447,7 +1446,7 @@
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        // 🌟 APERTURA MODAL AVANZAMENTO STATO E DIARIO STORICO FORNITURA
+        // 🌟 APERTURA MODAL AVANZAMENTO STATO E CARICAMENTO STORICO COMPLETO (INCLUSO ORDINE INIZIALE)
         async function apriModalAvanzamentoOrdine(ordineId) {
             const ordine = rawGlobalOrders.find(o => o.id === ordineId);
             if (!ordine) return;
@@ -1458,7 +1457,7 @@
             document.getElementById('modalAdvCantiereIndirizzo').innerText = ordine.commesse?.indirizzo_cantiere || 'Cantiere N/D';
             document.getElementById('modalAdvFornitoreEProdotto').innerText = `${ordine.fornitori?.nome || 'N/D'} (${ordine.prodotto})`;
 
-            // Campo data invio VUOTO di default per inserire la nuova data
+            // Campo data invio VUOTO di default per inserire la nuova data del passaggio
             document.getElementById('modalAdvDataInvio').value = "";
             document.getElementById('modalAdvDataArrivo').value = ordine.data_presunta_arrivo || "";
             document.getElementById('modalAdvNote').value = "";
@@ -1482,43 +1481,66 @@
 
             setModalTypeDoc(ordine.tipo_documento || 'CONFERMA');
 
-            // Carica Diario Storico passaggi di questa commessa/fornitore
-            await caricaDiarioStoricoFornitura(ordine.commessa_id, ordine.prodotto);
+            // Carica Diario Storico passaggi GARANTENDO L'ORDINE INIZIALE
+            await caricaDiarioStoricoFornitura(ordine);
 
             document.getElementById('ordineAvanzamentoModal').classList.remove('hidden');
         }
 
-        async function caricaDiarioStoricoFornitura(commessaId, prodottoTerm) {
+        async function caricaDiarioStoricoFornitura(ordine) {
             const container = document.getElementById('modalAdvDiarioTimeline');
             if (!container) return; container.innerHTML = `<p class="text-slate-400 italic">⏳ Caricamento storico...</p>`;
 
             try {
                 const { data, error } = await db.from('status_diario_attivita')
                     .select('*')
-                    .eq('commessa_id', commessaId)
+                    .eq('commessa_id', ordine.commessa_id)
                     .eq('macro_fase', 'ORDINI_FORNITORI')
                     .order('creato_il', { ascending: false });
 
                 if (error) throw error;
 
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-slate-400 italic">Nessun passaggio storico ancora registrato.</p>`;
+                let elencoPassaggi = data || [];
+
+                // 🌟 VERIFICA PRESENZA ORDINE INIZIALE: se non presente nei log, lo iniettiamo dinamicamente dai dati nativi dell'ordine
+                const haPrimoOrdineLog = elencoPassaggi.some(p => p.sub_stato === 'INVIO_ORDINE' || p.nota.includes('Inserito Ordine Fornitura'));
+                
+                if (!haPrimoOrdineLog && ordine.data_invio) {
+                    elencoPassaggi.push({
+                        data_attivita: ordine.data_invio,
+                        sub_stato: 'INVIO_ORDINE',
+                        nota: `📦 Inserito Ordine Fornitura (${ordine.prodotto}).`
+                    });
+                }
+
+                if (elencoPassaggi.length === 0) {
+                    container.innerHTML = `<p class="text-slate-400 italic">Nessun passaggio storico registrato.</p>`;
                     return;
                 }
 
-                container.innerHTML = data.map(rec => {
+                // Ordina per data per visualizzare prima l'ordine iniziale e poi i passaggi
+                elencoPassaggi.sort((a,b) => new Date(a.data_attivita) - new Date(b.data_attivita));
+
+                container.innerHTML = elencoPassaggi.map(rec => {
                     const dParti = rec.data_attivita.split('-');
                     const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
+                    
+                    let etichettaStato = rec.sub_stato || 'PASSAGGIO';
+                    if (rec.sub_stato === 'INVIO_ORDINE') etichettaStato = 'ORDINE INVIATO';
+                    else if (rec.sub_stato === 'MODIFICA_CONFERMA') etichettaStato = 'Da MODIFICARE';
+                    else if (rec.sub_stato === 'INVIO_CONFERMA') etichettaStato = 'CONFERMA D\'ORDINE';
+                    else if (rec.sub_stato === 'MERCE_ARRIVATA') etichettaStato = 'RICEVIMENTO MERCE';
+
                     return `
-                        <div class="border-b border-slate-200 pb-1">
+                        <div class="border-b border-slate-200 pb-1 pt-0.5">
                             <span class="font-bold text-slate-700">[${dataLeggibile}]</span> 
-                            <span class="font-semibold text-blue-600">${rec.sub_stato || 'ORDINE'}</span>: 
+                            <span class="font-bold text-blue-600">${etichettaStato}</span>: 
                             <span class="text-slate-600">${rec.nota || 'Nessuna nota'}</span>
                         </div>
                     `;
                 }).join('');
 
-            } catch(err) { container.innerHTML = `<p class="text-red-500">Errore caricamento storico</p>`; }
+            } catch(err) { container.innerHTML = `<p class="text-red-500">Errore caricamento storico: ${err.message}</p>`; }
         }
 
         function closeOrdineAvanzamentoModal() {
@@ -1894,7 +1916,7 @@
                     if (err3) throw err3;
                     
                     const { error } = await db.from('commesse').delete().eq('id', commessaIdDaEliminare);
-                    if (err2) throw err2;
+                    if (error) throw error;
                     
                     alert("🗑️ Cantiere rimosso.");
                     await fetchClienti(); renderClientHub(); 
