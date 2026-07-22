@@ -296,7 +296,7 @@
         </div>
     </div>
 
-    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON DIARIO E ORDINE INIZIALE GARANTITO) -->
+    <!-- MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA -->
     <div id="ordineAvanzamentoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
@@ -625,15 +625,23 @@
             return mb.toFixed(1) + ' MB';
         }
 
-        function calcolaAllertETextCommessa(com) {
+        // HELPER PER RECUPERARE LO STATO MACRO/SUB REALE DAL DIARIO STORICO
+        function getCommessaCurrentState(com) {
             let macro = com.stato_macro || 'PRIMO_CONTATTO';
-            let sub = com.preventivo_stato;
-
+            let sub = com.preventivo_stato || '';
             if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
                 const ord = [...com.status_diario_attivita].sort((a,b) => new Date(b.creato_il) - new Date(a.creato_il));
                 macro = ord[0].macro_fase || 'PRIMO_CONTATTO';
-                sub = ord[0].sub_stato || com.preventivo_stato;
+                sub = ord[0].sub_stato || com.preventivo_stato || '';
             }
+            return { macro, sub };
+        }
+
+        // CONTROLLO AUTOMATICO ALLERTE E POSA
+        function calcolaAllertETextCommessa(com) {
+            const state = getCommessaCurrentState(com);
+            let macro = state.macro;
+            let sub = state.sub;
 
             const ordiniCommessa = rawGlobalOrders.filter(o => o.commessa_id === com.id);
             if (ordiniCommessa.length > 0) {
@@ -795,6 +803,7 @@
             } catch (err) { console.error(err); }
         }
 
+        // 🌟 CONTEGGI E BADGE RIALLINEATI CORRETTAMENTE AI DIARI REALI
         function aggiornaBadgeEConteggiFasi() {
             const fasiConAlert = {
                 'PREVENTIVAZIONE': false,
@@ -820,7 +829,8 @@
                 const fasiTrovatePerCliente = new Set();
 
                 c.commesse.forEach(com => {
-                    let macro = com.stato_macro || 'PRIMO_CONTATTO';
+                    const state = getCommessaCurrentState(com);
+                    const macro = state.macro;
                     fasiTrovatePerCliente.add(macro);
 
                     const alertInfo = calcolaAllertETextCommessa(com);
@@ -928,11 +938,8 @@
                 allClients.forEach(c => {
                     if (!c.commesse) return;
                     c.commesse.forEach(com => {
-                        let faseReale = com.stato_macro || 'PRIMO_CONTATTO';
-                        if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                            const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
-                            faseReale = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
-                        }
+                        const state = getCommessaCurrentState(com);
+                        let faseReale = state.macro;
 
                         if (faseReale === activeFilter) {
                             const matchTerm = term.length === 0 || 
@@ -1006,11 +1013,8 @@
             if (!cliente.commesse || cliente.commesse.length === 0) { listContainer.innerHTML = `<p class="text-xs p-4 text-slate-400">Nessuna commessa attiva.</p>`; return; }
             
             cliente.commesse.forEach(com => {
-                let faseRealeRegistrata = com.stato_macro || 'PRIMO_CONTATTO';
-                if (com.status_diario_attivita && com.status_diario_attivita.length > 0) {
-                    const ordinato = [...com.status_diario_attivita].sort((a, b) => new Date(b.creato_il) - new Date(a.creato_il));
-                    faseRealeRegistrata = ordinato[0].macro_fase || 'PRIMO_CONTATTO';
-                }
+                const state = getCommessaCurrentState(com);
+                let faseRealeRegistrata = state.macro;
 
                 const alertData = calcolaAllertETextCommessa(com);
                 let htmlAlertBadge = '';
@@ -1431,7 +1435,6 @@
 
                 if (error) throw error;
 
-                // Registra prima nota nello storico diario per l'ordine iniziale
                 await db.from('status_diario_attivita').insert([{
                     commessa_id: targetCommessaId,
                     data_attivita: dataInvio,
@@ -1446,7 +1449,6 @@
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        // 🌟 APERTURA MODAL AVANZAMENTO STATO E CARICAMENTO STORICO COMPLETO (INCLUSO ORDINE INIZIALE)
         async function apriModalAvanzamentoOrdine(ordineId) {
             const ordine = rawGlobalOrders.find(o => o.id === ordineId);
             if (!ordine) return;
@@ -1457,14 +1459,12 @@
             document.getElementById('modalAdvCantiereIndirizzo').innerText = ordine.commesse?.indirizzo_cantiere || 'Cantiere N/D';
             document.getElementById('modalAdvFornitoreEProdotto').innerText = `${ordine.fornitori?.nome || 'N/D'} (${ordine.prodotto})`;
 
-            // Campo data invio VUOTO di default per inserire la nuova data del passaggio
             document.getElementById('modalAdvDataInvio').value = "";
             document.getElementById('modalAdvDataArrivo').value = ordine.data_presunta_arrivo || "";
             document.getElementById('modalAdvNote').value = "";
             document.getElementById('modalAdvNomeFileText').classList.add('hidden');
             temporaryOrderFileObj = null;
 
-            // Visione PDF Attivo
             const currentPdfBox = document.getElementById('modalAdvCurrentPdfBox');
             if (ordine.file_path_supabase) {
                 const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(ordine.file_path_supabase);
@@ -1481,7 +1481,6 @@
 
             setModalTypeDoc(ordine.tipo_documento || 'CONFERMA');
 
-            // Carica Diario Storico passaggi GARANTENDO L'ORDINE INIZIALE
             await caricaDiarioStoricoFornitura(ordine);
 
             document.getElementById('ordineAvanzamentoModal').classList.remove('hidden');
@@ -1502,7 +1501,6 @@
 
                 let elencoPassaggi = data || [];
 
-                // 🌟 VERIFICA PRESENZA ORDINE INIZIALE: se non presente nei log, lo iniettiamo dinamicamente dai dati nativi dell'ordine
                 const haPrimoOrdineLog = elencoPassaggi.some(p => p.sub_stato === 'INVIO_ORDINE' || p.nota.includes('Inserito Ordine Fornitura'));
                 
                 if (!haPrimoOrdineLog && ordine.data_invio) {
@@ -1518,7 +1516,6 @@
                     return;
                 }
 
-                // Ordina per data per visualizzare prima l'ordine iniziale e poi i passaggi
                 elencoPassaggi.sort((a,b) => new Date(a.data_attivita) - new Date(b.data_attivita));
 
                 container.innerHTML = elencoPassaggi.map(rec => {
@@ -1619,7 +1616,6 @@
                     file_path_supabase: percorsoStoragePdf
                 }).eq('id', id);
 
-                // Registra passaggio nel diario della commessa
                 const mappaSottofasi = {
                     'MODIFICA': 'MODIFICA_CONFERMA',
                     'CONFERMA': 'INVIO_CONFERMA',
