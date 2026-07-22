@@ -188,7 +188,7 @@
         
         <div class="space-y-2">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per eliminarla)</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📝 Diario Lavorazione Global (Fai 3 clic veloci sopra una nota per modificarla)</h3>
             </div>
             <div id="diarioTimeline" class="space-y-2"></div>
         </div>
@@ -354,7 +354,7 @@
                 </div>
                 <div id="modalAdvNomeFileText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
 
-                <!-- 📜 DIARIO STORICO ATTIVITÀ RIFERITO ALLA FORNITURA CON ORDINE INIZIALE GARANTITO -->
+                <!-- 📜 DIARIO STORICO ATTIVITÀ RIFERITO ALLA FORNITURA -->
                 <div class="border-t pt-2 space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">📝 Storico Passaggi Fornitura:</label>
                     <div id="modalAdvDiarioTimeline" class="max-h-28 overflow-y-auto space-y-1 bg-slate-50 p-2 rounded-xl border text-[11px]">
@@ -381,6 +381,42 @@
                         💾 Salva Stato
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 MODAL DEDICATO ALLA MODIFICA O CANCELLAZIONE DELLA NOTA DEL DIARIO -->
+    <div id="editDiarioNotaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-3 text-xs">
+            <div class="border-b pb-2 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-900 uppercase text-blue-600">✏️ Modifica Nota Diario</h3>
+                <button onclick="closeEditDiarioNotaModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+            </div>
+            
+            <input type="hidden" id="modalDiarioNotaId">
+
+            <div>
+                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">📅 Data Attività</label>
+                <input type="date" id="modalDiarioDataInput" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold text-slate-800">
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">👤 Operatore Incaricato</label>
+                <select id="modalDiarioWorkerSelect" class="w-full p-2 border rounded-xl bg-slate-50 font-semibold text-slate-800"></select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">📝 Testo Nota / Annotazione</label>
+                <textarea id="modalDiarioNotaTextInput" rows="3" class="w-full p-2.5 border rounded-xl bg-slate-50 font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="pt-1 space-y-2">
+                <button onclick="salvaModificaNotaDiarioServer()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition-colors">
+                    💾 Salva Modifiche Nota
+                </button>
+                <button onclick="eliminaNotaDiarioPulsanteModal()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2 rounded-xl font-bold text-xs transition-colors">
+                    🗑️ Elimina Questa Nota
+                </button>
             </div>
         </div>
     </div>
@@ -637,13 +673,11 @@
             return { macro, sub };
         }
 
-        // 🌟 AGGIORNATA LOGICA FLUSSO ALERT DALLA MISURA/CONTRATTO ALLA FATTURA DI ACCONTO
         function calcolaAllertETextCommessa(com) {
             const state = getCommessaCurrentState(com);
             let macro = state.macro;
             let sub = state.sub;
 
-            // 1. REGOLA POSA AUTOMATICA: Se la commessa ha ordini e TUTTI sono "MERCE_ARRIVATA"
             const ordiniCommessa = rawGlobalOrders.filter(o => o.commessa_id === com.id);
             if (ordiniCommessa.length > 0) {
                 const tuttiArrivati = ordiniCommessa.every(o => o.tipo_documento === 'MERCE_ARRIVATA');
@@ -652,12 +686,10 @@
                 }
             }
 
-            // 2. CONTRATTO FIRMATO / FATTURA DA FARE -> "INVIARE FATT. ACCONTO" (GIALLO)
             if ((macro === 'MISURE_ESECUTIVE' && sub === 'FIRMATO_CONFERMATO') || (macro === 'FATTURA_ACCONTO' && sub === 'FATTURA_DA_MAKE')) {
                 return { haAlert: false, testoAlert: 'INVIARE FATT. ACCONTO', classe: 'bg-amber-100 text-amber-800 border-amber-300' };
             }
 
-            // 3. ACCONTO PAGATO -> "INVIARE ORDINI / CONFERME" (VERDE)
             if (macro === 'FATTURA_ACCONTO' && (sub === 'PAGATA' || sub === 'PAGATA_FIN')) {
                 return { haAlert: false, testoAlert: 'INVIARE ORDINI / CONFERME', classe: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
             }
@@ -779,7 +811,7 @@
         }
 
         function populateSelects() {
-            const sels = ['workerContattoSelect', 'workerAssegnatoSelect'];
+            const sels = ['workerContattoSelect', 'workerAssegnatoSelect', 'modalDiarioWorkerSelect'];
             sels.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<option value="">-- Seleziona Operatore --</option>` + listLavoratori.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
@@ -1657,6 +1689,90 @@
             } catch(err) { alert(err.message); }
         }
 
+        // 🌟 FUNZIONI DEDICATE ALLA MODIFICA ED ELIMINAZIONE DELLE NOTE DEL DIARIO GLOBAL
+        async function apriModalModificaNotaDiario(idNota, dataAttuale, operatoreIdAttuale, notaTestoAttuale) {
+            document.getElementById('modalDiarioNotaId').value = idNota;
+            document.getElementById('modalDiarioDataInput').value = dataAttuale || "";
+            document.getElementById('modalDiarioNotaTextInput').value = notaTestoAttuale === "Nessuna" ? "" : notaTestoAttuale;
+
+            // Popola l'operatore selezionato
+            const opSelect = document.getElementById('modalDiarioWorkerSelect');
+            if (opSelect) opSelect.value = operatoreIdAttuale || "";
+
+            document.getElementById('editDiarioNotaModal').classList.remove('hidden');
+        }
+
+        function closeEditDiarioNotaModal() {
+            document.getElementById('editDiarioNotaModal').classList.add('hidden');
+        }
+
+        async function salvaModificaNotaDiarioServer() {
+            const id = document.getElementById('modalDiarioNotaId').value;
+            const nuovaData = document.getElementById('modalDiarioDataInput').value;
+            const nuovoOperatore = document.getElementById('modalDiarioWorkerSelect').value;
+            const nuovoTesto = document.getElementById('modalDiarioNotaTextInput').value.trim();
+
+            if (!nuovaData) {
+                alert("Per favore seleziona una data valida!");
+                return;
+            }
+
+            try {
+                const { error } = await db.from('status_diario_attivita').update({
+                    data_attivita: nuovaData,
+                    operatore_id: nuovoOperatore === "" ? null : nuovoOperatore,
+                    nota: nuovoTesto || "Nessuna annotazione."
+                }).eq('id', id);
+
+                if (error) throw error;
+
+                closeEditDiarioNotaModal();
+                alert("🟢 Nota del diario aggiornata correttamente!");
+                await fetchClienti();
+                openCommessaWorkspace(currentCommessaId);
+            } catch(err) { alert("Errore aggiornamento nota: " + err.message); }
+        }
+
+        function eliminaNotaDiarioPulsanteModal() {
+            const id = document.getElementById('modalDiarioNotaId').value;
+            closeEditDiarioNotaModal();
+            requestDeleteNoteGlobalRelazionale(id, "Cancellazione da Modifica Nota");
+        }
+
+        function renderDiarioTimelineInterfaccia(arrayRecord) {
+            const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
+            if(arrayRecord.length === 0) {
+                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
+                return;
+            }
+
+            arrayRecord.forEach(rec => {
+                const r = document.createElement('div'); 
+                r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors text-left hover:border-blue-300";
+                
+                const dParti = rec.data_attivita.split('-');
+                const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
+                const nomeOperatore = rec.lavoratori?.nome || 'Nessuno';
+                
+                let etichettaSottofase = rec.sub_stato;
+                const setOpzioni = subStatiOpzioni[rec.macro_fase] || [];
+                const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
+                if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
+
+                const tagAllertaLabel = rec.giorni_allerta ? ` [Allerta: ${rec.giorni_allerta} gg]` : '';
+
+                r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
+                
+                // 🌟 SCORCIATOIA 3 CLIC VELOCI: APRE LA MODIFICA INVECE DI DARE SUBITO ERRORE / ELIMINAZIONE
+                r.onclick = (e) => {
+                    if (e.detail === 3) {
+                        apriModalModificaNotaDiario(rec.id, rec.data_attivita, rec.operatore_id, rec.nota || "");
+                    }
+                };
+                container.appendChild(r);
+            });
+        }
+
         async function salvaFornitoreInImpostazioni() {
             const nome = document.getElementById('newFornitoreNome').value.trim();
             const prodotti = document.getElementById('newFornitoreProdotti').value.trim();
@@ -1822,39 +1938,6 @@
                 openCommessaWorkspace(currentCommessaId); 
                 
             } catch(err) { alert("Errore tecnico: " + err.message); }
-        }
-
-        function renderDiarioTimelineInterfaccia(arrayRecord) {
-            const container = document.getElementById('diarioTimeline'); if(!container) return; container.innerHTML = "";
-            if(arrayRecord.length === 0) {
-                container.innerHTML = `<p class="text-xs p-3 text-slate-400 italic">Nessuna attività registrata nello storico.</p>`;
-                return;
-            }
-
-            arrayRecord.forEach(rec => {
-                const r = document.createElement('div'); 
-                r.className = "bg-white p-3 rounded-xl border text-xs mt-1 text-slate-700 shadow-sm leading-relaxed font-medium cursor-pointer select-none active:bg-slate-50 transition-colors text-left";
-                
-                const dParti = rec.data_attivita.split('-');
-                const dataLeggibile = `${dParti[2]}/${dParti[1]}/${dParti[0]}`;
-                const nomeOperatore = rec.lavoratori?.nome || 'Nessuno';
-                
-                let etichettaSottofase = rec.sub_stato;
-                const setOpzioni = subStatiOpzioni[rec.macro_fase] || [];
-                const opzioneTrovata = setOpzioni.find(o => o.val === rec.sub_stato);
-                if (opzioneTrovata) etichettaSottofase = opzioneTrovata.label;
-
-                const tagAllertaLabel = rec.giorni_allerta ? ` [Allerta: ${rec.giorni_allerta} gg]` : '';
-
-                r.innerText = `[${dataLeggibile}]${tagAllertaLabel} - Fase: ${rec.macro_fase} (${etichettaSottofase}) | Incaricato: ${nomeOperatore} | Nota: ${rec.nota || 'Nessuna'}`;
-                
-                r.onclick = (e) => {
-                    if (e.detail === 3) {
-                        requestDeleteNoteGlobalRelazionale(rec.id, r.innerText);
-                    }
-                };
-                container.appendChild(r);
-            });
         }
 
         function requestDeleteNoteGlobalRelazionale(idRecordDiario, stringaTesto) {
