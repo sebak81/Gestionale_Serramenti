@@ -207,21 +207,13 @@
             </button>
         </div>
 
-        <!-- FILTRO DINAMICO FORNITORI COMPATTO IN RIGA UNICA CON FRECCE E SCROLL -->
+        <!-- FILTRO DINAMICO FORNITORI -->
         <div class="space-y-1">
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">Filtra per Fornitore:</label>
             <div class="relative flex items-center bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
-                <button onclick="scrollFornitoriLeft()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
-                    ◀
-                </button>
-                
-                <div id="containerFiltriFornitori" class="flex flex-nowrap space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 flex-1">
-                    <!-- Generato Dinamicamente -->
-                </div>
-
-                <button onclick="scrollFornitoriRight()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">
-                    ▶
-                </button>
+                <button onclick="scrollFornitoriLeft()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">◀</button>
+                <div id="containerFiltriFornitori" class="flex flex-nowrap space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 flex-1"></div>
+                <button onclick="scrollFornitoriRight()" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0 font-bold text-xs">▶</button>
             </div>
         </div>
 
@@ -246,7 +238,7 @@
         </div>
     </main>
 
-    <!-- MODAL REGISTRAZIONE NUOVA FORNITURA CON SELEZIONE DINAMICA CLIENTE/CANTIERE -->
+    <!-- MODAL REGISTRAZIONE NUOVA FORNITURA -->
     <div id="newOrderModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
@@ -255,7 +247,6 @@
             </div>
             
             <div class="space-y-2 text-xs">
-                <!-- COMPILAZIONE DINAMICA CANTIERE / CLIENTE -->
                 <div class="space-y-1.5 bg-sky-50/60 p-2.5 rounded-xl border border-sky-100">
                     <label class="block font-bold text-sky-900 text-[10px] uppercase tracking-wider">1. Cerca e Seleziona Cantiere *</label>
                     <div class="relative">
@@ -263,10 +254,7 @@
                                class="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500">
                         <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
                     </div>
-
-                    <select id="ordineTargetCommessaSelect" size="3" class="w-full p-1.5 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 text-xs">
-                        <!-- Popolato dinamicamente -->
-                    </select>
+                    <select id="ordineTargetCommessaSelect" size="3" class="w-full p-1.5 border rounded-lg bg-white border-slate-300 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 text-xs"></select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -280,15 +268,9 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc *</label>
-                        <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-medium">
-                    </div>
-                    <div id="boxDataArrivoPresunta">
-                        <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
-                        <input type="date" id="ordineDataArrivoInput" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-medium">
-                    </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Ordine *</label>
+                    <input type="date" id="ordineDataInvioInput" class="w-full p-2 border rounded-lg bg-slate-50 border-slate-300 text-slate-800 font-medium">
                 </div>
 
                 <div>
@@ -297,7 +279,7 @@
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
-                    <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine/Conferma:</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">Allegato PDF Ordine:</div>
                     <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors">
                         📎 Carica PDF
                         <input type="file" id="fileOrdinePdfInput" accept=".pdf" class="hidden">
@@ -308,7 +290,81 @@
                 <div class="flex space-x-2 pt-2">
                     <button onclick="closeNewOrderModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Annulla</button>
                     <button onclick="salvaNuovoOrdineFornitoreRelazionale()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-bold text-xs transition-colors shadow">
-                        💾 Salva Fornitura
+                        💾 Salva Ordine
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 MODAL UNIVERSALE AGGIORNAMENTO STATO FORNITURA (CON SUPPORTO COMPLETO ALLEGATO PDF) -->
+    <div id="ordineAvanzamentoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="border-b border-slate-200 pb-2 flex justify-between items-center">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-blue-600">🔄 Aggiorna Stato Fornitura</h3>
+                <button onclick="closeOrdineAvanzamentoModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+            </div>
+            
+            <input type="hidden" id="modalAdvOrdineId">
+            <input type="hidden" id="modalAdvSelectedType" value="CONFERMA">
+
+            <div class="bg-slate-50 p-2.5 rounded-xl border text-xs space-y-1">
+                <div>👤 <strong id="modalAdvClienteNome">Cliente</strong></div>
+                <div>🚪 <span id="modalAdvCommessaTitolo" class="text-blue-600 font-semibold">Commessa</span></div>
+                <div>🏢 <span id="modalAdvFornitoreEProdotto" class="font-bold text-slate-800">Fornitore (Prodotto)</span></div>
+                <!-- Box visione veloce PDF Esistente in Cantiere -->
+                <div id="modalAdvCurrentPdfBox" class="pt-1 hidden"></div>
+            </div>
+
+            <!-- SELETTORI AZIONE RAPIDA -->
+            <div>
+                <label class="block font-bold text-slate-700 text-[10px] uppercase mb-1">Seleziona Stato Attuale:</label>
+                <div class="grid grid-cols-2 gap-1.5 text-[11px] font-bold">
+                    <button type="button" id="btnTypeModifica" onclick="setModalTypeDoc('MODIFICA')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-amber-100">
+                        ✏️ Da MODIFICARE
+                    </button>
+                    <button type="button" id="btnTypeConferma" onclick="setModalTypeDoc('CONFERMA')" class="py-2 px-2 border rounded-xl bg-blue-600 text-white shadow">
+                        ✍️ CONFERMA D'ORDINE
+                    </button>
+                    <button type="button" id="btnTypeParziale" onclick="setModalTypeDoc('PARZIALE')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-purple-100">
+                        📦 ARRIVO PARZIALE
+                    </button>
+                    <button type="button" id="btnTypeArrivata" onclick="setModalTypeDoc('MERCE_ARRIVATA')" class="py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-green-100">
+                        ✅ MERCE ARRIVATA
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs pt-1">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 text-[10px] mb-1">Data Invio Doc</label>
+                        <input type="date" id="modalAdvDataInvio" class="w-full p-2 border rounded-lg bg-slate-50 font-medium">
+                    </div>
+                    <div id="modalAdvBoxDataArrivo">
+                        <label class="block font-bold text-amber-700 text-[10px] mb-1">Data Presunta Arrivo 📅</label>
+                        <input type="date" id="modalAdvDataArrivo" class="w-full p-2 border rounded-lg bg-white border-amber-300 font-bold text-amber-900">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 text-[10px] mb-1">Annotazioni / Dettagli Stato</label>
+                    <input type="text" id="modalAdvNote" placeholder="Aggiungi note aggiornate..." class="w-full p-2 border rounded-lg bg-slate-50 text-slate-800">
+                </div>
+
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div id="modalAdvPdfLabel" class="text-[10px] text-slate-600 font-semibold">Allegato PDF Documento:</div>
+                    <label class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow cursor-pointer transition-colors shrink-0">
+                        📎 Carica PDF
+                        <input type="file" id="modalAdvFilePdfInput" accept=".pdf" class="hidden">
+                    </label>
+                </div>
+                <div id="modalAdvNomeFileText" class="text-[10px] text-green-600 font-bold italic hidden"></div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="closeOrdineAvanzamentoModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Annulla</button>
+                    <button onclick="salvaAvanzamentoOrdinePost()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-bold text-xs transition-colors shadow">
+                        💾 Salva Stato
                     </button>
                 </div>
             </div>
@@ -382,25 +438,27 @@
         </div>
     </nav>
 
-    <!-- MODAL EDIT DATA ARRIVO MERCE -->
-    <div id="ordineEditDataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-xl space-y-4">
-            <h3 class="text-sm font-bold text-slate-900 border-b pb-2 uppercase tracking-wider text-blue-600">📅 Aggiorna Dati Fornitura</h3>
-            <input type="hidden" id="modalEditOrdineId">
+    <!-- MODAL EDIT ANAGRAFICA -->
+    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
             <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nuova Data Presunta Arrivo:</label>
-                    <input type="date" id="modalEditOrdineDataArrivo" class="w-full p-2 border rounded-xl bg-slate-50 font-bold">
+                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">COGNOME e NOME / RAG. SOCIALE *</label>
+                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Aggiorna Annotazioni:</label>
-                    <input type="text" id="modalEditOrdineNote" class="w-full p-2 border rounded-xl bg-slate-50">
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
                 </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+                </div>
+                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label><textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea></div>
             </div>
-            <div class="flex space-x-2 pt-1 text-xs font-bold">
-                <button onclick="closeOrdineEditDataModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
-                <button onclick="salvaModificaDataOrdinePost()" class="flex-1 py-2 bg-green-600 text-white rounded-lg shadow">Salva</button>
-            </div>
+            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
         </div>
     </div>
 
@@ -439,30 +497,6 @@
                 </div>
             </div>
             <div class="flex space-x-3 pt-2"><button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Annulla</button><button id="btnSaveCliente" onclick="saveCliente()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold text-xs shadow">Salva Cliente</button></div>
-        </div>
-    </div>
-
-    <!-- MODAL EDIT ANAGRAFICA -->
-    <div id="anagraficaModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-base font-bold text-slate-900 uppercase">Modifica Anagrafica</h3><button onclick="closeAnagraficaModal()" class="text-slate-400">✕</button></div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">COGNOME e NOME / RAG. SOCIALE *</label>
-                    <input type="text" id="editDenominazione" class="w-full p-2 border rounded-lg bg-slate-50 font-semibold">
-                </div>
-                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Indirizzo di Fatturazione</label><input type="text" id="editIndirizzo" class="w-full p-2 border rounded-lg bg-slate-50"></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Telefono</label><input type="text" id="editTelefono" class="w-full p-2 border rounded-lg bg-slate-50"></div>
-                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Email</label><input type="email" id="editEmail" class="w-full p-2 border rounded-lg bg-slate-50"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Partita IVA</label><input type="text" id="editPartitaIva" class="w-full p-2 border rounded-lg bg-slate-50"></div>
-                    <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Codice Fiscale</label><input type="text" id="editCodiceFiscale" class="w-full p-2 border rounded-lg bg-slate-50"></div>
-                </div>
-                <div><label class="block font-bold text-slate-900 uppercase tracking-wider mb-1 text-[10px]">Note Generali</label><textarea id="editNote" rows="2" class="w-full p-2 rounded-lg bg-slate-50"></textarea></div>
-            </div>
-            <div class="flex space-x-3 pt-2"><button onclick="closeAnagraficaModal()" class="flex-1 py-2 bg-slate-100 rounded text-xs font-bold text-slate-700">Chiudi</button><button id="btnUpdateAnagrafica" onclick="updateAnagrafica()" class="flex-1 py-2 bg-green-600 text-white rounded text-xs font-bold shadow">Aggiorna Anagrafica</button></div>
         </div>
     </div>
 
@@ -577,6 +611,7 @@
             return mb.toFixed(1) + ' MB';
         }
 
+        // CONTROLLO AUTOMATICO ALLERTE E POSA
         function calcolaAllertETextCommessa(com) {
             let macro = com.stato_macro || 'PRIMO_CONTATTO';
             let sub = com.preventivo_stato;
@@ -587,7 +622,14 @@
                 sub = ord[0].sub_stato || com.preventivo_stato;
             }
 
-            // Regola speciale richiesta: "Contratto Firmato" fa sempre apparire la scritta visibile
+            const ordiniCommessa = rawGlobalOrders.filter(o => o.commessa_id === com.id);
+            if (ordiniCommessa.length > 0) {
+                const tuttiArrivati = ordiniCommessa.every(o => o.tipo_documento === 'MERCE_ARRIVATA');
+                if (tuttiArrivati) {
+                    return { haAlert: true, testoAlert: 'DA ORGANIZZARE POSA', classe: 'bg-green-100 text-green-800 border-green-300' };
+                }
+            }
+
             if (macro === 'MISURE_ESECUTIVE' && sub === 'FIRMATO_CONFERMATO') {
                 return { haAlert: false, testoAlert: 'INVIARE ORDINI / CONFERME', classe: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
             }
@@ -730,6 +772,7 @@
 
         async function fetchClienti() {
             try {
+                await fetchGlobalOrdersData(); 
                 const { data, error } = await db.from('clienti').select('*, commesse(*, status_diario_attivita(*))').order('denominazione', { ascending: true });
                 if (error) throw error;
                 allClients = data || [];
@@ -1059,7 +1102,7 @@
             navigateTo('detail');
         }
 
-        // 🌟 GESTIONE SCHERMATA E MODAL ORDINI
+        // GESTIONE SCHERMATA ORDINI
         async function initOrdersTabScreen() {
             await fetchGlobalOrdersData();
             renderFiltriFornitoriDinamici();
@@ -1075,7 +1118,6 @@
 
             const oggi = new Date().toISOString().split('T')[0];
             document.getElementById('ordineDataInvioInput').value = oggi;
-            document.getElementById('ordineDataArrivoInput').value = "";
 
             filterModalOrderTargetCommesse(); 
             document.getElementById('newOrderModal').classList.remove('hidden');
@@ -1251,38 +1293,60 @@
                 const fParti = o.data_invio.split('-');
                 const dataInvioLeggibile = `${fParti[2]}/${fParti[1]}/${fParti[0]}`;
 
-                let dataArrivoLeggibile = "<span class='text-slate-400'>Non comunicata</span>";
-                if (o.data_presunta_arrivo) {
+                let dataArrivoLeggibile = "";
+                if (o.tipo_documento !== 'ORDINE' && o.data_presunta_arrivo) {
                     const arrParti = o.data_presunta_arrivo.split('-');
-                    dataArrivoLeggibile = `<span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
+                    dataArrivoLeggibile = ` | Consegna: <span class='text-blue-600 font-bold'>${arrParti[2]}/${arrParti[1]}/${arrParti[0]}</span>`;
                 }
 
+                // 🌟 VEDI PDF BEN VISIBILE ANCHE DA CANTIERE
                 let btnPdfHtml = '';
                 if (o.file_path_supabase) {
                     const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(o.file_path_supabase);
-                    btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="text-blue-600 font-bold underline ml-1">Vedi PDF</a>`;
+                    btnPdfHtml = `<a href="${publicUrl}" target="_blank" class="inline-flex items-center space-x-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg font-bold text-[10px] ml-1 transition-colors">
+                        <span>📎</span> <span>Vedi PDF</span>
+                    </a>`;
                 }
 
                 const clienteNome = o.commesse?.clienti?.denominazione || 'Cliente N/D';
                 const commessaTitolo = o.commesse?.titolo_lavoro || 'Commessa N/D';
 
+                const badgeStyle = {
+                    'ORDINE': 'bg-blue-50 text-blue-700 border-blue-200',
+                    'MODIFICA': 'bg-amber-50 text-amber-700 border-amber-200',
+                    'CONFERMA': 'bg-purple-50 text-purple-700 border-purple-200',
+                    'PARZIALE': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                    'MERCE_ARRIVATA': 'bg-green-50 text-green-700 border-green-200'
+                }[o.tipo_documento] || 'bg-slate-100 text-slate-700';
+
+                const badgeLabel = {
+                    'ORDINE': 'ORDINE INVIATO',
+                    'MODIFICA': 'Da MODIFICARE',
+                    'CONFERMA': 'CONFERMATO',
+                    'PARZIALE': 'ARRIVO PARZIALE',
+                    'MERCE_ARRIVATA': 'MERCE ARRIVATA'
+                }[o.tipo_documento] || o.tipo_documento;
+
                 row.innerHTML = `
-                    <div class="flex-1 min-w-0 text-left">
+                    <div class="flex-1 min-w-0 text-left space-y-1">
                         <div class="text-[11px] font-bold text-slate-900 truncate">
                             👤 ${clienteNome} - <span class="text-blue-600">🚪 ${commessaTitolo}</span>
                         </div>
-                        <div class="flex items-center space-x-1 mt-1">
-                            <span class="px-1.5 py-0.2 bg-slate-100 text-[9px] font-bold rounded text-slate-700 border">${o.tipo_documento}</span>
+                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                            <span class="px-1.5 py-0.2 text-[9px] font-bold rounded border ${badgeStyle}">${badgeLabel}</span>
                             <strong class="text-slate-800">🏢 ${o.fornitori?.nome || 'N/D'}</strong> 
                             <span class="text-slate-500">(${o.prodotto})</span>
                         </div>
-                        <div class="text-slate-600 mt-1 text-[11px]">
-                            Invio: ${dataInvioLeggibile} | Consegna: ${dataArrivoLeggibile} ${btnPdfHtml}
+                        <div class="text-slate-600 text-[11px] flex items-center flex-wrap gap-1">
+                            <span>Invio: ${dataInvioLeggibile}${dataArrivoLeggibile}</span>
+                            ${btnPdfHtml}
                         </div>
                         ${o.annotazioni ? `<div class="text-[10px] text-slate-400 italic mt-0.5">Note: ${o.annotazioni}</div>` : ''}
                     </div>
                     <div class="flex space-x-1 shrink-0">
-                        <button onclick="apriModalModificaDataOrdinePost('${o.id}', '${o.data_presunta_arrivo || ''}', '${escapeHtml(o.annotazioni)}')" class="p-2 bg-slate-50 text-slate-600 rounded-xl border">✏️</button>
+                        <button onclick="apriModalAvanzamentoOrdine('${o.id}')" class="px-2.5 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl border border-blue-200 font-bold flex items-center space-x-1">
+                            <span>🔄</span> <span>Gestisci</span>
+                        </button>
                         <button onclick="eliminaOrdineFornitoreRelazionale('${o.id}', '${o.file_path_supabase || ''}')" class="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100 font-bold">✕</button>
                     </div>
                 `;
@@ -1299,6 +1363,15 @@
                 textEl.innerText = `📄 Selezionato: ${file.name} (${formattaPeso(file.size)})`;
                 textEl.classList.remove('hidden');
             });
+
+            document.getElementById('modalAdvFilePdfInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                temporaryOrderFileObj = file;
+                const textEl = document.getElementById('modalAdvNomeFileText');
+                textEl.innerText = `📄 Selezionato: ${file.name} (${formattaPeso(file.size)})`;
+                textEl.classList.remove('hidden');
+            });
         }, 1000);
 
         async function salvaNuovoOrdineFornitoreRelazionale() {
@@ -1306,7 +1379,6 @@
             const fornitoreId = document.getElementById('ordineFornitoreSelect').value;
             const prodotto = document.getElementById('ordineProdottoInput').value.trim();
             const dataInvio = document.getElementById('ordineDataInvioInput').value;
-            const dataArrivo = document.getElementById('ordineDataArrivoInput').value;
             const note = document.getElementById('ordineNoteInput').value.trim();
             
             if (!targetCommessaId) { alert("Seleziona una commessa/cantiere target!"); return; }
@@ -1333,41 +1405,129 @@
                     commessa_id: targetCommessaId,
                     fornitore_id: fornitoreId,
                     prodotto: prodotto,
-                    tipo_documento: 'CONFERMA',
+                    tipo_documento: 'ORDINE',
                     data_invio: dataInvio,
-                    data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
+                    data_presunta_arrivo: null,
                     annotazioni: note,
                     file_path_supabase: percorsoStoragePdf
                 }]);
 
                 if (error) throw error;
-                alert("✅ Fornitura inserita con successo!");
+                alert("✅ Ordine fornitura registrato con successo!");
                 closeNewOrderModal();
                 initOrdersTabScreen();
             } catch(err) { alert("Errore inserimento database: " + err.message); }
         }
 
-        function apriModalModificaDataOrdinePost(ordineId, dataArrivoAttuale, noteAttuali) {
-            document.getElementById('modalEditOrdineId').value = ordineId;
-            document.getElementById('modalEditOrdineDataArrivo').value = dataArrivoAttuale;
-            document.getElementById('modalEditOrdineNote').value = noteAttuali === "undefined" || noteAttuali === "null" ? "" : noteAttuali;
-            document.getElementById('ordineEditDataModal').classList.remove('hidden');
+        // 🌟 GESTIONE APERTURA MODAL AVANZAMENTO / MODIFICA STATO FORNITURA CON VISIONE PDF
+        function apriModalAvanzamentoOrdine(ordineId) {
+            const ordine = rawGlobalOrders.find(o => o.id === ordineId);
+            if (!ordine) return;
+
+            document.getElementById('modalAdvOrdineId').value = ordine.id;
+            document.getElementById('modalAdvClienteNome').innerText = ordine.commesse?.clienti?.denominazione || 'Cliente N/D';
+            document.getElementById('modalAdvCommessaTitolo').innerText = ordine.commesse?.titolo_lavoro || 'Commessa N/D';
+            document.getElementById('modalAdvFornitoreEProdotto').innerText = `${ordine.fornitori?.nome || 'N/D'} (${ordine.prodotto})`;
+
+            document.getElementById('modalAdvDataInvio').value = ordine.data_invio || new Date().toISOString().split('T')[0];
+            document.getElementById('modalAdvDataArrivo').value = ordine.data_presunta_arrivo || "";
+            document.getElementById('modalAdvNote').value = ordine.annotazioni || "";
+            document.getElementById('modalAdvNomeFileText').classList.add('hidden');
+            temporaryOrderFileObj = null;
+
+            // VISIONE PDF ATTUALE DIRETTAMENTE DAL MODAL
+            const currentPdfBox = document.getElementById('modalAdvCurrentPdfBox');
+            if (ordine.file_path_supabase) {
+                const { data: { publicUrl } } = db.storage.from('documenti').getPublicUrl(ordine.file_path_supabase);
+                currentPdfBox.innerHTML = `
+                    <a href="${publicUrl}" target="_blank" class="inline-flex items-center space-x-1 bg-blue-600 text-white font-bold text-[11px] px-3 py-1 rounded-lg shadow hover:bg-blue-700 transition-colors">
+                        <span>📄</span> <span>Apri PDF Attivo</span>
+                    </a>
+                `;
+                currentPdfBox.classList.remove('hidden');
+            } else {
+                currentPdfBox.innerHTML = "";
+                currentPdfBox.classList.add('hidden');
+            }
+
+            setModalTypeDoc(ordine.tipo_documento || 'CONFERMA');
+            document.getElementById('ordineAvanzamentoModal').classList.remove('hidden');
         }
-        function closeOrdineEditDataModal() { document.getElementById('ordineEditDataModal').classList.add('hidden'); }
-        
-        async function salvaModificaDataOrdinePost() {
-            const id = document.getElementById('modalEditOrdineId').value;
-            const dataArrivo = document.getElementById('modalEditOrdineDataArrivo').value;
-            const note = document.getElementById('modalEditOrdineNote').value.trim();
+
+        function closeOrdineAvanzamentoModal() {
+            document.getElementById('ordineAvanzamentoModal').classList.add('hidden');
+        }
+
+        function setModalTypeDoc(tipo) {
+            document.getElementById('modalAdvSelectedType').value = tipo;
+            const boxDataArrivo = document.getElementById('modalAdvBoxDataArrivo');
+            const lblPdf = document.getElementById('modalAdvPdfLabel');
+
+            const btnModifica = document.getElementById('btnTypeModifica');
+            const btnConferma = document.getElementById('btnTypeConferma');
+            const btnParziale = document.getElementById('btnTypeParziale');
+            const btnArrivata = document.getElementById('btnTypeArrivata');
+
+            [btnModifica, btnConferma, btnParziale, btnArrivata].forEach(btn => {
+                btn.className = "py-2 px-2 border rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all";
+            });
+
+            if (tipo === 'MODIFICA') {
+                btnModifica.className = "py-2 px-2 border rounded-xl bg-amber-500 text-white font-bold shadow";
+                boxDataArrivo.classList.add('opacity-40');
+                if (lblPdf) lblPdf.innerText = "Allegato PDF Modifica / Revisione:";
+            } else if (tipo === 'CONFERMA') {
+                btnConferma.className = "py-2 px-2 border rounded-xl bg-blue-600 text-white font-bold shadow";
+                boxDataArrivo.classList.remove('opacity-40');
+                if (lblPdf) lblPdf.innerText = "Allegato PDF Conferma d'Ordine:";
+            } else if (tipo === 'PARZIALE') {
+                btnParziale.className = "py-2 px-2 border rounded-xl bg-purple-600 text-white font-bold shadow";
+                boxDataArrivo.classList.remove('opacity-40');
+                if (lblPdf) lblPdf.innerText = "Allegato PDF BDC / Bolla Parziale:";
+            } else if (tipo === 'MERCE_ARRIVATA') {
+                btnArrivata.className = "py-2 px-2 border rounded-xl bg-green-600 text-white font-bold shadow";
+                boxDataArrivo.classList.remove('opacity-40');
+                if (lblPdf) lblPdf.innerText = "Allegato PDF Bolla / Documento:";
+            }
+        }
+
+        async function salvaAvanzamentoOrdinePost() {
+            const id = document.getElementById('modalAdvOrdineId').value;
+            const tipoDoc = document.getElementById('modalAdvSelectedType').value;
+            const dataInvio = document.getElementById('modalAdvDataInvio').value;
+            const dataArrivo = document.getElementById('modalAdvDataArrivo').value;
+            const note = document.getElementById('modalAdvNote').value.trim();
+
+            const ordineOriginale = rawGlobalOrders.find(o => o.id === id);
+            let percorsoStoragePdf = ordineOriginale?.file_path_supabase || null;
+
+            if (temporaryOrderFileObj) {
+                try {
+                    const nomeSanificato = temporaryOrderFileObj.name
+                        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-zA-Z0-9.\-_ ]/g, "").replace(/\s+/g, "_");
+
+                    percorsoStoragePdf = `${ordineOriginale.commessa_id}/ordini_${Date.now()}_${nomeSanificato}`;
+                    const { error: errStorage } = await db.storage.from('documenti').upload(percorsoStoragePdf, temporaryOrderFileObj);
+                    if (errStorage) throw errStorage;
+                } catch(err) {
+                    alert("Errore caricamento PDF: " + err.message);
+                    return;
+                }
+            }
 
             try {
                 await db.from('ordini_fornitori').update({
+                    tipo_documento: tipoDoc,
+                    data_invio: dataInvio,
                     data_presunta_arrivo: dataArrivo === "" ? null : dataArrivo,
-                    annotazioni: note
+                    annotazioni: note,
+                    file_path_supabase: percorsoStoragePdf
                 }).eq('id', id);
                 
-                closeOrdineEditDataModal();
-                alert("🟢 Informazioni consegna aggiornate con successo!");
+                closeOrdineAvanzamentoModal();
+                alert("🟢 Stato della fornitura aggiornato con successo!");
+                await fetchClienti();
                 initOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
@@ -1380,6 +1540,7 @@
                 }
                 await db.from('ordini_fornitori').delete().eq('id', id);
                 alert("🟢 Fornitura rimossa.");
+                await fetchClienti();
                 initOrdersTabScreen();
             } catch(err) { alert(err.message); }
         }
@@ -1831,7 +1992,6 @@
             }
         }
 
-        // SUPPORTO MOUSE WHEEL SUI FORNITORI DA PC
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('containerFiltriFornitori');
             if (container) {
